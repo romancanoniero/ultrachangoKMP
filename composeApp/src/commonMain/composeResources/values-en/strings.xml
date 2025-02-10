@@ -1,0 +1,23 @@
+<resources>
+    <string name="continuar">Continue</string>
+    <string name="correo_electronico">email</string>
+    <string name="back_to_login">Back to Login</string>
+    <string name="hello_there">Hello there</string>
+    <string name="create_an_account">Create an Account</string>
+    <string name="first_name">Name</string>
+    <string name="last_name">Last name</string>
+    <string name="email_or_phone_number">Apellido</string>
+    <string name="identification_method">Identification Method (email or phone)</string>
+    <string name="already_have_an_account">Already have a n account?</string>
+    <string name="login_here">Login here</string>
+    <string name="or_register_with">Or register with</string>
+    <string name="or_login_with">Or Login with</string>
+    <string name="lets_registrate">Registrate</string>
+    <string name="gender_male">Male</string>
+    <string name="gender_female">Female</string>
+    <string name="gender_other">Other</string>
+    <string name="product_not_found">Product not found</string>
+    <string name="products">products</string>
+    <string name="no_products">no products</string>
+
+</resources>

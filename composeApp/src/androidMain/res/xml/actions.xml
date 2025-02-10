@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<actions xmlns:android="http://schemas.android.com/apk/res/android">
+   <!--
+    <action android:name="com.example.ultrachangoKMP.ADD_TO_SHOPPING_LIST">
+        <fulfillment
+            android:requiredEntity="product"
+            android:fulfillmentType="actions.intent.FULFILLMENT_TYPE_CUSTOM">
+            <parameter
+                android:name="product"
+                android:entitySetReference="com.example.ultrachangoKMP.product"/>
+        </fulfillment>
+    </action>
+    -->
+</actions>

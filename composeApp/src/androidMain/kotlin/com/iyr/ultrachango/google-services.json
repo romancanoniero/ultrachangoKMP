@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1077576417175",
+    "project_id": "ultrachango-23d46",
+    "storage_bucket": "ultrachango-23d46.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1077576417175:android:fb6b276fc563beb4fe8ed2",
+        "android_client_info": {
+          "package_name": "com.iyr.ultrachango"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDauycmAcLD-0Tbmo0_KgpDvlKKTV-k4sI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

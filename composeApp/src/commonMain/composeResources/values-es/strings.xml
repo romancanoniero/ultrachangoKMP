@@ -1,0 +1,23 @@
+<resources>
+    <string name="continuar">Continuar</string>
+    <string name="correo_electronico">correo electronico</string>
+    <string name="back_to_login">Volver al Ingreso</string>
+    <string name="hello_there">Hola</string>
+    <string name="create_an_account">Crea una Cuenta</string>
+    <string name="first_name">Nombre</string>
+    <string name="last_name">Apellido</string>
+    <string name="email_or_phone_number">Correo Electronico o Telefono</string>
+    <string name="identification_method">Metodo de Identification (Correo o Telefono)</string>
+    <string name="already_have_an_account">Identification Method (email or phone)</string>
+    <string name="login_here">Ingresa aqui</string>
+    <string name="or_register_with">O registrate con</string>
+    <string name="or_login_with">O ingresa con</string>
+    <string name="lets_registrate">Registrate</string>
+    <string name="gender_male">Masculino</string>
+    <string name="gender_female">Femenino</string>
+    <string name="gender_other">Otro</string>
+    <string name="products">productos</string>
+    <string name="no_products">sin productos</string>
+    <string name="PRODUCT_DOES_NOT_EXIST">Producto no encontrado</string>
+
+</resources>
