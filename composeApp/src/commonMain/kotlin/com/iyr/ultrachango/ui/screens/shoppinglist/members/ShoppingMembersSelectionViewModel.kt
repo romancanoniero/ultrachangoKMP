@@ -40,7 +40,7 @@ class ShoppingMembersSelectionViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val userKey: String = userViewModel.user.value?.id.toString()
+                val userKey: String = userViewModel.user.value?.uid.toString()
                 //        val call = familyMembersRepository.getList(userKey).collect() {
 
                 val call = shoppingListRepository.getMembers(listId, userKey).collect {

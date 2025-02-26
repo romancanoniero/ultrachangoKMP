@@ -29,11 +29,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.iyr.ultrachango.data.models.FamilyMember
 import com.iyr.ultrachango.data.models.RecordType
 import com.iyr.ultrachango.data.models.UserAsFamilyMember
 import com.iyr.ultrachango.ui.ScaffoldViewModel
+import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
+import com.iyr.ultrachango.ui.screens.qrscanner.QRTypes
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
 import com.iyr.ultrachango.utils.helpers.getProfileImageURL
@@ -47,7 +50,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun MembersScreen(
     listId: Int? = null,
-    appNavController: NavHostController,
+    navController: NavHostController,
     scaffoldVM: ScaffoldViewModel,
     vm: MembersScreenViewModel = koinViewModel(),
     userViewModel: UserViewModel = koinViewModel()
@@ -67,7 +70,7 @@ fun MembersScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .background(Color.White)
+
     )
     {
 
@@ -121,6 +124,9 @@ fun MembersScreen(
 
                 onClick = {
                     // Handle button click
+                    navController.navigate(RootRoutes.SharingRoute.createRoute(QRTypes.FAMILY_MEMBER,
+                        vm.getUserKey()
+                    ))
                 },
                 content = {
                     Text(

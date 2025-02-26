@@ -2,8 +2,8 @@ package com.iyr.ultrachango.ui.screens.shoppinglist.edition
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.Constants.PRODUCT_DOES_NOT_EXIST
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+import com.iyr.ultrachango.auth.AuthRepository
+
 import com.iyr.ultrachango.data.database.repositories.ProductsRepository
 import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
 import com.iyr.ultrachango.data.models.Product
@@ -30,15 +30,12 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.stringResource
 import org.koin.core.component.KoinComponent
-import ultrachango2.composeapp.generated.resources.Res
-import ultrachango2.composeapp.generated.resources.product_not_found
 
 
 class ShoppingListAddEditViewModel(
     private val userKey: String,
-    private val authRepository: AuthRepositoryImpl,
+    private val authRepository: AuthRepository,
     private val shoppingListId: Int,
     private val productsRepository: ProductsRepository,
     private val shoppingListRepository: ShoppingListRepository,

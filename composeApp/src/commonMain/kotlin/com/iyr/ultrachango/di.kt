@@ -1,7 +1,8 @@
 package com.iyr.ultrachango
 
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
-import com.iyr.ultrachango.auth.AuthViewModel
+
+import com.iyr.ultrachango.auth.AuthRepository
+import com.iyr.ultrachango.data.api.cloud.auth.CloudAuthService
 import com.iyr.ultrachango.data.api.cloud.familymembers.CloudFamilyMembersService
 import com.iyr.ultrachango.data.api.cloud.images.CloudImagesService
 import com.iyr.ultrachango.data.api.cloud.location.CloudLocationsService
@@ -27,15 +28,16 @@ import com.iyr.ultrachango.ui.screens.member.MembersScreenViewModel
 import com.iyr.ultrachango.ui.screens.setting.SettingScreen.SettingsScreenViewModel
 import com.iyr.ultrachango.ui.screens.setting.profile.ProfileViewModel
 import com.iyr.ultrachango.ui.screens.shoppinglist.edition.ShoppingListAddEditViewModel
+import com.iyr.ultrachango.viewmodels.InviteViewModel
 import com.iyr.ultrachango.ui.screens.shoppinglist.main.ShoppingListViewModel
 import com.iyr.ultrachango.ui.screens.shoppinglist.members.ShoppingMembersSelectionViewModel
+import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.SearchWithScannerViewModel
 import com.iyr.ultrachango.utils.ui.places.borrar.PlacesSearchService
 import com.iyr.ultrachango.utils.ui.places.borrar.PlacesSearchViewModel
 import com.iyr.ultrachango.viewmodels.UserViewModel
 import com.russhwolf.settings.Settings
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.auth.auth
+
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
@@ -77,14 +79,22 @@ val appModule = module {
     single<CloudUsersService> {
         CloudUsersService(
             client = get(),
-            settings = get()
+            settings = get(),
         )
     }
+
+    single<CloudAuthService> {
+        CloudAuthService(
+            client = get(),
+            settings = get(),
+        )
+    }
+
 
     single<CloudImagesService> {
         CloudImagesService(
             client = get(),
-            settings = get()
+            settings = get(),
         )
     }
 }
@@ -133,31 +143,37 @@ val dataModule = module {
         )
     }
 
+    single<FirebaseAuthRepository> {
+        FirebaseAuthRepository()
+    }
 
-    single<AuthRepositoryImpl> {
-        AuthRepositoryImpl(
-            auth = Firebase.auth,
+    single<AuthRepository> {
+        AuthRepository(
+            firebaseAuthRepository = get(),
             settings = get(),
             apiClient = get(),
+            apiAuth = get(),
             userRepository = get()
         )
     }
-
+/*
     factory {
         AuthViewModel(
             authRepository = get()
         )
     }
-
+*/
 
     factory {
         RegistrationProfileViewModel(
-            authService = get(),
+            authRepository = get(),
             scaffoldVM = get(),
             usersRepository = get(),
             imagesRepository = get()
         )
     }
+
+    factoryOf(::InviteViewModel)
 
     factory {
         PlacesSearchViewModel(
@@ -209,7 +225,7 @@ val viewModelsModule = module {
 
     viewModel {
         LoginViewModel(
-            authService = get(),
+            authRepository = get(),
             scaffoldVM = get()
         )
     }
@@ -223,7 +239,6 @@ val viewModelsModule = module {
 
     viewModel {
         HomeScreenViewModel(
-
             productsRepository = get(),
             shoppingListRepository = get(),
             userLocationsRepository = get(),

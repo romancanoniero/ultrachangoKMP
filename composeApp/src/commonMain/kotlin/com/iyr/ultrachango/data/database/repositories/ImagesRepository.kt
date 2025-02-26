@@ -1,14 +1,13 @@
 package com.iyr.ultrachango.data.database.repositories
 
-import androidx.compose.ui.graphics.ImageBitmap
-import coil3.Bitmap
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+
+import com.iyr.ultrachango.auth.AuthRepository
 import com.iyr.ultrachango.data.api.cloud.images.CloudImagesService
 import kotlinx.datetime.Clock
 
 
 class ImagesRepository(
-    private val authRepository: AuthRepositoryImpl,
+    private val authRepository: AuthRepository,
     private val imagesCloudService: CloudImagesService,
 ) {
 

@@ -11,7 +11,7 @@ import org.jetbrains.skia.Image
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
 
-actual class SharedImage(private val image: UIImage?) {
+actual class SharedImage(private val image: UIImage?, private val uri: String? = null) {
     @OptIn(ExperimentalForeignApi::class)
     actual fun toByteArray(): ByteArray? {
         val compressedImage = compressImage(image ?: return null)
@@ -41,6 +41,10 @@ actual class SharedImage(private val image: UIImage?) {
 
     private companion object {
         const val COMPRESSION_QUALITY = 0.99
+    }
+
+    actual fun getUri(): String? {
+        TODO("Not yet implemented")
     }
 
 }

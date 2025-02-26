@@ -1,17 +1,10 @@
 package com.iyr.ultrachango.data.database.repositories
 
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
-import com.iyr.ultrachango.data.api.cloud.location.CloudLocationsService
+import com.iyr.ultrachango.auth.AuthenticatedUser
 import com.iyr.ultrachango.data.api.cloud.users.CloudUsersService
 import com.iyr.ultrachango.data.models.User
-import com.iyr.ultrachango.viewmodels.UserViewModel
+import com.iyr.ultrachango.storeUserLocally
 import com.russhwolf.settings.Settings
-import com.russhwolf.settings.set
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.auth.auth
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 
 class UserRepositoryImpl(
@@ -24,7 +17,7 @@ class UserRepositoryImpl(
         return apiClient.getUser(userId)
     }
 
-    override suspend fun saveUser(user: User) {
+    override suspend fun saveUser(user: AuthenticatedUser) {
         try {
             apiClient.saveUser(user) // Envía al servidor
             //      localStorage.saveUser(user) // Guarda localmente
@@ -33,7 +26,7 @@ class UserRepositoryImpl(
         }
     }
 
-    override suspend fun updateUser(user: User, image: ByteArray?) {
+    override suspend fun updateUser(user: AuthenticatedUser, image: ByteArray?) {
         try {
             apiClient.updateUser(user, image) // Actualiza en el servidor
             settings.storeUserLocally(user)
@@ -43,25 +36,9 @@ class UserRepositoryImpl(
         }
         //    localStorage.saveUser(user) // Actualiza localmente
     }
-
-
-
-
-    override suspend fun storeUser(user: User) {
+    override suspend fun storeUser(user: AuthenticatedUser) {
         settings.storeUserLocally(user)
     }
-
-
-
-
-
 }
 
-fun Settings.storeUserLocally(user: User) {
-    var EntityAsJson = Json.encodeToString(user)
-    this.set("user", EntityAsJson);
-}
 
-fun Settings.getAuthToken(): String {
-    return this.getStringOrNull("auth_token").toString()
-}

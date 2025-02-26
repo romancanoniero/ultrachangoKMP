@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+import com.iyr.ultrachango.auth.AuthRepository
 import com.iyr.ultrachango.data.database.repositories.UserLocationsRepository
 import com.iyr.ultrachango.data.models.Location
 import com.iyr.ultrachango.ui.ScaffoldViewModel
@@ -25,7 +25,7 @@ class LocationsViewModel(
     private val userViewModel: UserViewModel,
     private val placesSearchService: PlacesSearchService,
     private val locationRepository: UserLocationsRepository,
-    private val   authRepository: AuthRepositoryImpl
+    private val   authRepository: AuthRepository
 ) : ViewModel(), KoinComponent {
 
 

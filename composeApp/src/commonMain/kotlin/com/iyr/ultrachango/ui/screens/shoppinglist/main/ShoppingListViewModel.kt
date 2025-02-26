@@ -2,7 +2,8 @@ package com.iyr.ultrachango.ui.screens.shoppinglist.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+import com.iyr.ultrachango.auth.AuthRepository
+
 import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
 import com.iyr.ultrachango.data.database.repositories.StoresRepository
 import com.iyr.ultrachango.data.models.ShoppingList
@@ -18,7 +19,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
 class ShoppingListViewModel(
-    private val authRepository: AuthRepositoryImpl,
+    private val authRepository: AuthRepository,
     private val shoppingListRepository: ShoppingListRepository,
 
     private val tiendasRepository: StoresRepository,
@@ -108,7 +109,7 @@ class ShoppingListViewModel(
 
     fun onRenameRequested(shoppingList: ShoppingList, newName: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val userKey = userViewModel.user.value?.id.toString()
+            val userKey = userViewModel.user.value?.uid.toString()
             shoppingListRepository.renameList(shoppingList.id, newName)
         }
     }
@@ -147,7 +148,7 @@ class ShoppingListViewModel(
     }
 
     fun onRefreshRequested() {
-        val userId = userViewModel.user.value?.id.toString()
+        val userId = userViewModel.user.value?.uid.toString()
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 fetchLists()

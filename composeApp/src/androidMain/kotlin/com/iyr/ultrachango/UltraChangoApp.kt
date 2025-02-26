@@ -1,11 +1,11 @@
 package com.iyr.ultrachango
 
+import AppContext
 import android.app.Application
 import android.content.Context
-import androidx.compose.ui.platform.LocalContext
+import com.google.firebase.FirebaseApp
+import com.iyr.ultrachango.utils.shared.firebase.FirebaseConfig
 import org.koin.android.ext.koin.androidContext
-import org.koin.android.ext.koin.androidLogger
-import org.koin.core.logger.Level
 
 class UltraChangoApp : Application() {
 
@@ -19,8 +19,10 @@ class UltraChangoApp : Application() {
         super.onCreate()
         contextProvider = this.baseContext
         AppContext.context = this
-     initKoin {
-         //   androidLogger(Level.DEBUG)
+
+        FirebaseApp.initializeApp(this)
+        initKoin {
+            //   androidLogger(Level.DEBUG)
             androidContext(this@UltraChangoApp)
         }
     }

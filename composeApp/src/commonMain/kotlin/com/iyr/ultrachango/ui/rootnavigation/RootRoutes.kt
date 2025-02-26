@@ -1,8 +1,12 @@
 package com.iyr.ultrachango.ui.rootnavigation
 
+import coil3.Uri
+import com.iyr.ultrachango.auth.AuthenticatedUser
 import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
+import com.iyr.ultrachango.ui.screens.qrscanner.QRTypes
+import com.iyr.ultrachango.utils.expect.URLEncoder
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -10,6 +14,16 @@ import kotlinx.serialization.json.encodeToJsonElement
 
 
 sealed class RootRoutes(val route: String) {
+
+
+    object SharingRoute : RootRoutes("sharing/{qrType}/{refererId}") {
+        fun createRoute(
+            qrType: QRTypes = QRTypes.USER,
+            refererId: String
+        ): String {
+            return "sharing/${qrType.name}/$refererId"
+        }
+    }
 
 
     object LandingRoute : RootRoutes("landing")
@@ -25,9 +39,10 @@ sealed class RootRoutes(val route: String) {
 
 
     object SetupProfileRoute : RootRoutes("setup_profile/{userAsJson}") {
-        fun createRoute(user: User? = null): String {
+        fun createRoute(user: AuthenticatedUser? = null): String {
             val userAsJson = Json.encodeToString(user)
-            return "setup_profile/$userAsJson"
+            val encoded = URLEncoder.encode(userAsJson)
+            return "setup_profile/$encoded"
         }
     }
 
@@ -49,8 +64,12 @@ sealed class RootRoutes(val route: String) {
     object ShoppingListAddRoute : RootRoutes("shoppinglistadd")
 
     object ShoppingListEditRoute : RootRoutes("shoppinglistedit/{userKey?}/{listId?}") {
-        fun createRoute(userKey: String? = null, shoppingListId: Int? = null): String {
-            return "shoppinglistedit/$userKey/$shoppingListId"
+        fun createRoute(
+            userKey: String? = null,
+            shoppingListId: Int? = null,
+            listName: String? = null
+        ): String {
+            return "shoppinglistedit/$userKey/$shoppingListId/$listName"
         }
     }
 
@@ -83,6 +102,8 @@ sealed class RootRoutes(val route: String) {
     object ShoppingListMembersRoute : RootRoutes("shopping_list_members/{listId}") {
         fun createRoute(listId: Int) = "shopping_list_members/$listId"
     }
+
+    object QRScannerScreenRoute : RootRoutes("shopping_list_membersqr_scanner")
 
 
     object FidelizationRoute : RootRoutes("fidelization")

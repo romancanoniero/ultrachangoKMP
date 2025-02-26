@@ -1,6 +1,7 @@
 package com.iyr.ultrachango.data.database.repositories
 
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+
+import com.iyr.ultrachango.auth.AuthRepository
 import com.iyr.ultrachango.data.api.cloud.products.CloudProductsService
 import com.iyr.ultrachango.data.api.preciosclaros.PreciosClarosService
 
@@ -14,7 +15,7 @@ import kotlinx.coroutines.flow.flow
 
 
 class ProductsRepository(
-    private val authRepository: AuthRepositoryImpl,
+    private val authRepository: AuthRepository,
     private val preciosClarosService: PreciosClarosService,
     private val productsCloudService: CloudProductsService,
 //    private val productsDao: ProductsDao,

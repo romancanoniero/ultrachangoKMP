@@ -5,7 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyr.ultrachango.Constants
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+import com.iyr.ultrachango.auth.AuthRepository
+import com.iyr.ultrachango.auth.AuthenticatedUser
+
 import com.iyr.ultrachango.data.database.repositories.ProductsRepository
 import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
 import com.iyr.ultrachango.data.database.repositories.UserLocationsRepository
@@ -16,6 +18,7 @@ import com.iyr.ultrachango.data.models.Product
 import com.iyr.ultrachango.data.models.ProductOnSearch
 import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.ShoppingListComplete
+import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
 import com.iyr.ultrachango.utils.coroutines.Resource
@@ -54,7 +57,7 @@ class HomeScreenViewModel(
     private val userLocationsRepository: UserLocationsRepository,
     private val shoppingListRepository: ShoppingListRepository,
     private val userViewModel: UserViewModel,
-    private val authRepositoryImpl: AuthRepositoryImpl,
+    private val authRepositoryImpl: AuthRepository,
     private val scaffoldVM: ScaffoldViewModel,
 ) : ViewModel(), KoinComponent {
 
@@ -332,18 +335,18 @@ class HomeScreenViewModel(
         viewModelScope.launch {
             val ean = _state.value.productToShow?.ean!!
             shoppingListRepository.addProductToList(
-                id = list.listId!!, ean = ean,  1
+                id = list.listId!!, ean = ean, 1
             )
         }
     }
 
     fun onFavButtonPressed(product: Product, favorite: Boolean) {
         viewModelScope.launch {
-            val userKey = userViewModel.user.value?.id.toString()
+            val userKey = userViewModel.user.value?.uid.toString()
             val ean = product.ean
 
             productsRepository.favoritesTogle(
-                 ean = ean, favorite = favorite
+                ean = ean, favorite = favorite
             )
         }
     }
@@ -380,7 +383,7 @@ class HomeScreenViewModel(
     }
 
     fun onBarcodeScanned(barcode: String) {
-        val userId = userViewModel.user.value?.id.toString()
+        val userId = userViewModel.user.value?.uid.toString()
 
         viewModelScope.launch {
             try {
@@ -433,6 +436,10 @@ class HomeScreenViewModel(
 
     fun getUserKey(): String {
         return authRepositoryImpl.getUserKey().toString()
+    }
+
+    fun getUser(): AuthenticatedUser {
+        return authRepositoryImpl.getCurrentUser()!!
     }
 
 
@@ -495,6 +502,8 @@ class HomeScreenViewModel(
 
 
     private suspend fun fetchLocations(requestRealLocation: Boolean) {
+
+        println("fetchLocations = " )
         val userKey = authRepositoryImpl.getUserKey()
         var deferredResults: List<Deferred<Any>> = emptyList()
 
@@ -528,7 +537,6 @@ class HomeScreenViewModel(
         }
 
         val responseConbined = ArrayList<Location>()
-
         val results = deferredResults.awaitAll()
         val userLocations = (results[0] as ArrayList<Location>)
 
@@ -537,19 +545,6 @@ class HomeScreenViewModel(
         if (requestRealLocation && results.size > 1) {
             val currentLocation = (results[1] as List).get(0)
             responseConbined.add(currentLocation)
-            /*
-                   if (currentLocation. != null) {
-                       val realLocation = currentLocation.apply {
-                           locationType = Locations.CURRENT_LOCATION
-                       }
-                       responseConbined.add(0, realLocation)
-
-
-                   } else {
-                       // esto es para caso en que no haya obtenido la ubicación
-                       //   onLocationObtained(null)
-                   }
-       */
         } else {
             if (permissionsController.value?.isPermissionGranted(Permission.LOCATION) ?: false == false) {
                 val enableLocationsServiceOption = Location(
@@ -692,11 +687,12 @@ class HomeScreenViewModel(
                 Locations.CURRENT_LOCATION -> {
                     val locationResult = fetchLocation()
 
-                     locationResult.getOrNull()?.let { it ->
-                         val location = it.toLocalLocation()
-                         val lat = it.coordinates.latitude
-                         val lng = it.coordinates.longitude
-                         response = Pair(location.latitude, location.longitude)}
+                    locationResult.getOrNull()?.let { it ->
+                        val location = it.toLocalLocation()
+                        val lat = it.coordinates.latitude
+                        val lng = it.coordinates.longitude
+                        response = Pair(location.latitude, location.longitude)
+                    }
 
 
                 }
@@ -733,20 +729,20 @@ class HomeScreenViewModel(
         onResults: (Resource<List<PriceInBranch>?>) -> Unit,
         onError: (String) -> Unit = {}
     ) {
-try {
-    val userKey = userViewModel.getUserKey()
-    val response = productsRepository.searchByBarCodeByLatLngCloud(
-        ean = ean,
-        latitude = -34.586050,
-        longitude = -58.504600,
-        onResults = { results ->
-            onResults(results)
-        }
-    )
+        try {
+            val userKey = userViewModel.getUserKey()
+            val response = productsRepository.searchByBarCodeByLatLngCloud(
+                ean = ean,
+                latitude = -34.586050,
+                longitude = -58.504600,
+                onResults = { results ->
+                    onResults(results)
+                }
+            )
 
-} catch (exception: Exception) {
-    onError(exception.message.toString())
-}
+        } catch (exception: Exception) {
+            onError(exception.message.toString())
+        }
     }
 
 

@@ -55,3 +55,11 @@ fun StyleTextBig() = TextStyle(
     fontWeight = FontWeight.Normal,
     color = Color.Black
 )
+
+@Composable
+fun StyleScreenTitle() = TextStyle(
+    fontFamily = SFProMediumFontFamily(),
+    fontSize = textSize24,
+    fontWeight = FontWeight.Bold,
+    color = Color.Black
+)

@@ -19,5 +19,9 @@
     <string name="products">productos</string>
     <string name="no_products">sin productos</string>
     <string name="PRODUCT_DOES_NOT_EXIST">Producto no encontrado</string>
+    <string name="shopping_lists">Lista de Compras</string>
+    <string name="invite">Invitar</string>
+    <string name="enter_otp_code">Ingresa el Codigo enviado a tu Telefono</string>
+
 
 </resources>

@@ -110,7 +110,7 @@ fun ItemListImageBox(
 
     Card(
         modifier =
-        Modifier
+        modifier
             .padding(vertical = 6.dp, horizontal = 8.dp)
             .width(80.dp)
             .height(80.dp),

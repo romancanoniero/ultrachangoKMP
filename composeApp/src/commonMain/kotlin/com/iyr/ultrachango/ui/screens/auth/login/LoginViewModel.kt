@@ -2,20 +2,14 @@ package com.iyr.ultrachango.ui.screens.auth.login
 
 import androidx.lifecycle.viewModelScope
 import com.iyr.ultrachango.auth.AuthRepository
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
 import com.iyr.ultrachango.utils.viewmodel.BaseViewModel
-import com.mmk.kmpauth.google.GoogleAuthCredentials
-import com.mmk.kmpauth.google.GoogleAuthProvider
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.app
-import dev.gitlive.firebase.auth.AuthCredential
-import dev.gitlive.firebase.auth.FirebaseAuth
-import dev.gitlive.firebase.auth.auth
+import kotlinx.coroutines.Dispatchers
 
 
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +20,7 @@ import org.koin.core.component.KoinComponent
 class LoginViewModel(
     //   private val authenticationRespository: ShoppingListRepository,
     //   private val userViewModel: UserViewModel,
-    private val authService: AuthRepositoryImpl,
+    private val authRepository: AuthRepository,
     private val scaffoldVM: ScaffoldViewModel,
 ) : BaseViewModel(), KoinComponent {
 
@@ -49,19 +43,18 @@ class LoginViewModel(
     val isAuthenticated = _isAuthenticated.asStateFlow()
 
 
-    init {
-/*
-        launchWithCatchingException {
-            authService.currentUser.collect {
-                _currentUser.value = it
-            }
-        }
-*/
+    init {/*
+                launchWithCatchingException {
+                    authService.currentUser.collect {
+                        _currentUser.value = it
+                    }
+                }
+        */
         //     var firebaseAuth = Firebase.auth(Firebase.initialize(AppContext.getContext()!!)!!).currentUser
 //val pepe = firebaseAuth?.displayName
         viewModelScope.launch {
 
-
+/*aca
             Firebase.auth.authStateChanged.collect() { user ->
                 if (user != null) {
                     // User is signed in
@@ -74,7 +67,7 @@ class LoginViewModel(
                     _isAuthenticated.value = false
                 }
             }
-
+*/
         }
     }
 
@@ -100,21 +93,35 @@ class LoginViewModel(
 
     fun onSignInClick() {
 
-        if (_uiState.value.emailOrPhoneNumber.isEmpty()) {
-            _emailError.value = true
-            return
-        }
-
-        if (_uiState.value.password.isEmpty()) {
-            _emailError.value = true
-            return
-        }
-
-        launchWithCatchingException {
-            _isProcessing.value = true
+//        _uiState.value.emailOrPhoneNumber.isEmail()
+        _isProcessing.value = true
+        viewModelScope.launch {
             //val result = authService.createUser(_uiState.value.email, _uiState.value.password)
-            authService.authenticate(_uiState.value.emailOrPhoneNumber, _uiState.value.password)
+            if (_uiState.value.emailOrPhoneNumber.isEmail()) {
+                val call = authRepository.signInWithEmail(
+                    _uiState.value.emailOrPhoneNumber,
+                    _uiState.value.password
+                )
+                _isAuthenticated.value = call?.success ?: false
+            } else {
+                authRepository.signInWithPhoneNumber(
+                    _uiState.value.emailOrPhoneNumber,
+                    onSuccess = {
+                        _isAuthenticated.value = it.success
+                    },
+                    onFailure = {
+                        _isAuthenticated.value = false
+                    },
+                    scope = this
+                )
+                _uiState.value = _uiState.value.copy(
+                    showOTP = true
+                )
+            }
+
             _isProcessing.value = false
+            //  _isAuthenticated.value = call?.success ?:false
+
         }
 
     }
@@ -130,29 +137,55 @@ class LoginViewModel(
             println(" cumpli!!!!!")
 
 
+            val accessToken =
+                "1077576417175-egmdo9fomdo9865csjbckdv6tqcldk0t.apps.googleusercontent.com"/*aca
+                        val authCredential =
+                            dev.gitlive.firebase.auth.GoogleAuthProvider.credential(idToken ?: "", accessToken)
 
-            val accessToken = "1077576417175-egmdo9fomdo9865csjbckdv6tqcldk0t.apps.googleusercontent.com"
+                        println("-1")
 
-            val authCredential =
-                dev.gitlive.firebase.auth.GoogleAuthProvider.credential(idToken ?: "", accessToken)
+                        val authResult = Firebase.auth.signInWithCredential(authCredential)
 
-            println("-1")
-
-            val authResult = Firebase.auth.signInWithCredential(authCredential)
-
-            println("-2")
+                        println("-2")
 
 
-            authService.saveSession(
-                userId = Firebase.auth.currentUser?.uid ?: "",
-                token = idToken ?: "",
-                userName = signedInUserName
-            )
-
+                        authService.saveSession(
+                            userId = Firebase.auth.currentUser?.uid ?: "",
+                            token = idToken ?: "",
+                            userName = signedInUserName
+                        )
+            */
             println("-3")
 
         }
 
+    }
+
+    fun onSignInWithGoogle() {
+        viewModelScope.launch(Dispatchers.Main) {
+            authRepository.signInWithGoogle(scope = this, onSuccess = { authResult ->
+                if (authResult.success) {
+                    authRepository.storeUser(authResult.user!!)
+                    // aca hay que asegurarse que los datos del usuario esten cargados.
+                    _isAuthenticated.value = true
+                }
+            }, onFailure = {
+                println("onFailure")
+            })
+        }
+
+    }
+
+    fun onOTPCodeEntered(code: String) {
+        authRepository.onOTPCodeEntered(code,
+            onSuccess = {
+                _isAuthenticated.value = it.success
+            },
+            onFailure = {
+                _isAuthenticated.value = false
+            },
+
+        )
     }
 
 
@@ -161,9 +194,10 @@ class LoginViewModel(
         val loading: Boolean = false,
         val errorMessage: String? = null,
         val showErrorMessage: Boolean = false,
-        val emailOrPhoneNumber: String = "",
+        val emailOrPhoneNumber: String = "+5491161274148",
         val password: String = "",
-        val authenticationMethod: AuthenticationMethods = AuthenticationMethods.NONE,
+        val authenticationMethod: AuthenticationMethods = AuthenticationMethods.PHONE_NUMBER,
         val loginButtonEnabled: Boolean = false,
+        val showOTP: Boolean = false
     )
 }

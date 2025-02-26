@@ -1,19 +1,10 @@
 package com.iyr.ultrachango.ui.screens.setting.SettingScreen
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
-import com.iyr.ultrachango.data.database.repositories.FamilyMembersRepository
+import com.iyr.ultrachango.auth.AuthRepository
 import com.iyr.ultrachango.data.database.repositories.ImagesRepository
-import com.iyr.ultrachango.data.models.FamilyMember
-import com.iyr.ultrachango.data.models.Product
-import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.utils.helpers.getProfileImageURL
-import com.iyr.ultrachango.utils.ui.camera_gallery.SharedImage
-import com.iyr.ultrachango.viewmodels.UserViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +13,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
 class SettingsScreenViewModel(
-    private val authRepository: AuthRepositoryImpl,
+    private val authRepository: AuthRepository,
     private val imagesRepository: ImagesRepository
 ) : ViewModel(), KoinComponent {
     private val _imageUri = MutableStateFlow<String?>(null)
@@ -41,7 +32,7 @@ class SettingsScreenViewModel(
     init {
         val user = authRepository.getCurrentUser()
         user.let { it ->
-            _imageUri.value = getProfileImageURL(it!!.id.toString(),it!!.fileName.toString())
+            _imageUri.value = getProfileImageURL(it!!.uid.toString(),it!!.photoUrl.toString())
 
         }
     }

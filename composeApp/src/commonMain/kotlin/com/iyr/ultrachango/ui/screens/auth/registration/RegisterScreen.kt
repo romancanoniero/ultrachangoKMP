@@ -24,8 +24,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.iyr.ultrachango.auth.AuthenticatedUser
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
+import com.iyr.ultrachango.ui.dialogs.ErrorDialog
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.utils.ui.ShowKeyboard
 import com.iyr.ultrachango.utils.ui.elements.CustomButton
@@ -35,6 +37,7 @@ import com.iyr.ultrachango.utils.ui.elements.customShape
 import com.iyr.ultrachango.utils.ui.elements.screenOuterPadding
 import com.iyr.ultrachango.utils.ui.elements.textSize26
 import com.iyr.ultrachango.utils.ui.elements.textSize28
+import com.iyr.ultrachango.utils.ui.showLoader
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 import com.iyr.ultrachango.viewmodels.UserViewModel
 import dev.icerock.moko.permissions.PermissionsController
@@ -67,14 +70,17 @@ fun RegisterScreen(
 ) {
 
 
-    var state = vm.uiState
+    var state = vm.uiState.collectAsState()
 
     //  var authenticationMethod by remember { mutableStateOf(AuthenticationMethods.NONE) }
+    var showErrorMessage = state.value.showErrorMessage
+    var errorMessage = state.value.errorMessage
+    var registerButtonEnabled = state.value.registerButtonEnabled
 
-    var firstName by remember { mutableStateOf(TextFieldValue("")) }
-    var lastName by remember { mutableStateOf(TextFieldValue("")) }
-    var emailOfPhoneNumber by remember { mutableStateOf(TextFieldValue("")) }
-    var password by remember { mutableStateOf(TextFieldValue("")) }
+    var firstName by remember { mutableStateOf(TextFieldValue(state.value.firstName)) }
+    var lastName by remember { mutableStateOf(TextFieldValue(state.value.lastName)) }
+    var emailOfPhoneNumber by remember { mutableStateOf(TextFieldValue(state.value.emailOrPhoneNumber)) }
+    var password by remember { mutableStateOf(TextFieldValue(state.value.password)) }
 
     // Define a mutable state to hold the state
     var showPassword by remember { mutableStateOf(false) }
@@ -82,6 +88,21 @@ fun RegisterScreen(
     if (hideVirtualKeyboard) {
         ShowKeyboard(false)
         hideVirtualKeyboard = false
+    }
+    var acceptedTerms = remember { mutableStateOf(false) }
+
+
+    if (state.value.loading) {
+        showLoader()
+    }
+    if (showErrorMessage) {
+        ErrorDialog(
+            title = "Error",
+            message = errorMessage!!,
+            onDismissRequest = {
+                vm.closeErrorDialogRequest()
+            }
+        )
     }
 
     Column(
@@ -110,7 +131,7 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.weight(1f))
 
 
-        OutlinedTextField(value =  firstName,
+        OutlinedTextField(value = firstName,
             onValueChange = {
                 firstName = it
                 vm.setFirstName(it.text)
@@ -139,9 +160,17 @@ fun RegisterScreen(
         OutlinedTextField(value = emailOfPhoneNumber,
             onValueChange = {
                 emailOfPhoneNumber = it
-                vm.setEmailOrPassword(it.toString())
+                vm.setEmailOrPassword(it)
             },
-            label = { Text(stringResource(Res.string.identification_method)) },
+            label = {
+                Text(
+                    text = stringResource(Res.string.identification_method),
+                    maxLines = 1,
+
+
+                    )
+
+            },
             modifier = Modifier.fillMaxWidth().background(Color.White, shape = customShape),
             singleLine = true,
             shape = customShape,
@@ -183,7 +212,8 @@ fun RegisterScreen(
                 trailingIcon = {
                     IconButton(onClick = {
                         triggerHapticFeedback()
-                        showPassword = !showPassword }) {
+                        showPassword = !showPassword
+                    }) {
                         Icon(
                             imageVector = if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                             contentDescription = "Show Password"
@@ -199,19 +229,25 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
 
-        PrivacyAndTerms(navController!!)
+        PrivacyAndTerms(
+            vm = vm,
+            enableCheck = state.value.conditionsCheckEnabled,
+            acceptedTerms = acceptedTerms,
+            navController = navController!!
+        )
 
 
         CustomButton(
             modifier = Modifier.fillMaxWidth(),
-            enabled = state.value.registerButtonEnabled,
+            enabled = registerButtonEnabled,
             onClick = {
                 triggerHapticFeedback()
-
-                navController?.navigate(RootRoutes.HomeRoute.route) {
-                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                }
-
+                vm.onRegisterClick()
+                /*
+                              navController?.navigate(RootRoutes.HomeRoute.route) {
+                                  //      popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                              }
+              */
             },
             content = {
                 Text(
@@ -348,15 +384,24 @@ fun MethodDivider(text: String) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PrivacyAndTerms(
-    navController: NavHostController
+    vm: RegisterViewModel,
+    acceptedTerms: MutableState<Boolean>,
+    enableCheck: Boolean,
+    navController: NavHostController,
+    onClick: (Boolean) -> Unit = {}
 ) {
-
-    var acceptedTerms = remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
     ) {
-        Checkbox(checked = acceptedTerms.value, onCheckedChange = { acceptedTerms.value = it })
+        Checkbox(
+            checked = acceptedTerms.value,
+            onCheckedChange = {
+                acceptedTerms.value = it
+                vm.setAcceptance(it)
+                //    onClick(it)
+            }, enabled = enableCheck
+        )
         Spacer(modifier = Modifier.width(8.dp).fillMaxWidth().weight(1f))
         FlowRow() {
             Text(

@@ -52,6 +52,7 @@ fun Page1() {
         modifier = Modifier
             .fillMaxSize()
             .padding(0.dp)
+            //.background(Color.Magenta)
 
     ) {
         Box(modifier = Modifier.fillMaxSize())

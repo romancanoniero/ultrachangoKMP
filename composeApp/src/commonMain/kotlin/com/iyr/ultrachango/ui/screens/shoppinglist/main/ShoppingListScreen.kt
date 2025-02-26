@@ -52,6 +52,7 @@ import com.iyr.ultrachango.ui.ScaffoldViewModel
 
 import com.iyr.ultrachango.ui.dialogs.ConfirmationDialog
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
+import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
 import com.iyr.ultrachango.ui.screens.shoppinglist.dialogs.RenameDialog
 import com.iyr.ultrachango.ui.screens.shoppinglist.edition.RoundMemberItem
@@ -81,9 +82,11 @@ import ultrachango2.composeapp.generated.resources.products
 fun ShoppingListScreen(
     navController: NavHostController? = null,
     vm: ShoppingListViewModel = koinViewModel(),
-    scaffoldVM: ScaffoldViewModel,
+    scaffoldVM: ScaffoldViewModel? = null,
 ) {
-    scaffoldVM.updateState(ScaffoldViewModel.UiState(title = "Listas de Compras"))
+    if (scaffoldVM != null) {
+        scaffoldVM.updateState(ScaffoldViewModel.UiState(title = "Listas de Compras"))
+    }
 
     val state = vm.state.collectAsState()
 
@@ -170,14 +173,15 @@ fun ShoppingListScreen(
     val showDeleteConfirmationDialog by remember { mutableStateOf(null) }
 
 
-    val nav by remember { mutableStateOf(navController) }
+  //  val nav by remember { mutableStateOf(navController) }
     val scope = rememberCoroutineScope()
 
 
     fun onItemClicked(shoppingList: ShoppingList): Unit {
         val route =
-            AppRoutes.ShoppingListEditRoute.createRoute(shoppingList.userId, shoppingList.listId)
-        nav?.navigate(route)
+            RootRoutes.ShoppingListEditRoute.createRoute(shoppingList.userId, shoppingList.listId, shoppingList.listName)
+//            AppRoutes.ShoppingListEditRoute.createRoute(shoppingList.userId, shoppingList.listId)
+        navController?.navigate(route)
     }
 
     fun onAddButtonClicked(): Unit {
@@ -195,7 +199,7 @@ fun ShoppingListScreen(
 
 
     PullRefreshLayout(
-        modifier = Modifier.fillMaxWidth().background(screenBackground),
+        modifier = Modifier.fillMaxWidth(),
         state = pullRefreshState
     ) {
 
@@ -209,7 +213,7 @@ fun ShoppingListScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Transparent)
-                    .padding(horizontal = 10.dp)
+
                     .weight(1f)
             )
             {
@@ -248,9 +252,6 @@ fun ShoppingListScreen(
                 }
             }
 
-
-//------------
-
             Button(modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.Black, buttonShapeSmall)
@@ -271,8 +272,6 @@ fun ShoppingListScreen(
         }
     }
 }
-
-// }
 
 
 @Composable
@@ -325,41 +324,7 @@ fun ShoppingListItem(
     }
 }
 
-/*
-@Composable
-fun ShoppingListItemRow(item: ShoppingListItemModel) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
 
-        Card(
-            modifier = Modifier
-
-                .width(48.dp).aspectRatio(1f), colors = CardColors(
-                contentColor = Color.Red,
-                containerColor = Color.Red,
-                disabledContentColor = Color.Green,
-                disabledContainerColor = Color.Green
-
-            )
-        ) {
-            var urlProduct = "https://imagenes.preciosclaros.gob.ar/productos/${item.id}.jpg"
-
-            AsyncImage(
-                model = urlProduct,
-                contentDescription = item.nombre,
-                modifier = Modifier.size(48.dp).aspectRatio(1f).clip(RectangleShape)
-            )
-
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-        Column {
-            Text(text = item.nombre.toString())
-            //d           Text(text = "Cantidad: ${item.quantity}")
-        }
-    }
-}
-
-*/
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SwipeToRevealItem(

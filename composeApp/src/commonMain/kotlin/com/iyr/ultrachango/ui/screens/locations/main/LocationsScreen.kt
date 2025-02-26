@@ -128,7 +128,7 @@ fun LocationsScreen(
 
     PullRefreshLayout(
         modifier = Modifier.fillMaxWidth()
-            .background(screenBackground)
+
         ,
         state = pullRefreshState
     ) {

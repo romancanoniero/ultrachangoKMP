@@ -1,5 +1,6 @@
 package com.iyr.ultrachango.ui.screens.shoppinglist.edition
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,6 +11,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -22,6 +26,7 @@ import androidx.compose.material.icons.filled.FrontHand
 import androidx.compose.material.icons.outlined.FrontHand
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.iyr.ultrachango.data.models.ShoppingListProductComplete
 import com.iyr.ultrachango.data.models.ShoppingListQuantities
@@ -42,11 +48,16 @@ import com.iyr.ultrachango.ui.theme.cardViewColors
 import com.iyr.ultrachango.ui.theme.cardViewElevation
 import com.iyr.ultrachango.utils.helpers.getProductImageUrl
 import com.iyr.ultrachango.utils.helpers.getProfileImageURL
+import com.iyr.ultrachango.utils.ui.UserImage
 import com.iyr.ultrachango.utils.ui.elements.ItemListImageBox
 import com.iyr.ultrachango.utils.ui.elements.ItemListTextRegular
 import com.iyr.ultrachango.utils.ui.elements.ItemListTextSubHeader
 import com.iyr.ultrachango.utils.ui.elements.UserPictureRegular
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
+import org.jetbrains.compose.resources.painterResource
+import ultrachango2.composeapp.generated.resources.Res
+import ultrachango2.composeapp.generated.resources.profile_pic
+import ultrachango2.composeapp.generated.resources.sin_imagen
 
 private val Color.Companion.Orange: Color
     get() {
@@ -103,7 +114,7 @@ fun ShoppingListProductRow(
 }
 
 @Composable
-fun ProductQuantitiesCompressed(
+fun UsersWhoWantIt(
     modifier: Modifier = Modifier,
     product: ShoppingListProductComplete,
     onClick: () -> Unit,
@@ -138,6 +149,7 @@ fun ProductQuantitiesCompressed(
             quantities?.forEach { qtyRecord ->
                 UserWithHand(
                     modifier = Modifier
+                        .size(50.dp)
                         //   .offset(x = ((-index * 0.34f * 60).dp))
                         .clickable(enabled = true, onClick = {
                             triggerHapticFeedback()
@@ -151,17 +163,7 @@ fun ProductQuantitiesCompressed(
 
                     }
                 )
-                /*
-                                UserQuantityWithBadge(
-                                    modifier = Modifier
-                                        //   .offset(x = ((-index * 0.34f * 60).dp))
-                                        .clickable(enabled = true, onClick = {
-                                            onClick()
-                                        }),
-                                    qtyRecord = qtyRecord,
-                                    onClick = onClick
-                                )
-                                */
+
                 index++
             }
         }
@@ -232,29 +234,30 @@ fun UserWithHand(
             .clickable {
                 onClick()
             }
+        , contentAlignment = Alignment.BottomStart
     ) {
 
-        getProfileImageURL(qtyRecord.userId.toString(),"").let {
+        val imageUrl = getProfileImageURL(qtyRecord.userId.toString(), qtyRecord.user?.fileName)
 
-            UserPictureRegular(
-                modifier = Modifier.size(60.dp),
-                imageModel = it!!,
-                //  mode = UserPictureInfoMode.BADGE_HAND,
-                contentDesription = "",
-                onClick = {
-                    triggerHapticFeedback()
-                    onClick()
-                },
 
-                )
-        }
 
+
+        UserImage(
+            modifier = Modifier.fillMaxHeight(.80f)
+                .aspectRatio(1f),
+            urlImage = imageUrl,
+            onClick = {
+                triggerHapticFeedback()
+                onClick()
+            },
+        )
 
 
         Badge(
             modifier = Modifier
                 .offset(-2.dp, 2.dp)
-                .size(32.dp)
+                .fillMaxHeight(.4f)
+                .aspectRatio(1f)
                 .border(1.dp, color = Color.LightGray, shape = CircleShape)
                 .align(Alignment.TopEnd)
                 .clip(CircleShape),
@@ -320,13 +323,41 @@ fun ProductInfoItem(
         // colors = CardDefaults.cardColors().copy(containerColor = Color.White)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Row {
-                if (product.product?.haveImage ?: false) {
-                    ItemListImageBox(
-                        imageModel = urlProduct, contentDesription = product.product?.name ?: ""
-                    )
 
-                }
+
+            Row {
+           Card(
+               modifier = Modifier.padding(10.dp),
+               colors = CardDefaults.cardColors().copy(
+                     containerColor = Color.White,
+
+               ),
+               elevation = CardDefaults.elevatedCardElevation(
+                     defaultElevation = 2.dp,
+               )
+           )
+           {
+               Box(modifier = Modifier.size(80.dp))
+               {
+                   if (product.product?.haveImage ?: false) {
+                       ItemListImageBox(
+                           modifier = Modifier.fillMaxSize(),
+                           imageModel = urlProduct,
+                           contentDesription = product.product?.name ?: ""
+                       )
+                   }
+                   else
+                   {
+                       Image(modifier = Modifier.fillMaxSize(),
+                           painter = painterResource(Res.drawable.sin_imagen),
+                           contentDescription = "No image",
+                           contentScale = ContentScale.Crop)
+                   }
+               }
+
+           }
+
+
                 Column(modifier = Modifier.fillMaxWidth()) {
                     ItemListTextRegular(text = product.product?.ean ?: "")
                     ItemListTextSubHeader(text = product.product?.name ?: "")
@@ -340,7 +371,7 @@ fun ProductInfoItem(
 
 
 //                        if (!isExpanded) {
-                        ProductQuantitiesCompressed(
+                        UsersWhoWantIt(
                             modifier = Modifier.wrapContentWidth(),
                             product,
                             onClick = {
@@ -409,7 +440,7 @@ fun QuantitySelectorItem(
     var prevValue = rememberSaveable { mutableStateOf(qtyRecord.qty) }
 
     Row {
-        getProfileImageURL(qtyRecord.userId,"").let {
+        getProfileImageURL(qtyRecord.userId, "").let {
 
             UserPictureRegular(
                 modifier = Modifier.size(60.dp),

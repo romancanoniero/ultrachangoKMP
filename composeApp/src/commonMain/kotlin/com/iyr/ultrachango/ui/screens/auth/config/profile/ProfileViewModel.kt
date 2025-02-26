@@ -1,10 +1,9 @@
 package com.iyr.ultrachango.ui.screens.auth.config.profile
 
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+import com.iyr.ultrachango.auth.AuthRepository
+import com.iyr.ultrachango.auth.AuthenticatedUser
+
 import com.iyr.ultrachango.data.database.repositories.ImagesRepository
 import com.iyr.ultrachango.data.database.repositories.UserRepositoryImpl
 import com.iyr.ultrachango.data.models.User
@@ -15,9 +14,6 @@ import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
 import com.iyr.ultrachango.utils.viewmodel.BaseViewModel
 import com.iyr.ultrachango.validateForm
-
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -26,17 +22,17 @@ import org.koin.core.component.KoinComponent
 
 class ProfileViewModel(
 
-    private val authService: AuthRepositoryImpl,
+    private val authService: AuthRepository,
     private val usersRepository: UserRepositoryImpl,
     private val imagesRepository: ImagesRepository,
     private val scaffoldVM: ScaffoldViewModel,
 ) : BaseViewModel(), KoinComponent {
 
 
-    private val _originalUser = MutableStateFlow<User?>(null)
+    private val _originalUser = MutableStateFlow<AuthenticatedUser?>(null)
     val originalUser = _originalUser.asStateFlow()
 
-    private val _currentUser = MutableStateFlow<User?>(null)
+    private val _currentUser = MutableStateFlow<AuthenticatedUser?>(null)
     val currentUser = _currentUser.asStateFlow()
 
     private val _uiState = MutableStateFlow(UiState())
@@ -66,6 +62,7 @@ class ProfileViewModel(
 
     init {
         val me = authService.getCurrentUser()
+
         _originalUser.value = me?.copy()
         _currentUser.value = me
 
@@ -73,22 +70,25 @@ class ProfileViewModel(
         //     var firebaseAuth = Firebase.auth(Firebase.initialize(AppContext.getContext()!!)!!).currentUser
 //val pepe = firebaseAuth?.displayName
         viewModelScope.launch {
-            imagesRepository.getProfileImageURL(me?.id ?: "xxxx")?.let {
+            imagesRepository.getProfileImageURL(me?.uid ?: "xxxx")?.let {
                 _imageProfile.value = it
                 _uiState.value = UiState(loginButtonEnabled = validate())
             }
-            Firebase.auth.authStateChanged.collect() { user ->
-                if (user != null) {
-                    // User is signed in
-                    println("User is signed in")
-                    _isAuthenticated.value = true
-                } else {
-                    // No user is signed in
-                    println("No user is signed in")
+            /*aca
+                  Firebase.auth.authStateChanged.collect() { user ->
+                      if (user != null) {
+                          // User is signed in
+                          println("User is signed in")
+                          _isAuthenticated.value = true
+                      } else {
+                          // No user is signed in
+                          println("No user is signed in")
 
-                    _isAuthenticated.value = false
-                }
-            }
+                          _isAuthenticated.value = false
+                      }
+                  }
+          */
+
         }
     }
 
@@ -131,7 +131,7 @@ class ProfileViewModel(
         launchWithCatchingException {
             _isProcessing.value = true
             //val result = authService.createUser(_uiState.value.email, _uiState.value.password)
-            authService.authenticate(_uiState.value.emailOrPhoneNumber, _uiState.value.password)
+            authService.signInWithEmail(_uiState.value.emailOrPhoneNumber, _uiState.value.password)
             _isProcessing.value = false
         }
 
@@ -139,7 +139,7 @@ class ProfileViewModel(
 
     fun onGoogleAuthenticated(idToken: String?, signedInUserName: String) {
         viewModelScope.launch {
-
+/*aca
             val authCredential =
                 dev.gitlive.firebase.auth.GoogleAuthProvider.credential(idToken ?: "", null)
             val authResult = Firebase.auth.signInWithCredential(authCredential)
@@ -149,12 +149,12 @@ class ProfileViewModel(
                 token = idToken ?: "",
                 userName = signedInUserName
             )
-
+*/
         }
 
     }
 
-    fun saveProfile(user: User) {
+    fun saveProfile(user: AuthenticatedUser) {
         var pp = 33
         viewModelScope.launch {
             try {
@@ -195,10 +195,10 @@ class ProfileViewModel(
         println("cierro la camara")
     }
 
-    fun updateProfile(user: User) {
+    fun updateProfile(user: AuthenticatedUser) {
 
-        if (user.id.isNullOrEmpty()) {
-            user.id = Firebase.auth.currentUser?.uid.toString()
+        if (user.uid.isNullOrEmpty()) {
+            user.uid = ""  /*aca Firebase.auth.currentUser?.uid.toString() */
         }
         viewModelScope.launch {
             try {
@@ -217,7 +217,7 @@ class ProfileViewModel(
     }
 
     fun onNicknameChange(text: String) {
-        currentUser.value?.nick = text
+        currentUser.value?.displayName = text
 
     }
 
@@ -270,7 +270,7 @@ class ProfileViewModel(
 
     }
 
-    fun getMe(): User? {
+    fun getMe(): AuthenticatedUser? {
         return currentUser.value
     }
 
@@ -286,7 +286,7 @@ class ProfileViewModel(
     }
 
     fun validate(): Boolean {
-        return  validateForm(
+        return validateForm(
             imageProfile = _imageProfile.value,
             firstName = _currentUser.value?.firstName,
             lastName = _currentUser.value?.lastName,

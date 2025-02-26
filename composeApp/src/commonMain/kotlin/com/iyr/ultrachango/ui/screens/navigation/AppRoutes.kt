@@ -11,6 +11,9 @@ sealed class AppRoutes(val route: String) {
     object BarcodeScanner : AppRoutes("barcodeScanner/{onResult}")
 
 
+
+
+
     object SettingRoute : AppRoutes("settings")
 
 

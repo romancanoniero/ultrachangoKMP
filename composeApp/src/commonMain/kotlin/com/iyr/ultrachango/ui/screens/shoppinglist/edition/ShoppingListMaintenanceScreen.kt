@@ -23,6 +23,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,6 +65,7 @@ import com.iyr.ultrachango.utils.helpers.getProductImageUrl
 import com.iyr.ultrachango.utils.helpers.getProfileImageURL
 import com.iyr.ultrachango.utils.sound.AudioPlayer
 import com.iyr.ultrachango.utils.ui.ShowKeyboard
+import com.iyr.ultrachango.utils.ui.UserImage
 import com.iyr.ultrachango.utils.ui.elements.ReusableSearchTextField
 import com.iyr.ultrachango.utils.ui.elements.StyleLight
 import com.iyr.ultrachango.utils.ui.elements.UserPictureRegular
@@ -87,6 +92,7 @@ import ultrachango2.composeapp.generated.resources.sin_imagen
 fun ShoppingListAddEditScreen(
     userKey: String,
     listId: Int?,
+    listName: String?,
     navController: NavHostController,
     permissionsController: PermissionsController,
     vm: ShoppingListAddEditViewModel = koinViewModel(),
@@ -197,43 +203,43 @@ fun ShoppingListAddEditScreen(
         }
 
     } else {
+
+        val searchTextFlow = remember { MutableStateFlow("") }
+
+        if (state.loadingProducts) {
+            focusRequester.freeFocus()
+            ShowKeyboard(false)
+        }
+
+        LaunchedEffect(searchTextFlow) {
+            searchTextFlow
+                .debounce(1000) // Espera 2 segundos desde la última pulsación
+                .collectLatest { text ->
+                    if (text.length >= MIN_THRESHOLD_SEARCH) {
+                        if (text.length >= 4 && text.isDigitsOnly())
+                            vm.onBarcodeScanned(text)
+                        else
+                            vm.onProductTextInput(text)
+                    }
+                }
+        }
+
+
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp).background(Color.White),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+
+
             UsersSection(
-                modifier = Modifier.fillMaxWidth()
-                    //               .height(IntrinsicSize.Min)
-                    .padding(bottom = 10.dp),
+                modifier = Modifier.fillMaxWidth(),
                 usersList = state.membersList,
             )
 
-
-            val searchTextFlow = remember { MutableStateFlow("") }
-
-//            val loadingProducts  = remember { MutableStateFlow(state.loadingProducts) }
-
-            if (state.loadingProducts)
-            {
-                focusRequester.freeFocus()
-                ShowKeyboard(false)
-            }
-
-            LaunchedEffect(searchTextFlow) {
-                searchTextFlow
-                    .debounce(1000) // Espera 2 segundos desde la última pulsación
-                    .collectLatest { text ->
-                        if (text.length >= MIN_THRESHOLD_SEARCH) {
-                            if (text.length >= 4 && text.isDigitsOnly())
-                                vm.onBarcodeScanned(text)
-                            else
-                            vm.onProductTextInput(text)
-                        }
-                    }
-            }
+            Spacer(modifier = Modifier.height(10.dp))
 
             SearchTextFieldWithScanner(
-                userKey = userViewModel.user.value?.id,
+                userKey = userViewModel.user.value?.uid,
                 text = searchText,
                 loadingProducts = state.loadingProducts,
                 onTextChange = {
@@ -260,12 +266,12 @@ fun ShoppingListAddEditScreen(
                 },
                 onAddButtonClicked = { product ->
                     triggerHapticFeedback()
-                        vm.onAddProductAsk(product)
+                    vm.onAddProductAsk(product)
 
                 }
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(state.itemsList) { item ->
@@ -319,13 +325,33 @@ fun ShoppingListAddEditScreen(
 fun UsersSection(
     modifier: Modifier = Modifier, usersList: List<ShoppingListMemberComplete>
 ) {
-    Column(modifier = modifier) {
-        Text(
-            text = "Miembros", style = MaterialTheme.typography.titleMedium
+
+    Card(
+        modifier = modifier,
+        elevation = CardDefaults.elevatedCardElevation(),
+        colors = CardDefaults.cardColors().copy(
+            containerColor = Color.White,
+
+            ),
+        shape = MaterialTheme.shapes.medium,
+
+        ) {
+        Column(
+            modifier = modifier
+                .padding(horizontal = 4.dp)
+
         )
-        LazyRow() {
-            items(usersList) { user ->
-                RoundMemberItem(member = user)
+        {
+            Text(
+                text = "Miembros", style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            LazyRow(modifier.fillMaxWidth()) {
+                items(usersList) { user ->
+                    RoundMemberItem(member = user)
+                }
             }
         }
     }
@@ -335,24 +361,17 @@ fun UsersSection(
 fun RoundMemberItem(
     avatarSize: Dp? = 60.dp,
     member: ShoppingListMemberComplete,
-    onClick: () -> Unit? = {},
+    onClick: () -> Unit = {},
 ) {
-
     Column {
 
+        val imageUrl = getProfileImageURL(member.userId, member.user?.fileName)
 
-        getProfileImageURL(member.userId,"").let { it ->
-
-            UserPictureRegular(
-                modifier = Modifier.size(avatarSize!!),
-
-                imageModel = it!!,
-                contentDesription = member.userId,
-                onClick = onClick
-            )
-
-
-        }
+        UserImage(
+            modifier = Modifier.size(avatarSize!!),
+            urlImage = imageUrl,
+            onClick = onClick
+        )
 
         Text(
             text = member.user?.nick?.uppercase() ?: "XXXXXX", style = StyleLight()
@@ -432,7 +451,7 @@ fun SearchTextFieldWithScanner(
                             onImageClicked(it)
                         },
                         onAddButtonClicked = {
-                          //  vm.closeDropDown()
+                            //  vm.closeDropDown()
                             onAddButtonClicked(it)
                         },
                         onExistingIcon = Icons.Outlined.CheckCircle,
@@ -463,7 +482,7 @@ fun DropdownItemProductSearch(
     ) {
         // Imagen del producto
 
-       if (product.haveImage) {
+        if (product.haveImage) {
             val urlProduct = getProductImageUrl(product.ean.toString())
             AsyncImage(
                 model = urlProduct,
@@ -474,7 +493,7 @@ fun DropdownItemProductSearch(
                     .clip(CircleShape)
                     .clickable { onImageClicked(product.toProduct()) }
             )
-       }
+        }
         Spacer(Modifier.width(8.dp))
         // Nombre y marca del producto
         Column(

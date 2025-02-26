@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.Uri
+import com.iyr.ultrachango.auth.AuthenticatedUser
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.Genders
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
@@ -87,7 +88,7 @@ import ultrachango2.composeapp.generated.resources.profile_pic
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistrationProfileScreen(
-    currentUser: User? = null,
+    currentUser: AuthenticatedUser? = null,
     navController: NavController? = null,
     permissionsController: PermissionsController? = null,
     viewModel: RegistrationProfileViewModel = koinViewModel()
@@ -104,8 +105,7 @@ fun RegistrationProfileScreen(
     val profileImageBitmap by viewModel.imageProfile.collectAsState()
 
 
-
-    var nickname by remember { mutableStateOf(currentUser?.nick) }
+    var nickname by remember { mutableStateOf(currentUser?.displayName) }
     var firstName by remember { mutableStateOf(currentUser?.firstName) }
     var lastName by remember { mutableStateOf(currentUser?.lastName) }
     var gender by remember {
@@ -165,7 +165,6 @@ fun RegistrationProfileScreen(
         BindEffect(it)
 
     }
-
 
 
     val showImagePicker by viewModel.showImagePicker.collectAsState()
@@ -295,7 +294,6 @@ fun RegistrationProfileScreen(
                         painter = painterResource(Res.drawable.profile_pic),
                         contentDescription = null,
                         contentScale = ContentScale.Crop
-
                     )
                 }
             }
@@ -335,7 +333,7 @@ fun RegistrationProfileScreen(
                 value = gender ?: Genders.MALE,
                 onGenderSelected = { value ->
                     gender = Genders.values().get(value)
-               viewModel.onGenderChange(value)
+                    viewModel.onGenderChange(value)
                 }
             )
 
@@ -345,7 +343,10 @@ fun RegistrationProfileScreen(
 
             OutlinedTextField(enabled = false,
                 value = birthDate.toString(),
-                onValueChange = { birthDate = it },
+                onValueChange = {
+                    birthDate = it
+                    viewModel.onBirthDateChange(it)
+                },
 
                 label = { Text("Fecha de Nacimiento") },
                 modifier = Modifier.fillMaxWidth().clickable {
@@ -357,19 +358,6 @@ fun RegistrationProfileScreen(
 
 
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-/*
-
-                    if (birthDateAsSnappedDateTime == null) {
-
-                    } else {
-                        val splity = viewModel.getBirthDate().split("-")
-                        currentDateArray = arrayOf(
-                            splity!![0].toInt(), splity[1].toInt(), splity[2].toInt()
-                        )
-
-                    }
-*/
-
 
                     WheelDatePicker(
                         modifier = Modifier.fillMaxWidth(), dateFormatter = dateFormatter(
@@ -409,7 +397,9 @@ fun RegistrationProfileScreen(
                         }
                         birthDate = dateFormat.format(snappedDateTime)
                         birthDateAsSnappedDateTime = snappedDateTime
-//                        viewModel.onBirthDateChange(snappedDateTime.toString())
+
+
+                       viewModel.onBirthDateChange(snappedDateTime.toString())
                     }
                 }
 
@@ -446,7 +436,7 @@ fun RegistrationProfileScreen(
                         )
                     //      navController?.navigate("home")
                 },
-                   enabled = viewModel.uiState.value.loginButtonEnabled,
+                enabled = viewModel.uiState.value.loginButtonEnabled,
                 modifier = Modifier.fillMaxWidth()
             )
 

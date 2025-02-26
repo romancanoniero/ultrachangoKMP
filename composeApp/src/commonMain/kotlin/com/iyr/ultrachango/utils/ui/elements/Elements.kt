@@ -96,6 +96,10 @@ val textSize26: TextUnit
     @Composable
     get() = 26.sp
 
+val textSize24: TextUnit
+    @Composable
+    get() = 24.sp
+
 val textSize20: TextUnit
     @Composable
     get() = MaterialTheme.typography.titleMedium.fontSize
@@ -124,13 +128,14 @@ fun CustomButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     onClick: () -> Unit,
-    content: @Composable () -> Unit?,
+
     colors: ButtonColors = ButtonDefaults.buttonColors(
         containerColor = Color.Black,
         contentColor = Color.White,
         disabledContainerColor = Color.LightGray,
         disabledContentColor = Color.Gray
-    )
+    ),
+            content: @Composable () -> Unit?,
 ) {
     Button(
         modifier = modifier.height(50.dp),

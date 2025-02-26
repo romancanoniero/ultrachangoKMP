@@ -9,8 +9,8 @@ import kotlinx.serialization.Transient
 
 data class ShoppingListComplete(
 
-  //  @Ignore
-  //  @Embedded
+    //  @Ignore
+    //  @Embedded
     val shoppingListModel: ShoppingList? = null,
 
     var listId: Int? = null,
@@ -32,38 +32,38 @@ data class ShoppingListComplete(
     //@Ignore
 
     val id: Long? = null,
-/*
-    @Relation(
-        entity = User::class, /* The class of the related table(entity) (the children)*/
-        parentColumn = "user_id", /* The column in the @Embedded class (parent) that is referenced/mapped to */
-        entityColumn = "user_id", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
-        /* For the mapping table */
-    )
-*/
+    /*
+        @Relation(
+            entity = User::class, /* The class of the related table(entity) (the children)*/
+            parentColumn = "user_id", /* The column in the @Embedded class (parent) that is referenced/mapped to */
+            entityColumn = "user_id", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
+            /* For the mapping table */
+        )
+    */
 
     val user: User? = null,
-/*
-    @Relation(
-        entity = ShoppingListProduct::class, /* The class of the related table(entity) (the children)*/
-        parentColumn = "list_id", /* The column in the @Embedded class (parent) that is referenced/mapped to */
-        entityColumn = "list_id", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
-        /* For the mapping table */
-    )
-*/
- //   @Ignore
+    /*
+        @Relation(
+            entity = ShoppingListProduct::class, /* The class of the related table(entity) (the children)*/
+            parentColumn = "list_id", /* The column in the @Embedded class (parent) that is referenced/mapped to */
+            entityColumn = "list_id", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
+            /* For the mapping table */
+        )
+    */
+    //   @Ignore
     val items: List<ShoppingListProductComplete>? = null,
 
 
-   /*
-    @Relation(
+    /*
+     @Relation(
 
-        entity = ShoppingListMember::class, /* The class of the related table(entity) (the children)*/
-        parentColumn = "list_id", /* The column in the @Embedded class (parent) that is referenced/mapped to */
-        entityColumn = "list_id", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
-        /* For the mapping table */
-    )
-    @Ignore
-    */
+         entity = ShoppingListMember::class, /* The class of the related table(entity) (the children)*/
+         parentColumn = "list_id", /* The column in the @Embedded class (parent) that is referenced/mapped to */
+         entityColumn = "list_id", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
+         /* For the mapping table */
+     )
+     @Ignore
+     */
 
     val members: List<ShoppingListMemberComplete>? = null,
 
@@ -80,9 +80,9 @@ data class ShoppingListComplete(
             listName = listName,
             imageUrl = imageUrl,
             members = members,
- //           members = members?.map { memberComplete ->
- //               ShoppingListMember(listId = listId!!, userId = memberComplete.userId)
- //           } ?: emptyList(),
+            //           members = members?.map { memberComplete ->
+            //               ShoppingListMember(listId = listId!!, userId = memberComplete.userId)
+            //           } ?: emptyList(),
             items = items?.map { productComplete ->
                 ShoppingListProduct(
                     listId = listId!!,
@@ -105,20 +105,19 @@ data class ShoppingListMemberComplete(
 
     //@ColumnInfo(name = "user_id")
     var userId: String,
-/*
-    @Relation(
-        entity = User::class, /* The class of the related table(entity) (the children)*/
-        parentColumn = "user_id", /* The column in the @Embedded class (parent) that is referenced/mapped to */
-        entityColumn = "user_id", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
-        /* For the mapping table */
-    )
- */
+    /*
+        @Relation(
+            entity = User::class, /* The class of the related table(entity) (the children)*/
+            parentColumn = "user_id", /* The column in the @Embedded class (parent) that is referenced/mapped to */
+            entityColumn = "user_id", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
+            /* For the mapping table */
+        )
+     */
 
     val user: User? = null,
 
 
-)
-{
+    ) {
     fun toShoppingListMember(): ShoppingListMember {
         return ShoppingListMember(
             listId = listId,
@@ -140,28 +139,28 @@ data class ShoppingListMemberComplete(
  */
 data class ShoppingListProductComplete(
 
- //   @Embedded
+    //   @Embedded
     val shoppingListModel: ShoppingListProduct? = null,
- /*
-   @Relation(
-        entity = Product::class, /* The class of the related table(entity) (the children)*/
-        parentColumn = "ean", /* The column in the @Embedded class (parent) that is referenced/mapped to */
-        entityColumn = "ean", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
-        /* For the mapping table */
-    )
-  */
+    /*
+      @Relation(
+           entity = Product::class, /* The class of the related table(entity) (the children)*/
+           parentColumn = "ean", /* The column in the @Embedded class (parent) that is referenced/mapped to */
+           entityColumn = "ean", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
+           /* For the mapping table */
+       )
+     */
     val product: Product? = null,
 
 
-/*
-    @Relation(
-        entity = ShoppingListQuantities::class, /* The class of the related table(entity) (the children)*/
-        parentColumn = "ean", /* The column in the @Embedded class (parent) that is referenced/mapped to */
-        entityColumn = "ean", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
-        /* For the mapping table */
-    )
+    /*
+        @Relation(
+            entity = ShoppingListQuantities::class, /* The class of the related table(entity) (the children)*/
+            parentColumn = "ean", /* The column in the @Embedded class (parent) that is referenced/mapped to */
+            entityColumn = "ean", /* The column in the @Relation class (child) that is referenced (many-many) or references the parent (one(parent)-many(children)) */
+            /* For the mapping table */
+        )
 
- */
+     */
     var quantities: List<ShoppingListQuantities>? = null,
 
     )
@@ -172,13 +171,13 @@ data class ShoppingListProductComplete(
 @Serializable
 data class ShoppingList(
 
-   // @ColumnInfo(name = "list_id")
+    // @ColumnInfo(name = "list_id")
     var listId: Int? = null,
 
     //@ColumnInfo(name = "user_id")
     var userId: String? = null,
 
-   // @ColumnInfo(name = "list_name")
+    // @ColumnInfo(name = "list_name")
     var listName: String? = null,
 
 //    @ColumnInfo(name = "name") var name: String? = null,
@@ -189,7 +188,7 @@ data class ShoppingList(
     //@Ignore
     val items: List<ShoppingListProduct>? = null,
 
-   // @Ignore
+    // @Ignore
     val members: List<ShoppingListMemberComplete>? = null,
 
     //@ColumnInfo(name = "creation_timestamp")
@@ -204,7 +203,7 @@ data class ShoppingList(
 
 
     ) {
- //   @PrimaryKey(autoGenerate = true)
+    //   @PrimaryKey(autoGenerate = true)
     var id: Int = 0
 }
 
@@ -253,7 +252,8 @@ data class ShoppingListQuantities(
     //@ColumnInfo(name = "qty")
     var qty: Double,
 
-    )
+    var user: User? = null,
+)
 
 
 @Serializable
@@ -277,11 +277,11 @@ data class ShoppingListMember(
     var user: User? = null,
 
     //@ColumnInfo(name = "is_admin")
-    var isAdmin : Boolean = false,
+    var isAdmin: Boolean = false,
 
     var connectionStatus: String? = null
 ) {
-    fun toShoppingListMemberComplete() : ShoppingListMemberComplete {
+    fun toShoppingListMemberComplete(): ShoppingListMemberComplete {
         return ShoppingListMemberComplete(
             listId = listId,
             userId = userId,

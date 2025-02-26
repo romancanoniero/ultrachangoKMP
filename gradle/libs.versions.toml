@@ -1,5 +1,5 @@
 [versions]
-agp = "8.7.2"
+agp = "8.7.3"
 android-compileSdk = "35"
 android-minSdk = "24"
 android-targetSdk = "35"
@@ -11,13 +11,18 @@ androidx-espresso-core = "3.6.1"
 androidx-lifecycle = "2.8.4"
 androidx-material = "1.12.0"
 androidx-test-junit = "1.2.1"
+android-firebase = "23.2.0"
+androidx-firebase-crashlytics-plugin = "2.9.9"
+
+
 calfFilePicker = "0.7.0"
 kim = "0.22.2"
 playServicesWallet = "19.4.0"
 gradlePlugins-google-services = "4.4.2"
 compose-multiplatform = "1.7.0"
 junit = "4.13.2"
-kotlin = "2.1.0"
+kotlin = "2.1.20-RC"
+ksp = "2.1.20-RC-1.0.30"
 navigationCompose = "2.8.0-alpha10"
 coil = "3.0.0-rc02"
 moko-permissions = "0.18.0"
@@ -26,7 +31,7 @@ mokomedia = "0.11.0"
 ktor = "3.0.0"
 androidx-room = "2.7.0-alpha13"
 androidx-sqliteBundled = "2.5.0-alpha13"
-ksp = "2.1.0-1.0.29"
+
 size = "0.5.0"
 #koin = "3.6.0-Beta4"
 koin = "3.6.0-alpha3"
@@ -49,8 +54,13 @@ kotlinx-datetime = "0.6.1"
 datetime-wheel-picker = "1.1.0-alpha01-compose1.7"
 peekaboo = "0.5.2"
 
+qr = "3.0.6"
+firebaseAuthKtx = "23.2.0"
+cocoapods = "2.0.0"
 
 [libraries]
+
+
 calf-file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref = "calfFilePicker" }
 calf-file-picker-coil = { module = "com.mohamedrejeb.calf:calf-file-picker-coil", version.ref = "calfFilePicker" }
 kim = { module = "com.ashampoo:kim", version.ref = "kim" }
@@ -67,12 +77,24 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 
+android-firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "android-firebase" }
+firebase-crashlyticsKtx = { module = "com.google.firebase:firebase-crashlytics-ktx" }
+
+
+
+
+qr = { group = "network.chaintech", name = "qr-kit", version.ref = "qr" }
+
 
 
 
 # Authentication
 
 #Firebase
+
+
+
+
 
 
 #Gitlive
@@ -171,12 +193,19 @@ datetime-wheel-picker = { group = "io.github.darkokoa", name = "datetime-wheel-p
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 
+#firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
+
+
 
 
 
 
 
 [plugins]
+
+kotlinCocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
+
+
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
@@ -190,4 +219,5 @@ androidxRoom = { id = "androidx.room", version.ref = "androidx-room" }
 googleServices = { id = "com.google.gms.google-services", version.ref = "gradlePlugins-google-services" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "androidx-firebase-crashlytics-plugin"}
 

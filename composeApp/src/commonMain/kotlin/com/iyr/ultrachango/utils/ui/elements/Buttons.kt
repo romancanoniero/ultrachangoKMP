@@ -18,6 +18,42 @@ import com.iyr.ultrachango.ui.theme.SFProMediumFontFamily
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 
 
+
+@Composable
+fun ThinButton(
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    text: String = "Cerrar",
+    colors: ButtonColors = ButtonDefaults.buttonColors(
+        containerColor = Color.Black,
+        contentColor = Color.White,
+        disabledContainerColor = Color.Gray,
+        disabledContentColor = Color.White
+    ),
+    onClick: () -> Unit = {}
+) {
+    Button(
+        modifier = modifier
+            .padding(1.dp),
+        enabled = enabled,
+        shape = buttonShapeMedium,
+        colors = colors,
+        onClick = onClick
+    ) {
+        Text(
+            modifier = Modifier.padding(1.dp),
+            style = TextStyle(
+                fontFamily = SFProMediumFontFamily(),
+                fontWeight = FontWeight.Bold,
+                lineHeight = 10.sp,
+                fontSize = MaterialTheme.typography.titleMedium.fontSize
+            ),
+            text = text
+        )
+    }
+}
+
+
 @Composable
 fun RegularButton(
     modifier: Modifier = Modifier,

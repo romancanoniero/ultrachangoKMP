@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+import com.iyr.ultrachango.auth.AuthRepository
 import com.iyr.ultrachango.data.database.repositories.FamilyMembersRepository
 import com.iyr.ultrachango.data.models.FamilyMember
 import com.iyr.ultrachango.data.models.Product
@@ -15,10 +15,9 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
 class MembersScreenViewModel(
-    private val authRepository: AuthRepositoryImpl ,
+    private val authRepository: AuthRepository,
     private val familyMembersRepository: FamilyMembersRepository,
 ) : ViewModel(), KoinComponent {
-
 
 
     var state by mutableStateOf(UiState())
@@ -75,6 +74,10 @@ class MembersScreenViewModel(
         state = state.copy(
             showErrorMessage = false
         )
+    }
+
+    fun getUserKey(): String {
+        return authRepository.currentUserId
     }
 
 

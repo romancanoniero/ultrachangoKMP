@@ -1,42 +1,31 @@
 package com.iyr.ultrachango.data.api.cloud.images
 
 
-import androidx.compose.ui.graphics.ImageBitmap
+import com.iyr.ultrachango.auth.AuthRepository
 import com.iyr.ultrachango.config.Config.BASE_URL_CLOUD_SERVER
 import com.iyr.ultrachango.data.api.cloud.Response
-import com.iyr.ultrachango.data.database.repositories.getAuthToken
-import com.iyr.ultrachango.data.models.User
+import com.iyr.ultrachango.getAuthToken
 import com.iyr.ultrachango.utils.ui.toBase64
 import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
-import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.utils.EmptyContent.headers
-import io.ktor.http.ContentDisposition.Companion.File
 import io.ktor.http.ContentType
-import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
-
 import io.ktor.http.contentType
 import io.ktor.http.headers
-import io.ktor.utils.io.InternalAPI
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import ultrachango2.composeapp.generated.resources.Res
-import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 class CloudImagesService(
     private val client: HttpClient,
-    private val settings: Settings
+    private val settings: Settings,
+
 ) : ICloudImagesService {
 
     val urlBase = "$BASE_URL_CLOUD_SERVER/api"
@@ -50,7 +39,16 @@ class CloudImagesService(
                 }
                 contentType(ContentType.Application.Json)
             }
-            return call.body();
+            val response = call.body<Response<ByteArray>>()
+            when (call.status.value) {
+                200 -> {
+                    return response.payload;
+                }
+                else -> {
+                    throw Exception(response.message ?: "Error desconocido")
+                }
+            }
+
         } catch (e: Exception) {
             throw e
         }

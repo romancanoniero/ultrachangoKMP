@@ -1,9 +1,5 @@
 package com.iyr.ultrachango.ui.screens.setting.SettingScreen
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,15 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.GroupWork
 import androidx.compose.material.icons.filled.LocationCity
@@ -38,27 +30,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.input.key.Key.Companion.Camera
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+import com.iyr.ultrachango.auth.AuthRepository
+
 import com.iyr.ultrachango.ui.dialogs.ConfirmationDialog
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
-import com.iyr.ultrachango.ui.screens.setting.profile.ProfilePicture
 import com.iyr.ultrachango.utils.ui.device.getScreenHeight
 import com.iyr.ultrachango.utils.ui.elements.MenuItem
 import com.iyr.ultrachango.utils.ui.elements.MenuTitle
 import com.iyr.ultrachango.utils.ui.elements.ProfilePicturePicker
-import com.iyr.ultrachango.utils.ui.elements.StyleTextMedium
 import com.iyr.ultrachango.utils.ui.elements.screenOuterPadding
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 import com.mohamedrejeb.calf.core.LocalPlatformContext
@@ -67,7 +50,6 @@ import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
 import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
 import dev.icerock.moko.permissions.PermissionsController
-import dev.jordond.compass.permissions.LocationPermissionController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -78,7 +60,7 @@ fun SettingScreen(
     navController: NavController,
     permissionController: PermissionsController,
     viewModel: SettingsScreenViewModel,
-    authRepository: AuthRepositoryImpl
+    authRepository: AuthRepository
 ) {
 
     val coroutineScope = rememberCoroutineScope()/*
@@ -118,7 +100,7 @@ fun SettingScreen(
 
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Color.White).padding(screenOuterPadding)
+        modifier = Modifier.fillMaxSize().padding(screenOuterPadding)
             .verticalScroll(rememberScrollState()),
     ) {
 
@@ -202,7 +184,7 @@ fun SettingScreen(
                 navController.navigate(AppRoutes.LocationRoute.route)
             })
 
-            MenuItem(icon = Icons.Filled.GroupWork, text = "Colaboradores", onClick = {
+            MenuItem(icon = Icons.Filled.GroupWork, text = "Grupo Familiar", onClick = {
                 triggerHapticFeedback()
                 navController.navigate(RootRoutes.MembersRoute.route)
 

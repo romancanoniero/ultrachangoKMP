@@ -12,7 +12,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,8 +32,6 @@ import com.iyr.ultrachango.data.models.Location
 import com.iyr.ultrachango.data.models.Locations
 import com.iyr.ultrachango.ui.screens.home.HomeScreenViewModel
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -66,9 +62,6 @@ fun LocationIndicator(
 
     // Filtrar ubicaciones por tipo
 
-    if (locations.size > 1) {
-        var pp = 33
-    }
 
     // Actualizar selección de ubicación
     LaunchedEffect(locations) {
@@ -133,7 +126,7 @@ fun LocationIndicator(
                 }
             }
 
-            if (locations != null && locations.filter{ it.locationType == Locations.CURRENT_LOCATION }.isEmpty()) {
+            if (locations.filter{ it.locationType == Locations.CURRENT_LOCATION }.isEmpty()) {
                 DropdownMenuItem(onClick = {
                     triggerHapticFeedback()
                     //      selectedLocation = currentLocation

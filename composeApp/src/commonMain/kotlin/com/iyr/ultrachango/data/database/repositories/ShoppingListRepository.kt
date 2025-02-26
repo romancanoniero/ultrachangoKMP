@@ -1,6 +1,7 @@
 package com.iyr.ultrachango.data.database.repositories
 
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+
+import com.iyr.ultrachango.auth.AuthRepository
 import com.iyr.ultrachango.data.api.cloud.shoppinglist.CloudShoppingListService
 import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.ShoppingListComplete
@@ -12,30 +13,28 @@ import kotlinx.coroutines.flow.flow
 
 class ShoppingListRepository(
     // private val shoppingListDao: ProductsDao,
-    private val authRepository: AuthRepositoryImpl,
+    private val authRepository: AuthRepository,
     private val shoppingListCloudService: CloudShoppingListService,
 ) {
 
     fun fetchLists(): Flow<List<ShoppingList>> = flow {
         val userKey = authRepository.getUserKey()
-        userKey?.let {
+        userKey.let {
             val cloudCall = shoppingListCloudService.getAll(userKey)
             val toShoppingList = mapToShoppingList(cloudCall)
             emit(toShoppingList)
-        } ?: run {
-            emit(throw Exception("User not logged in"))
         }
     }
 
 
     suspend fun list(): List<ShoppingListComplete> {
-        val userKey = authRepository.getUserKey()!!
+        val userKey = authRepository.getUserKey()
         val cloudCall = shoppingListCloudService.getAll(userKey)
         return cloudCall
     }
 
 
-    fun mapToShoppingList(shoppingListComplete: List<ShoppingListComplete>): List<ShoppingList> {
+    private fun mapToShoppingList(shoppingListComplete: List<ShoppingListComplete>): List<ShoppingList> {
 
         val newList: ArrayList<ShoppingList> = ArrayList<ShoppingList>()
         shoppingListComplete.forEach {
@@ -45,7 +44,7 @@ class ShoppingListRepository(
                 imageUrl = it.imageUrl,
                 items = it.items?.map { productComplete ->
                     ShoppingListProduct(
-                        it.listId?.toInt()!!,
+                        it.listId!!,
                         productComplete.product?.ean!!,
                         productComplete.quantities
                     )
@@ -113,7 +112,7 @@ class ShoppingListRepository(
     suspend fun renameList(shoppingListId: Int, newName: String) {
         //     shoppingListDao.renameList(shoppingListId, newName)
 
-        val userKey = authRepository.getUserKey()!!
+        val userKey = authRepository.getUserKey()
         try {
 
             shoppingListCloudService.get(userKey, shoppingListId).let { entityCompleted ->
@@ -146,7 +145,7 @@ class ShoppingListRepository(
     }
 
     suspend fun getShoppingList(shoppingListId: Int): ShoppingListComplete {
-        val userKey = authRepository.getUserKey()!!
+        val userKey = authRepository.getUserKey()
         return shoppingListCloudService.get(userKey, shoppingListId)
     }
 
@@ -160,7 +159,7 @@ class ShoppingListRepository(
 
     suspend fun addProductToList(id: Int, ean: String, quantity: Int) {
         try {
-            val userKey = authRepository.getUserKey().toString()
+            val userKey = authRepository.getUserKey()
             shoppingListCloudService.addProductToList(id, ean, userKey, quantity)
 
             //shoppingListDao.addProductToList(id, ean)
@@ -186,7 +185,7 @@ class ShoppingListRepository(
      * Get the members of a shopping list and completes the list with the family Members of the user
      */
 
-    suspend fun getMembers(listId: Long, userId: String): Flow<List<ShoppingListMember>> = flow {
+    fun getMembers(listId: Long, userId: String): Flow<List<ShoppingListMember>> = flow {
         val sorted = shoppingListCloudService.getMembers(listId, userId)
             .sortedWith(compareByDescending<ShoppingListMember> { it.isAdmin }.thenBy { it.user?.nick })
 

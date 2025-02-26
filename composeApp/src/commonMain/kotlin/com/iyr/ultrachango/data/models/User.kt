@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class User(
  //   @PrimaryKey
  //   @ColumnInfo(name = "user_id")
-    var id: String,
+    var uid: String,
 //    @ColumnInfo(name = "nick")
     var nick: String,
 
@@ -38,6 +38,6 @@ data class User(
 
     constructor() : this("", "", "", "", "", "", "", true, "", 0)
 
-    constructor(id : String) : this(id = id, nick = "", firstName = "", lastName = "", fileName = "",  email = "", phoneNumber = "", isAnonymous = true, birthDate = "",)
+    constructor(id : String) : this(uid = id, nick = "", firstName = "", lastName = "", fileName = "",  email = "", phoneNumber = "", isAnonymous = true, birthDate = "",)
 
 }

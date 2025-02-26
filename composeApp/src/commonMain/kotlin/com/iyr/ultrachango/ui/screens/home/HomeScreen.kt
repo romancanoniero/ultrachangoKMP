@@ -30,12 +30,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -45,7 +49,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -70,8 +76,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.iyr.ultrachango.Constants
 import com.iyr.ultrachango.data.models.Location
@@ -80,6 +88,7 @@ import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.app.Section
 import com.iyr.ultrachango.data.models.app.sections
 import com.iyr.ultrachango.getCurrentLocation
+import com.iyr.ultrachango.onItemClick
 
 
 import com.iyr.ultrachango.ui.ScaffoldViewModel
@@ -88,6 +97,9 @@ import com.iyr.ultrachango.ui.dialogs.ProductInfoDialog
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.home.components.LocationIndicator
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
+import com.iyr.ultrachango.ui.screens.navigation.bottombar.BottomNavigationBar
+import com.iyr.ultrachango.ui.screens.navigation.navigationItemsLists
+import com.iyr.ultrachango.ui.screens.topbars.HomeTopAppBar
 import com.iyr.ultrachango.ui.theme.textColor
 import com.iyr.ultrachango.utils.extensions.isDigitsOnly
 import com.iyr.ultrachango.utils.helpers.getProductImageUrl
@@ -125,6 +137,7 @@ import org.ncgroup.kscan.BarcodeResult
 import org.ncgroup.kscan.ScannerView
 import ultrachango2.composeapp.generated.resources.Res
 import ultrachango2.composeapp.generated.resources.hello_there
+import ultrachango2.composeapp.generated.resources.shopping_lists
 import ultrachango2.composeapp.generated.resources.sin_imagen
 
 
@@ -139,17 +152,14 @@ fun HomeScreen(
 ) {
 
 
-
     navController.clearBackStack(RootRoutes.HomeRoute.route)
 
-    LaunchedEffect(Unit)
-    {
+    LaunchedEffect(Unit) {
         vm.setPermissionsController(permissionsController)
     }
 
     // val state by remember { mutableStateOf(vm.state) }
     val state by vm.state.collectAsState()
-
 
     val fetchingLocations by vm.fetchingLocations.collectAsState()
     val locations by vm.knownLocations.collectAsState()
@@ -197,7 +207,7 @@ fun HomeScreen(
 
     val showCameraPreview by vm.showCameraPreview.collectAsState()
     // Binds the permissions controller to the LocalLifecycleOwner lifecycle.
-     BindEffect(permissionsController)
+    BindEffect(permissionsController)
 
     ShowKeyboard(showKeyboard = state.showKeyboard)
     //  LoadingIndicator(enabled = state.loading)
@@ -209,18 +219,18 @@ fun HomeScreen(
     }
 
     LaunchedEffect(Unit) {
-      //  vm.fetchData()
+        //  vm.fetchData()
     }
 
 
-    println("Base - ubicaciones = "+ Json.encodeToString(locations))
+    println("Base - ubicaciones = " + Json.encodeToString(locations))
 
 
     if (fetchingLocations) {
 
         getCurrentLocation(onLocationObtained = {
             println("Location obtained")
-         //   vm.onLocationObtained(it)
+            //   vm.onLocationObtained(it)
 
         },
 
@@ -276,7 +286,7 @@ fun HomeScreen(
             hideVirtualKeyboard,
             state,
             vm,
-            salutation,
+           // salutation,
             focusRequester,
             fetchingLocations,
             locations,
@@ -297,7 +307,7 @@ private fun Screen(
     hideVirtualKeyboard: Boolean,
     state: HomeScreenViewModel.UiState,
     vm: HomeScreenViewModel,
-    salutation: String,
+
     focusRequester: FocusRequester,
     fetchingLocations: Boolean,
     locations: List<Location>,
@@ -307,60 +317,71 @@ private fun Screen(
     navController: NavHostController
 ) {
 
+    val appNavController = rememberNavController()
+    val navBackStackEntry by appNavController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+
     var hideVirtualKeyboard1 = hideVirtualKeyboard
     var searchText1 = searchText
 
-    Column(Modifier.fillMaxSize().padding(screenOuterPadding)
-        .verticalScroll(rememberScrollState()).clickable {
-            hideVirtualKeyboard1 = true
-        })
-    {
 
-        if (state.productToShow != null) {
-            ProductInfoDialog(
-                userKey = vm.getUserKey(),
-                vm = vm,
-                data = state.productToShow!!.toProduct(),
-                availableList = state.shoppingLists,
-                selectedShoppingLists = state.productShoppingLists,
-                onDismissRequest = { vm.onProductAlreadyShown() },
-                onListUnselected = { list -> vm.onListUnselected(list) },
-                onListSelected = { list ->
-                    vm.onListSelected(list)
-                },
-                onFavPressed = { product, isFavorite ->
-                    vm.onFavButtonPressed(product, isFavorite)
-                },
+
+
+        Column(Modifier.fillMaxSize().padding(0.dp).verticalScroll(rememberScrollState())
+            .clickable {
+                hideVirtualKeyboard1 = true
+            }) {
+
+
+            if (state.productToShow != null) {
+                ProductInfoDialog(
+                    userKey = vm.getUserKey(),
+                    vm = vm,
+                    data = state.productToShow!!.toProduct(),
+                    availableList = state.shoppingLists,
+                    selectedShoppingLists = state.productShoppingLists,
+                    onDismissRequest = { vm.onProductAlreadyShown() },
+                    onListUnselected = { list -> vm.onListUnselected(list) },
+                    onListSelected = { list ->
+                        vm.onListSelected(list)
+                    },
+                    onFavPressed = { product, isFavorite ->
+                        vm.onFavButtonPressed(product, isFavorite)
+                    },
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            println("Screen - ubicaciones = " + Json.encodeToString(locations))
+
+            UpperSection(focusRequester, vm, fetchingLocations, locations, state)
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            ProductsSearch(
+                vm,
+                searchText1,
+                focusRequester,
+                productsDropdownExpanded,
+                productsList,
+                hideVirtualKeyboard1
             )
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-        println("Screen - ubicaciones = "+ Json.encodeToString(locations))
+            Body(vm, navController, state)
 
-        UpperSection(salutation, focusRequester, vm, fetchingLocations, locations, state)
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        ProductsSearch(
-            vm,
-            searchText1,
-            focusRequester,
-            productsDropdownExpanded,
-            productsList,
-            hideVirtualKeyboard1
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Body(vm, navController, state)
-
+  //      }
     }
+
 }
+
 
 @Composable
 private fun UpperSection(
-    salutation: String,
+  //  salutation: String,
     focusRequester: FocusRequester,
     vm: HomeScreenViewModel,
     fetchingLocations: Boolean,
@@ -371,12 +392,12 @@ private fun UpperSection(
         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)
 
     ) {
-        Salutation(salutation)
+       // Salutation(salutation)
 
         Spacer(modifier = Modifier.height(10.dp))
 
 
-        println("UpperSections - ubicaciones = "+ Json.encodeToString(locations))
+        println("UpperSections - ubicaciones = " + Json.encodeToString(locations))
 
 
         Header(
@@ -391,19 +412,14 @@ private fun UpperSection(
 }
 
 
-
-
 @Composable
 private fun Body(
-    vm: HomeScreenViewModel,
-    navController: NavHostController,
-    state: HomeScreenViewModel.UiState
+    vm: HomeScreenViewModel, navController: NavHostController, state: HomeScreenViewModel.UiState
 ) {
     HorizontalBanner()
 
     val byMarket = sections.filter { it.sectionKey == "by_market" }
-    val byShoppingList =
-        sections.filter { it.sectionKey == Constants.SECTION_SHOPPING_LIST }
+    val byShoppingList = sections.filter { it.sectionKey == Constants.SECTION_SHOPPING_LIST }
     val byRewardsBranchList = sections.filter { it.sectionKey == "rewards_list" }
 
     FastActions(vm)
@@ -428,25 +444,21 @@ private fun Body(
 }
 
 @Composable
-fun FastActions( vm: HomeScreenViewModel,) {
-   Row()
-   {
-   Button(
-         onClick = {
-             triggerHapticFeedback()
-             vm.onScanPressed()
-         },
-         modifier = Modifier
-              .padding(8.dp)
-              .clip(RoundedCornerShape(50))
-              .background(Color.Blue)
-              .padding(16.dp)
-    ) {
-         Text("Buscar Precios", color = Color.Blue)
+fun FastActions(vm: HomeScreenViewModel) {
+    Row() {
+        Button(
+            onClick = {
+                triggerHapticFeedback()
+                vm.onScanPressed()
+            },
+            modifier = Modifier.padding(8.dp).clip(RoundedCornerShape(50)).background(Color.Blue)
+                .padding(16.dp)
+        ) {
+            Text("Buscar Precios", color = Color.Blue)
+
+        }
 
     }
-
-   }
 }
 
 @Composable
@@ -884,7 +896,7 @@ fun Header(
     locations: List<Location>,
     uiState: HomeScreenViewModel.UiState
 ) {
-    println("Header - ubicaciones = "+ Json.encodeToString(locations))
+    println("Header - ubicaciones = " + Json.encodeToString(locations))
 
 
 
@@ -1021,7 +1033,8 @@ fun SearchTextFieldWithScanner(
 
     onDropdownExpandStatudChanged(dropdownExpanded && productsList.size > 1)
 
-    ExposedDropdownMenuBox(expanded = dropdownExpanded && productsList.size > 1,
+    ExposedDropdownMenuBox(
+        expanded = dropdownExpanded && productsList.size > 1,
         onExpandedChange = {
             vm.onPulldownStatusInvert()
         }) {

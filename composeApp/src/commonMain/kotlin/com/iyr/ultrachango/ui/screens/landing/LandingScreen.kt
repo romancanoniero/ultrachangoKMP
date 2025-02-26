@@ -45,23 +45,20 @@ import ultrachango2.composeapp.generated.resources.market_bg_1
 
 @Composable
 fun LandingScreen(
+
     navController: NavController,
     permissionsController: PermissionsController
 ) {
-
-    /*
-        modifier: Modifier = Modifier,
-        pages: List<@Composable () -> Unit>,
-        onLastPageButtonClick: () -> Unit
-
-     */
     var showGoToLogin by remember { mutableStateOf(false) }
     var pagerState = rememberPagerState(
         initialPage = 0,
         pageCount = { 4 }
     )
 
-    Box(modifier = Modifier.fillMaxSize().padding(0.dp).background(Color.LightGray))
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(0.dp)
+        )
     {
         Image(
             painter = painterResource( Res.drawable.market_bg_1),
@@ -105,7 +102,7 @@ fun LandingScreen(
         }
 
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().padding(0.dp)
         )
         {
 

@@ -19,5 +19,7 @@
     <string name="product_not_found">Product not found</string>
     <string name="products">products</string>
     <string name="no_products">no products</string>
-
+    <string name="shopping_lists">Shopping List</string>
+    <string name="invite">Invite</string>
+    <string name="enter_otp_code">Enter the OTP sent to your phone</string>
 </resources>

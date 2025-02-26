@@ -3,38 +3,61 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
+    alias(libs.plugins.googleServices)
+   // alias(libs.plugins.kotlinCocoapods)
+    alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-
     alias(libs.plugins.ksp)
-   //  alias(libs.plugins.androidxRoom)
     alias(libs.plugins.kotlinxSerialization)
 }
 
 kotlin {
+
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class) compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
-    }
+    }/*
+        listOf(
+            iosX64(),
+            iosArm64(),
+            iosSimulatorArm64()
+        ).forEach { iosTarget ->
+            iosTarget.binaries.framework {
+                baseName = "shared"
+                freeCompilerArgs += listOf("-Xbinary=bundleId=com.iyr.ultrachango")
+                isStatic = true
+            }
+        }
+    */
 
-    listOf(
-        iosX64(), iosArm64(), iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            freeCompilerArgs += listOf("-Xbinary=bundleId=com.iyr.ultrachango")
-            isStatic = true
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+
+
+    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().configureEach {
+        binaries.framework {
+            baseName = "composeApp"
+            isStatic = true // ⚠️ Usa 'true' si prefieres un framework estático
+        }
+
+        compilations.getByName("main") {
+            // Configurar la tarea de compilación para añadir el flag del Bundle ID
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xbinary=bundleId=com.iyr.ultrachango")
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
         }
     }
 
-    /*
-    sourceSets.commonMain {
-        kotlin.srcDir("build/generated/ksp/metadata")
-    }
-*/
+
+
+
 
     sourceSets {
 
@@ -47,10 +70,13 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.koin.androidx.compose)
             implementation(libs.splashScreen)
-/*
-            implementation("com.google.android.gms:play-services-assistant:1.0.0")
-            implementation("com.google.android.gms:play-services-voice:1.0.0")
-      */
+            implementation(libs.android.firebase.auth)
+//            implementation(libs.firebase.core)
+
+            // multimedia
+            implementation(libs.androidx.media3.exoplayer)
+
+
         }
         commonMain.dependencies {
             api(compose.materialIconsExtended)
@@ -63,6 +89,10 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+
+
+            // QR
+            implementation(libs.qr)
 
             // Preferences
             implementation(libs.settings)
@@ -81,14 +111,6 @@ kotlin {
             // Imagenes
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
-
-            // Authentication
-            implementation(libs.gitlive.firebase.common)
-            implementation(libs.gitlive.firebase.auth)
-
-            implementation(libs.kmpaut.google)
-            implementation(libs.kmpaut.firebase)
-            implementation(libs.kmpaut.uihelper)
 
             // HttpClient
             implementation(libs.ktor.client.core)
@@ -114,8 +136,6 @@ kotlin {
             // Barcode scanner
             implementation(libs.barcodescanning)
 
-            // multimedia
-            implementation(libs.androidx.media3.exoplayer)
 
 
             // Places
@@ -143,25 +163,58 @@ kotlin {
             implementation(libs.datetime.wheel.picker)
 
             // peekaboo
-  /*
-            implementation(libs.peekaboo.ui)
-            implementation(libs.peekaboo.image.picker)
+            /*
+                      implementation(libs.peekaboo.ui)
+                      implementation(libs.peekaboo.image.picker)
 
-*/
+          */
             // For FilePicker
             implementation(libs.calf.file.picker)
             // For FilePicker
             implementation(libs.calf.file.picker.coil)
 
             implementation(libs.kim)
+/*
+            implementation("com.github.lamba92:firebase-multiplatform-core:0.0.2")
+            implementation("com.github.lamba92:firebase-multiplatform-auth:0.0.2")
+*/
+
 
         }
-
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+
+
         }
+
+        targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().all {
+            val mainCompilation = compilations.getByName("main")
+
+            // point our crashlytics.def file
+            mainCompilation.cinterops.create("firebaseauth") {
+                // Pass the header files location
+                includeDirs("$projectDir/src/include")
+                compilerOpts("-DNS_FORMAT_ARGUMENT(A)=", "-D_Nullable_result=_Nullable")
+
+
+
+                // Path to .def file
+                defFile("src/nativeInterop/cinterop/firebaseauth.def")
+
+                compilerOpts("-framework", "MyFramework", "-F/Users/user/Projects/MyFramework/ios/SDK")
+
+            }
+        }
+
+
     }
+
+
 }
+
+
+
+
 
 android {
     namespace = "com.iyr.ultrachango"
@@ -190,47 +243,19 @@ android {
     }
 }
 
-/*
-ksp {
-    // arg("kapt.use.worker.api", "false")
-    arg("room.schemaLocation", "${projectDir}/schemas")
-}
-*/
+
 dependencies {
-   // add("kspCommonMainMetadata", libs.androidx.room.compiler)
-
+// add("kspCommonMainMetadata", libs.androidx.room.compiler)
 
 
 }
-
-/*
-dependencies {
-    listOf(
-        "kspAndroid",
-        // "kspJvm",
-        "kspIosSimulatorArm64", "kspIosX64", "kspIosArm64"
-    ).forEach {
-        add(it, libs.androidx.room.compiler)
-    }
-}
-*/
-
-
-
-/*
-tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
-    if (name != "kspCommonMainKotlinMetadata") {
-        dependsOn("kspCommonMainKotlinMetadata")
-    }
-}
-
-*/
 
 
 dependencies {
     implementation(libs.play.services.wallet)
     implementation(libs.androidx.sqlite.ktx)
     implementation(libs.androidx.media3.exoplayer)
+   // implementation(libs.firebase.auth)
     debugImplementation(compose.uiTooling)
 }
 

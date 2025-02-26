@@ -1,24 +1,21 @@
 package com.iyr.ultrachango.data.api.cloud.users
 
 
-import com.iyr.ultrachango.auth.AuthRepositoryImpl
+import com.iyr.ultrachango.auth.AuthRepository
+import com.iyr.ultrachango.auth.AuthenticatedUser
 import com.iyr.ultrachango.config.Config.BASE_URL_CLOUD_SERVER
 import com.iyr.ultrachango.data.api.cloud.Response
-import com.iyr.ultrachango.data.database.repositories.getAuthToken
-import com.iyr.ultrachango.data.models.FamilyMember
-import com.iyr.ultrachango.data.models.ShoppingList
+
 import com.iyr.ultrachango.data.models.User
+import com.iyr.ultrachango.getAuthToken
 import com.russhwolf.settings.Settings
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.auth.auth
+
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
-import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.utils.EmptyContent.contentType
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
@@ -30,7 +27,9 @@ import kotlinx.serialization.json.Json
 
 class CloudUsersService(
     private val client: HttpClient,
-    private val settings: Settings
+    private val settings: Settings,
+
+
 
     //  private val localStorage: AuthRepositoryImpl
 ) : ICloudUsersService {
@@ -39,7 +38,7 @@ class CloudUsersService(
     val urlBase = "$BASE_URL_CLOUD_SERVER/users"
 
 
-    override suspend fun saveUser(user: User) {
+    override suspend fun saveUser(user: AuthenticatedUser) {
         val token = settings.getAuthToken()
         val entityAsJson = Json.encodeToString(user)
         val call = client.post(urlBase) {
@@ -95,14 +94,39 @@ class CloudUsersService(
         return null;
     }
 
+    override suspend fun getAuthenticatedUser(userId: String): AuthenticatedUser? {
+        val url = "$urlBase/get"
+        val token = settings.getAuthToken()
+        val call = client.post(url) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                mapOf(
+                    "id" to userId,
+                    "token" to token
+                )
+            )
+        }
 
+        val response = call.body<Response<AuthenticatedUser>>()
+
+        when (call.status.value) {
+            200 -> {
+                return response.payload;
+            }
+
+            else -> {
+           //     throw Exception(response.message ?: "Error desconocido")
+            }
+        }
+        return null;
+    }
     /*
         override suspend fun updateUser(user: User) {
     asdasdasd
         }
     */
     @OptIn(InternalAPI::class)
-    override suspend fun updateUser(user: User, image: ByteArray?) {
+    override suspend fun updateUser(user: AuthenticatedUser, image: ByteArray?) {
         val token = settings.getAuthToken()
 
         val entityAsJson = Json.encodeToString(user)

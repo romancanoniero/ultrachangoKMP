@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.iyr.ultrachango.ui.dialogs.EmptyDialog
+import com.iyr.ultrachango.utils.ui.elements.CustomButton
 import org.koin.dsl.module
 
 
@@ -40,20 +41,16 @@ fun ImageOptionDialog(
             modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
         ) {
 
-            Button(
+            CustomButton(
                 modifier = Modifier.fillMaxWidth().height(40.dp),
                 onClick = {
                     onGalleryRequest()
                     onDismissRequest()
                 },
                 enabled = true,
-                shape = ButtonDefaults.shape,
+
                 colors = ButtonDefaults.buttonColors(),
-                elevation = ButtonDefaults.elevatedButtonElevation(),
-                border = ButtonDefaults.outlinedButtonBorder(),
-                contentPadding = ButtonDefaults.ContentPadding,
-                interactionSource = null
-            ) {
+              ) {
 
                 Text(
                     text = "Gallery",
@@ -65,19 +62,14 @@ fun ImageOptionDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
 
-            Button(
+            CustomButton(
                 modifier = Modifier.fillMaxWidth().height(40.dp),
                 onClick = {
                     onCameraRequest()
                     onDismissRequest()
                 },
                 enabled = true,
-                shape = ButtonDefaults.shape,
                 colors = ButtonDefaults.buttonColors(),
-                elevation = ButtonDefaults.elevatedButtonElevation(),
-                border = ButtonDefaults.outlinedButtonBorder(),
-                contentPadding = ButtonDefaults.ContentPadding,
-                interactionSource = null
             ) {
 
                 Text(

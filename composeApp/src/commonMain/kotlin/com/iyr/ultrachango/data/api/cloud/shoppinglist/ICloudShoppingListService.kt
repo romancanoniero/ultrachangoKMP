@@ -9,7 +9,7 @@ interface ICloudShoppingListService  {
 
     suspend fun save(shoppingList : ShoppingList): ShoppingList?
 
-    suspend fun get(userKey : String, id: Int): ShoppingListComplete
+    suspend fun get(userKey : String, listId: Int): ShoppingListComplete
 
     suspend fun getAll(userKey : String): List<ShoppingListComplete>
 

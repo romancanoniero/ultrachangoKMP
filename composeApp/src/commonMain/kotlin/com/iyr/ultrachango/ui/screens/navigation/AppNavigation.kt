@@ -88,8 +88,6 @@ val navigationItemsLists = listOf(
 )
 
 
-
-
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
@@ -138,7 +136,7 @@ fun AppNavGraph(
             route = AppRoutes.MembersRoute.route,
         ) {
             MembersScreen(
-                appNavController = navController,
+                navController = navController,
                 //       permissionsController = permissionsController,
                 scaffoldVM = scaffoldVM
             )
@@ -177,6 +175,7 @@ fun NavGraphBuilder.mainNavGraph(
             route = "shoppinglistadd"
         ) { backStackEntry ->
             ShoppingListAddEditScreen("", null,
+                listName = "",
                 rootNavController,
                 scaffoldVM = scaffoldVM,
                 permissionsController = permissionsController,
@@ -189,16 +188,24 @@ fun NavGraphBuilder.mainNavGraph(
         }
 
         composable(
-            route = "shoppinglistedit/{userKey}/{listId}",
+            route = "shoppinglistedit/{userKey}/{listId}/{listName}",
             arguments = listOf(
                 navArgument("userKey") { type = NavType.StringType },
-                navArgument("listId") { type = NavType.IntType })
+                navArgument("listId") { type = NavType.IntType },
+                navArgument("listName") { type = NavType.StringType },
+
+
+                )
         ) { backStackEntry ->
             val userKey: String = backStackEntry.arguments?.getString("userKey").toString()
             val shoppingListId = backStackEntry.arguments?.getInt("listId")
+            val listName: String = backStackEntry.arguments?.getString("listName").toString()
+
+
             ShoppingListAddEditScreen(
                 userKey,
                 shoppingListId,
+                listName = listName,
                 rootNavController,
                 scaffoldVM = scaffoldVM,
                 vm = koinViewModel(parameters = { parametersOf(userKey, shoppingListId) }),
@@ -253,6 +260,7 @@ fun NavGraphBuilder.mainNavGraph(
 
         composable(route = AppRoutes.SettingRoute.route) {
             SettingScreen(
+
                 navController = rootNavController,
                 authRepository = koinInject(),
                 permissionController = permissionsController,

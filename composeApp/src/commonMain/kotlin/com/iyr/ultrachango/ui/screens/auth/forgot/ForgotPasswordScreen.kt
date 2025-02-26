@@ -91,8 +91,7 @@ fun ForgotPasswordScreen(
             CustomButton(modifier = Modifier.fillMaxWidth(), onClick = {
                 triggerHapticFeedback()
                 navController?.navigate(RootRoutes.HomeRoute.route) {
-              
-                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                 //   popUpTo(navController.graph.startDestinationId) { inclusive = true }
                 }
 
             }, content = {

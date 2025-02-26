@@ -1,13 +1,19 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.iyr.ultrachango">
+    >
 
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus"/>
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.FLASHLIGHT"/>
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
 
     <!-- Devices running Android 12L (API level 32) or lower  -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
@@ -24,15 +30,18 @@
 
 
     <application
+
         android:name=".UltraChangoApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="Ultra Chango"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:hardwareAccelerated="false"
+
         android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.App.Splash">
+
+
 
         <meta-data
             android:name="com.google.android.gms.appstate.AppStateManager"
@@ -63,6 +72,21 @@
             android:name=".MainActivity"
             android:theme="@style/Theme.App.Splash"
             >
+
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="ultrachango"/>
+            </intent-filter>
+
+            <intent-filter>
+                <data android:scheme="ultrachango" android:host="add_item"/>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
