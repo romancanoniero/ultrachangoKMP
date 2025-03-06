@@ -31,7 +31,7 @@ class CloudImagesService(
     val urlBase = "$BASE_URL_CLOUD_SERVER/api"
 
     override suspend fun getProfileImage(userKey: String): ByteArray? {
-        val authToken = settings.getAuthToken();
+        val authToken = settings.getAuthToken()
         try {
             val call = client.get("$urlBase/client/$userKey/image") {
                 headers {
@@ -42,7 +42,7 @@ class CloudImagesService(
             val response = call.body<Response<ByteArray>>()
             when (call.status.value) {
                 200 -> {
-                    return response.payload;
+                    return response.payload
                 }
                 else -> {
                     throw Exception(response.message ?: "Error desconocido")
@@ -58,7 +58,7 @@ class CloudImagesService(
 
     @OptIn(ExperimentalEncodingApi::class, ExperimentalResourceApi::class)
     override suspend fun postProfileImage(userKey: String, fileName: String, bytes: ByteArray) {
-        val authToken = settings.getAuthToken();
+        val authToken = settings.getAuthToken()
         try {
 
             val base64 = bytes.toBase64()
@@ -85,7 +85,7 @@ class CloudImagesService(
 
 
 
-            return call1.body();
+            return call1.body()
         } catch (e: Exception) {
             throw e
         }

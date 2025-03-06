@@ -81,7 +81,7 @@ class ShoppingListAddEditViewModel(
                     shoppingList = shoppingListRepository.getShoppingList(shoppingListId)
                     scaffoldVM.showLoader(false)
 
-                    var userKey = authRepository.getUserKey()!!
+                    var userKey = authRepository.getUserKey()
                     _state.value = _state.value.copy(
                         listId = shoppingList?.listId ?: 0,
                         name = shoppingList?.listName.toString(),
@@ -257,7 +257,7 @@ class ShoppingListAddEditViewModel(
 
             permissionsController?.providePermission(Permission.CAMERA)
 
-            if (permissionsController?.isPermissionGranted(Permission.CAMERA) ?: false) {
+            if (permissionsController?.isPermissionGranted(Permission.CAMERA) == true) {
                 try {
                     _showCameraPreview.value = true
                 } catch (deniedAlways: DeniedAlwaysException) {

@@ -451,7 +451,7 @@ fun ItemPriceInBranch(price: PriceInBranch) {
             Row()
             {
                 Text(
-                    text = formatCurrency(price.price?.regularPrice ?: 0.0, "$") ?: "0.0",
+                    text = formatCurrency(price.price?.regularPrice ?: 0.0, "$"),
                     style = StyleTextRegular().copy(fontSize = textSize12)
                 )
 

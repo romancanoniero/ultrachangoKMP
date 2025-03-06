@@ -139,7 +139,7 @@ fun ProfileScreen(
         val birthMonth = birthDateParts?.getOrNull(1)?.toIntOrNull()
         val birthDay = birthDateParts?.getOrNull(2)?.toIntOrNull()
 
-        mutableStateOf<kotlinx.datetime.LocalDate?>(
+        mutableStateOf<LocalDate?>(
             LocalDate(
                 year = birthYear ?: currentDate.year,
                 monthNumber = birthMonth ?: currentDate.monthNumber,
@@ -281,7 +281,7 @@ fun ProfileScreen(
 
             //--------------------
             Box(modifier = Modifier.size(120.dp).background(Color.Gray, shape = CircleShape)
-                .clip(CircleShape).align(androidx.compose.ui.Alignment.CenterHorizontally)
+                .clip(CircleShape).align(Alignment.CenterHorizontally)
                 .clickable {
                     coroutineScope.launch(Dispatchers.IO) {
                         //      var cameraPermission = false
@@ -293,7 +293,7 @@ fun ProfileScreen(
                                 permissionsController.isPermissionGranted(Permission.CAMERA)
                             if (!cameraPermission) {
                                 try {
-                                    permissionsController?.providePermission(Permission.CAMERA)
+                                    permissionsController.providePermission(Permission.CAMERA)
                                     // Permission has been granted successfully.
                                     cameraPermission = true
                                 } catch (deniedAlways: DeniedAlwaysException) {
@@ -307,7 +307,7 @@ fun ProfileScreen(
                                 permissionsController.isPermissionGranted(Permission.GALLERY)
                             if (!galleryPermission) {
                                 try {
-                                    permissionsController?.providePermission(Permission.GALLERY)
+                                    permissionsController.providePermission(Permission.GALLERY)
                                     // Permission has been granted successfully.
                                     galleryPermission = true
                                 } catch (deniedAlways: DeniedAlwaysException) {
@@ -421,9 +421,9 @@ fun ProfileScreen(
                             monthNumber = 1,
                             dayOfMonth = 1,
                         ), maxDate = LocalDate(
-                            year = currentDateArray!![0],
-                            monthNumber = currentDateArray!![1],
-                            dayOfMonth = currentDateArray!![2],
+                            year = currentDateArray[0],
+                            monthNumber = currentDateArray[1],
+                            dayOfMonth = currentDateArray[2],
                         ), size = DpSize(200.dp, 100.dp), rowCount = 5, textStyle = StyleTextBig(),
                         // textColor = Color(0xFFffc300),
                         selectorProperties = WheelPickerDefaults.selectorProperties(

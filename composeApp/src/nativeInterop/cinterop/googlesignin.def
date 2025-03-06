@@ -1,0 +1,15 @@
+language = Objective-C
+headers = "/Users/romancanoniero/Documents/kmp/UltraChango2/iosApp/Pods/GoogleSignIn/GoogleSignIn/Sources/Public/GoogleSignIn/GoogleSignIn.h"
+headers = "/Users/romancanoniero/Documents/kmp/UltraChango2/iosApp/Pods/GTMAppAuth/GTMAppAuth/Sources/Public/GTMAppAuth/GTMAppAuthFetcherAuthorization.h"
+headers = "/Users/romancanoniero/Documents/kmp/UltraChango2/iosApp/Pods/GTMSessionFetcher/Sources/Core/Public/GTMSessionFetcher/GTMSessionFetcher.h"
+package = "GoogleSignIn"
+
+headerFilter = "GoogleSignIn/*"
+
+compilerOpts = "-I/Users/romancanoniero/Documents/kmp/UltraChango2/iosApp/Pods/GoogleSignIn/GoogleSignIn/Sources/Public/GoogleSignIn"
+compilerOpts = "-I/Users/romancanoniero/Documents/kmp/UltraChango2/iosApp/Pods/GTMAppAuth/GTMAppAuth/Sources/Public/GTMAppAuth"
+compilerOpts = "-I/Users/romancanoniero/Documents/kmp/UltraChango2/iosApp/Pods/GTMSessionFetcher/Sources/Core/Public/GTMSessionFetcher"
+compilerOpts = "-I/Users/romancanoniero/Documents/kmp/UltraChango2/iosApp/Pods/AppAuth/Source"
+compilerOpts = "-I/Users/romancanoniero/Documents/kmp/UltraChango2/iosApp/Pods"
+linkerOpts = "-F/Users/romancanoniero/Documents/kmp/UltraChango2/iosApp/Pods"
+

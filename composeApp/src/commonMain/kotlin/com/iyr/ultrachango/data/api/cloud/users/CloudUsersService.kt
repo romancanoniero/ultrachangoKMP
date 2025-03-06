@@ -84,14 +84,14 @@ class CloudUsersService(
 
         when (call.status.value) {
             200 -> {
-                return response.payload;
+                return response.payload
             }
 
             else -> {
                 throw Exception(response.message ?: "Error desconocido")
             }
         }
-        return null;
+        return null
     }
 
     override suspend fun getAuthenticatedUser(userId: String): AuthenticatedUser? {
@@ -111,14 +111,14 @@ class CloudUsersService(
 
         when (call.status.value) {
             200 -> {
-                return response.payload;
+                return response.payload
             }
 
             else -> {
            //     throw Exception(response.message ?: "Error desconocido")
             }
         }
-        return null;
+        return null
     }
     /*
         override suspend fun updateUser(user: User) {

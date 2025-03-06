@@ -275,7 +275,7 @@ fun RegisterScreen(
                 .background(Color.White, shape = customShape)
                 .border(1.dp, Color.LightGray, customShape),
                 shape = customShape,
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors().copy(
+                colors = ButtonDefaults.buttonColors().copy(
                     containerColor = Color.White, contentColor = Color.Black
                 ),
                 onClick = { /* Handle Google login */ }) {
@@ -301,7 +301,7 @@ fun RegisterScreen(
                 .background(Color.White, shape = customShape)
                 .border(1.dp, Color.LightGray, customShape),
                 shape = customShape,
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors().copy(
+                colors = ButtonDefaults.buttonColors().copy(
                     containerColor = Color.White, contentColor = Color.Black
                 ),
 
@@ -329,7 +329,7 @@ fun RegisterScreen(
             Text(stringResource(Res.string.already_have_an_account), style = StyleLight())
 
             Text(
-                modifier = Modifier.clickable { navController?.popBackStack() },
+                modifier = Modifier.clickable { navController.popBackStack() },
                 text = stringResource(Res.string.login_here),
                 color = Color.Blue
             )
@@ -369,13 +369,13 @@ fun MethodDivider(text: String) {
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.weight(1f).height(1.dp).background(Color.Gray)
         )
         Text(
             modifier = Modifier.padding(horizontal = 8.dp), text = text
         )
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.weight(1f).height(1.dp).background(Color.Gray)
         )
     }
@@ -403,7 +403,7 @@ fun PrivacyAndTerms(
             }, enabled = enableCheck
         )
         Spacer(modifier = Modifier.width(8.dp).fillMaxWidth().weight(1f))
-        FlowRow() {
+        FlowRow {
             Text(
                 text = "Continuando aceptas nuestra ", style = StyleLight()
             )
@@ -411,7 +411,7 @@ fun PrivacyAndTerms(
                 color = Color.Blue,
                 modifier = Modifier.clickable {
                     // Navegar a la página de política de privacidad
-                    navController?.navigate("privacy_policy_route")
+                    navController.navigate("privacy_policy_route")
                 })
             Text(
                 text = " y los ", style = StyleLight()
@@ -420,7 +420,7 @@ fun PrivacyAndTerms(
                 color = Color.Blue,
                 modifier = Modifier.clickable {
                     // Navegar a la página de términos y condiciones
-                    navController?.navigate("terms_conditions_route")
+                    navController.navigate("terms_conditions_route")
                 })
         }
 

@@ -89,7 +89,7 @@ fun SettingScreen(
                 coroutineScope.launch {
                     authRepository.signOut()
                     withContext(Dispatchers.Main) {
-                        navController?.navigate(RootRoutes.LoginRoute.route)
+                        navController.navigate(RootRoutes.LoginRoute.route)
                     }
                 }
             },

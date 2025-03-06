@@ -50,7 +50,7 @@ class LocationsViewModel(
 
 
      suspend fun fetchLists() {
-       val userKey = authRepository.getUserKey()!!
+       val userKey = authRepository.getUserKey()
         fetchLists(userKey)
 
     }

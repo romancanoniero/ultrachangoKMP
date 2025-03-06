@@ -5,9 +5,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.koin.core.component.KoinComponent
 
-class InviteViewModel(
-//    private val repository: DeepLinkRepository
-): ViewModel(), KoinComponent {
+class InviteViewModel : ViewModel(), KoinComponent {
 
     private val _inviteLink = MutableStateFlow("")
     val inviteLink: StateFlow<String> get() = _inviteLink

@@ -7,8 +7,7 @@ data class ProductPrice(
     val regularPrice: Double,
     val promo1: ProductPromo?,
     val promo2: ProductPromo?
-) {
-}
+)
 
 
 

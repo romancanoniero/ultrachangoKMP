@@ -67,13 +67,13 @@ fun SearchableDropdown(
 
         )
 
-        expanded = (state.searchResults?.isNotEmpty() ?: false) && forceClose == false
+        expanded = state.searchResults.isNotEmpty() && forceClose == false
 
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            state.searchResults?.forEach { suggestion ->
+            state.searchResults.forEach { suggestion ->
                 forceClose = false
                 DropdownMenuItem(onClick = {
                     triggerHapticFeedback()

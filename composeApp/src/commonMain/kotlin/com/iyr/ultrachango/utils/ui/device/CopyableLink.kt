@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import com.iyr.ultrachango.utils.ui.elements.RegularButton
 import com.iyr.ultrachango.utils.ui.elements.ThinButton
 
 @Composable

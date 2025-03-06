@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -291,7 +290,7 @@ fun DynamicTopBar(
         AppRoutes.SettingRoute.route,
         RootRoutes.SharingRoute.route,
         RootRoutes.ShoppingListRoute.route,
-        RootRoutes.ShoppingListEditRoute.route?.substringBefore("/"),
+        RootRoutes.ShoppingListEditRoute.route.substringBefore("/"),
         RootRoutes.LocationRoute.route,
         RootRoutes.SettingDetail.route,
         RootRoutes.QRScannerScreenRoute.route.substringBefore("/")
@@ -431,8 +430,7 @@ fun getCurrentLocation(
     val scope = rememberCoroutineScope()
 
     scope.launch {
-        val result: GeolocatorResult = geolocator.current()
-        when (result) {
+        when (val result: GeolocatorResult = geolocator.current()) {
             is GeolocatorResult.Success -> {
                 onLocationObtained(result.data)
             }
@@ -466,7 +464,7 @@ fun Settings.getUserLocally(): AuthenticatedUser {
 
 fun Settings.storeUserLocally(user: AuthenticatedUser) {
     var EntityAsJson = Json.encodeToString(user)
-    this.set("user", EntityAsJson);
+    this.set("user", EntityAsJson)
 }
 
 fun Settings.getAuthToken(): String {

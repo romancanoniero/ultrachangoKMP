@@ -217,7 +217,8 @@ class RegistrationProfileViewModel(
            try {
                usersRepository.updateUser(user, _imageProfile.value)
                _uiState.value = _uiState.value.copy(
-                   loading = false
+                   loading = false,
+                   isComplete = true
                )
            } catch (exception: Exception) {
                _uiState.value = _uiState.value.copy(
@@ -320,5 +321,6 @@ class RegistrationProfileViewModel(
        val loginButtonEnabled: Boolean = false,
        val haveCameraPermission: Boolean = false,
        val haveGalleryPermission: Boolean = false,
+       val isComplete : Boolean = false
    )
 }

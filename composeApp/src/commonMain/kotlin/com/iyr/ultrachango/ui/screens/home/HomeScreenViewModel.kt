@@ -110,13 +110,13 @@ class HomeScreenViewModel(
 
     fun fetchData(requestRealLocation: Boolean = false) {
 
-        permissionsController?.let { _controller ->
+        permissionsController.let { _controller ->
             viewModelScope.launch {
 
                 //      try {
                 val permissionsController = _controller.value!!
                 val granted =
-                    permissionsController!!.isPermissionGranted(Permission.LOCATION)
+                    permissionsController.isPermissionGranted(Permission.LOCATION)
 
                 println("HomeScreenViewModel - fetchData - granted = $granted")
 
@@ -159,13 +159,13 @@ class HomeScreenViewModel(
                     }
                 }
                 /*
-                 } catch (e: Exception) {
-                     scaffoldVM.showLoader(false)
-                     _state.value = _state.value.copy(
-                         errorMessage = e.message, showErrorMessage = true
-                     )
-                 }
-                 */
+                     } catch (e: Exception) {
+                         scaffoldVM.showLoader(false)
+                         _state.value = _state.value.copy(
+                             errorMessage = e.message, showErrorMessage = true
+                         )
+                     }
+                     */
             }
 
         }
@@ -511,7 +511,7 @@ class HomeScreenViewModel(
         if (requestRealLocation) {
             deferredResults = listOf(
                 viewModelScope.async {
-                    getUserLocations(userKey!!)
+                    getUserLocations(userKey)
                 },
                 viewModelScope.async {
                     _fetchingLocations.value = true
@@ -531,7 +531,7 @@ class HomeScreenViewModel(
         } else {
             deferredResults = listOf(
                 viewModelScope.async {
-                    getUserLocations(userKey!!)
+                    getUserLocations(userKey)
                 },
             )
         }
@@ -543,10 +543,10 @@ class HomeScreenViewModel(
         responseConbined.addAll(userLocations)
 
         if (requestRealLocation && results.size > 1) {
-            val currentLocation = (results[1] as List).get(0)
+            val currentLocation = results[1].get(0)
             responseConbined.add(currentLocation)
         } else {
-            if (permissionsController.value?.isPermissionGranted(Permission.LOCATION) ?: false == false) {
+            if (permissionsController.value?.isPermissionGranted(Permission.LOCATION) == true == false) {
                 val enableLocationsServiceOption = Location(
                     title = "Habilitar Servicio de Ubicación",
                     locationType = Locations.ENABLE_LOCATION
@@ -598,7 +598,7 @@ class HomeScreenViewModel(
         //     viewModelScope.launch {
         //   val currentLocation = getCurrentLocation(permissionsController?.value!!)
 
-        return getCurrentLocation(permissionsController?.value!!)
+        return getCurrentLocation(permissionsController.value!!)
         //      }
     }
 
@@ -615,8 +615,8 @@ class HomeScreenViewModel(
         val oldLocations = locations ?: emptyList()
         val newList =
             updated.filter { it.locationType != Locations.CURRENT_LOCATION }
-        newList?.let { it ->
-            _knownLocations.value = it.toList() as List<Location>
+        newList.let { it ->
+            _knownLocations.value = it.toList()
         }
 
     }

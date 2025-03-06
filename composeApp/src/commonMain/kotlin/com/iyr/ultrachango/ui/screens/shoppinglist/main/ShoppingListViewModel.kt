@@ -90,7 +90,7 @@ class ShoppingListViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val userKey = authRepository.getUserKey()!!
+                val userKey = authRepository.getUserKey()
                 val newShoppingList =
                     ShoppingList(listName = newName.capitalizeFirstLetter(), userId = userKey)
                 var entity = shoppingListRepository.saveShoppingList(newShoppingList)

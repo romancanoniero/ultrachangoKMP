@@ -1,0 +1,5 @@
+package = firebaseauth
+language = Objective-C
+headers = Firebase.h FIRCrashlytics.h FIRExceptionModel.h FIRStackFrame.h FirebaseAuth.h FIRAuth.h FIRAuthErrors.h FIREmailAuthProvider.h FIRFacebookAuthProvider.h FIRFederatedAuthProvider.h FIRGameCenterAuthProvider.h FIRGitHubAuthProvider.h FIRGoogleAuthProvider.h FIRMultiFactor.h FIRPhoneAuthProvider.h FIRTwitterAuthProvider.h FIRApp.h FIRConfiguration.h FIRLoggerLevel.h FIROptions.h FIRTimestamp.h FIRVersion.h
+
+

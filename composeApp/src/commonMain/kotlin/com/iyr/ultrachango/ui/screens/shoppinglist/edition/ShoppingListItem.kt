@@ -339,7 +339,7 @@ fun ProductInfoItem(
            {
                Box(modifier = Modifier.size(80.dp))
                {
-                   if (product.product?.haveImage ?: false) {
+                   if (product.product?.haveImage == true) {
                        ItemListImageBox(
                            modifier = Modifier.fillMaxSize(),
                            imageModel = urlProduct,

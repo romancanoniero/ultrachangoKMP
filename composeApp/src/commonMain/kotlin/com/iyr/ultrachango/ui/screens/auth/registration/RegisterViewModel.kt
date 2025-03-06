@@ -12,6 +12,7 @@ import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.auth.login.LoginViewModel.UiState
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
+import com.iyr.ultrachango.utils.firebaseauth.AuthViewModel
 import com.iyr.ultrachango.utils.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,6 +25,7 @@ import org.koin.core.component.KoinComponent
 class RegisterViewModel(
     private val authService: AuthRepository,
     private val scaffoldVM: ScaffoldViewModel,
+    private val authViewModel: AuthViewModel,
 ) : BaseViewModel(), KoinComponent {
 
 
@@ -181,6 +183,23 @@ class RegisterViewModel(
 
             when (_uiState.value.authenticationMethod) {
                 AuthenticationMethods.EMAIL -> {
+                    authViewModel.signUp(_uiState.value.emailOrPhoneNumber,
+                        _uiState.value.password.toString())
+                    { success ->
+                        if (success) {
+                            println("Usuario registrado")
+                            _uiState.value = _uiState.value.copy(
+                                loading = false
+                            )
+                        } else {
+                            println("Error al registrar usuario" )
+                            _uiState.value = _uiState.value.copy(
+                                loading = false
+                            )
+                        }
+
+                    }
+
 
                     try {
                         authService.signUpWithEmail(

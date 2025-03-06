@@ -214,9 +214,7 @@ fun RootNavGraph(
                     })
             }) { innerPadding ->
                 */
-            Box(
-
-            ) {
+            Box {
                 HomeScreen(
                     navController = rootNavController,
                     permissionsController = permissionsController,

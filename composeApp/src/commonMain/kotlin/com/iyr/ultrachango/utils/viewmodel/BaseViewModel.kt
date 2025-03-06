@@ -8,7 +8,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
-open class BaseViewModel() : ViewModel() {
+open class BaseViewModel : ViewModel() {
 
     val coroutineContext = SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
         println("BaseViewModel: Error: ${throwable.message}")

@@ -1,16 +1,18 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.googleServices)
-   // alias(libs.plugins.kotlinCocoapods)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlinxSerialization)
+    // Cocoapods
+    alias(libs.plugins.kotlinCocoapods)
 }
 
 kotlin {
@@ -19,45 +21,76 @@ kotlin {
         @OptIn(ExperimentalKotlinGradlePluginApi::class) compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
-    }/*
-        listOf(
-            iosX64(),
-            iosArm64(),
-            iosSimulatorArm64()
-        ).forEach { iosTarget ->
-            iosTarget.binaries.framework {
-                baseName = "shared"
-                freeCompilerArgs += listOf("-Xbinary=bundleId=com.iyr.ultrachango")
-                isStatic = true
-            }
-        }
-    */
+    }
 
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-
-
-    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().configureEach {
-        binaries.framework {
+    listOf(
+        iosX64(), iosArm64(), iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
             baseName = "composeApp"
-            isStatic = true // ⚠️ Usa 'true' si prefieres un framework estático
-        }
-
-        compilations.getByName("main") {
-            // Configurar la tarea de compilación para añadir el flag del Bundle ID
-            compileTaskProvider.configure {
-                compilerOptions {
-                    freeCompilerArgs.add("-Xbinary=bundleId=com.iyr.ultrachango")
-                    freeCompilerArgs.add("-Xexpect-actual-classes")
-                }
-            }
+            //      linkerOpts("-Xbinary=bundleId=com.iyr.ultrachangoWER3D825VB")
+            isStatic = true
         }
     }
 
 
+    // Cocoapods
+
+    cocoapods {
+        version = "1.0"
+        summary = "Some description for a Kotlin/Native module"
+        homepage = "Link to a Kotlin/Native module homepage"
+        ios.deploymentTarget = "12.0"
+
+        // Optional properties
+        // Configure the Pod name here instead of changing the Gradle project name
+        //    name = "MyCocoaPod"
+
+        podfile = project.file("../iosApp/Podfile")
 
 
+        framework {
+            // Required properties
+            // Framework name configuration. Use this property instead of deprecated 'frameworkName'
+            baseName = "composeApp"
+            // Optional properties
+            // Specify the framework linking type. It's dynamic by default.
+            isStatic = true
+        }
+        /*
+                pod("GoogleSignIn")
+
+                pod("AppAuth")
+
+                pod("FirebaseCore")
+                pod("FirebaseAuth") {
+                    // Add these lines
+                    extraOpts += listOf("-compiler-option", "-fmodules")
+                }
+
+                pod("RecaptchaInterop") {
+                    // Add these lines
+                    extraOpts += listOf("-compiler-option", "-fmodules")
+                }
+        */
+        // Dependencias de Firebase
+
+        // Firebase Core Dependencies
+        pod("FirebaseCore") {
+            version = "~> 10.19.0"
+        }
+        pod("FirebaseAuth") {
+            version = "~> 10.19.0"
+        }
+
+        // Authentication Providers
+        pod("GoogleSignIn") {
+            version = "~> 7.0"
+        }
+    }
+
+
+//-----
 
     sourceSets {
 
@@ -137,7 +170,6 @@ kotlin {
             implementation(libs.barcodescanning)
 
 
-
             // Places
             implementation(libs.placesautocomplete)
 
@@ -174,41 +206,36 @@ kotlin {
             implementation(libs.calf.file.picker.coil)
 
             implementation(libs.kim)
-/*
-            implementation("com.github.lamba92:firebase-multiplatform-core:0.0.2")
-            implementation("com.github.lamba92:firebase-multiplatform-auth:0.0.2")
-*/
 
 
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
-
-
-        }
-
-        targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().all {
-            val mainCompilation = compilations.getByName("main")
-
-            // point our crashlytics.def file
-            mainCompilation.cinterops.create("firebaseauth") {
-                // Pass the header files location
-                includeDirs("$projectDir/src/include")
-                compilerOpts("-DNS_FORMAT_ARGUMENT(A)=", "-D_Nullable_result=_Nullable")
-
-
-
-                // Path to .def file
-                defFile("src/nativeInterop/cinterop/firebaseauth.def")
-
-                compilerOpts("-framework", "MyFramework", "-F/Users/user/Projects/MyFramework/ios/SDK")
-
-            }
-        }
-
+        }/*
+        cInterop
+                targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().all {
+                    val mainCompilation = compilations.getByName("main")
+                    // point our crashlytics.def file
+                    mainCompilation.cinterops.create("firebaseauth") {
+                        // Pass the header files location
+                        includeDirs("$projectDir/src/include")
+                        compilerOpts("-DNS_FORMAT_ARGUMENT(A)=", "-D_Nullable_result=_Nullable")
+                        // Path to .def file
+                        defFile("src/nativeInterop/cinterop/firebaseauth.def")
+                        compilerOpts("-framework", "MyFramework", "-F/Users/user/Projects/MyFramework/ios/SDK")
+                    }
+                }
+        */
 
     }
 
+    targets.configureEach {
+        compilations.configureEach {
+            compilerOptions.configure {
+                freeCompilerArgs.add("-Xexpect-actual-classes")
+            }
+        }
+    }
 
 }
 
@@ -255,7 +282,7 @@ dependencies {
     implementation(libs.play.services.wallet)
     implementation(libs.androidx.sqlite.ktx)
     implementation(libs.androidx.media3.exoplayer)
-   // implementation(libs.firebase.auth)
+    // implementation(libs.firebase.auth)
     debugImplementation(compose.uiTooling)
 }
 

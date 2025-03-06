@@ -1,6 +1,5 @@
 package com.iyr.ultrachango.ui.screens.shoppinglist.edition
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,9 +23,7 @@ import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -68,7 +65,6 @@ import com.iyr.ultrachango.utils.ui.ShowKeyboard
 import com.iyr.ultrachango.utils.ui.UserImage
 import com.iyr.ultrachango.utils.ui.elements.ReusableSearchTextField
 import com.iyr.ultrachango.utils.ui.elements.StyleLight
-import com.iyr.ultrachango.utils.ui.elements.UserPictureRegular
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.ALREADY_EXISTS
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.NON_EXISTING
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback

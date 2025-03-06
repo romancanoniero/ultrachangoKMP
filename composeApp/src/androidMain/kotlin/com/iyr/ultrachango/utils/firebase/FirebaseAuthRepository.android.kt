@@ -1,15 +1,8 @@
 package com.iyr.ultrachango.utils.firebase
 
 import AppContext
-import AppContext.activity
-import android.app.Activity.RESULT_OK
-import android.util.Log
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.rememberCoroutineScope
-import com.google.firebase.Firebase
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
-import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthMissingActivityForRecaptchaException
@@ -17,7 +10,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
-import com.iyr.ultrachango.MainActivity
+import com.iyr.ultrachango.auth.AuthenticatedUser
 import com.iyr.ultrachango.preferences.managers.settings
 import com.russhwolf.settings.set
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +22,18 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.TimeUnit
 
+
+private fun FirebaseUser.toAuthenticatedUser(): AuthenticatedUser {
+
+    val user = AuthenticatedUser(this.uid)
+    user.uid = this.uid
+    user.displayName = this.displayName
+    user.email = this.email
+    user.phoneNumber = this.phoneNumber
+    user.photoUrl = this.photoUrl?.path
+    user.isAnonymous = this.isAnonymous ?: false
+    return user
+}
 
 actual class FirebaseAuthRepository actual constructor() {
 
@@ -59,33 +64,36 @@ actual class FirebaseAuthRepository actual constructor() {
         set(value) {}
 
 
-   actual  fun getAuthToken(refresh: Boolean): String?
-   {
-       var token : String?  = null
-       runBlocking {
-           token =  FirebaseAuth.getInstance().currentUser?.getIdToken(refresh)?.await()?.token
-       }
-      return token
-   }
+    actual fun getAuthToken(refresh: Boolean): String? {
+        var token: String? = null
+        runBlocking {
+            token = FirebaseAuth.getInstance().currentUser?.getIdToken(refresh)?.await()?.token
+        }
+        return token
+    }
 
     actual suspend fun signInWithEmail(
         email: String,
         password: String
-    ): FirebaseAuthResult {
+    ): AuthResult {
         return try {
+
+            println("FirebaseAuthRepository.signInWithEmail")
+
             val result =
                 FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password).await()
 
             var tokenCall = FirebaseAuth.getInstance().currentUser?.getIdToken(true)?.await()
-            var authToken : String?  = tokenCall?.token
-            val user = result.user?.toAppFirebaseUser()
-            FirebaseAuthResult(
-                success = true,
-                user = user,
-                authToken = authToken!!
-            )
+            var authToken: String? = tokenCall?.token
+            val user = result.user?.toAuthenticatedUser()
+            if (user != null) {
+                AuthResult.Success(user = user, authToken = authToken!!)
+            } else {
+                AuthResult.Error("Unknown error occurred")
+            }
         } catch (e: Exception) {
-            FirebaseAuthResult(success = false, errorMessage = e.message)
+   //         FirebaseAuthResult(success = false, errorMessage = e.message)
+            AuthResult.Error(e.localizedMessage)
         }
 
     }
@@ -94,31 +102,39 @@ actual class FirebaseAuthRepository actual constructor() {
     actual suspend fun signUpWithEmail(
         email: String,
         password: String
-    ): FirebaseAuthResult = coroutineScope {
+    ): AuthResult = coroutineScope {
         return@coroutineScope async {
             try {
                 val result =
                     FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                         .await()
-                val user = result.user?.toAppFirebaseUser()
-                FirebaseAuthResult(success = true,
-                    user = user,
-                    authToken = FirebaseAuth.getInstance().currentUser?.getIdToken(true)?.await()?.token!!)
+                val user = result.user?.toAuthenticatedUser()
+
+                var tokenCall = FirebaseAuth.getInstance().currentUser?.getIdToken(true)?.await()
+                var authToken: String? = tokenCall?.token
+
+                if (user != null) {
+                    AuthResult.Success(user = user, authToken = authToken!!)
+                } else {
+                    AuthResult.Error("Unknown error occurred")
+                }
             } catch (e: Exception) {
-                FirebaseAuthResult(success = false, errorMessage = e.message)
+                AuthResult.Error(e.localizedMessage)
             }
         }.await()
     }
 
 
     actual suspend fun signInWithGoogle(
-        onResult: (FirebaseAuthResult) -> Unit,
+        onResult: (AuthResult) -> Unit,
         scope: CoroutineScope,
     ) {
         AppContext.googleAuth.signIn(
             scope = scope,
             onResult = { result ->
-                onResult(result)
+
+            val pp =33
+            //       onResult(result)
             }
         )
     }
@@ -126,13 +142,13 @@ actual class FirebaseAuthRepository actual constructor() {
     //: AuthResult
     actual suspend fun signInWithPhone(
         phoneNumber: String,
-        onSuccess: (FirebaseAuthResult) -> Unit ,
-        onFailure: (Exception) -> Unit ,
-        scope: CoroutineScope) {
+        onSuccess: (AuthResult) -> Unit,
+        onFailure: (Exception) -> Unit,
+        scope: CoroutineScope
+    ) {
 
 
-
-        val  callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+        val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                 // This callback will be invoked in two situations:
@@ -143,9 +159,11 @@ actual class FirebaseAuthRepository actual constructor() {
                 //     user action.
 
                 GlobalScope.launch {
-                    signInWithPhoneAuthCredential(credential,
-                        onResult= { result ->
-                            onSuccess(result)
+                    signInWithPhoneAuthCredential(
+                        credential,
+                        onResult = { result ->
+
+                      //      onSuccess(result)
                         },
                     )
                 }
@@ -174,17 +192,16 @@ actual class FirebaseAuthRepository actual constructor() {
                 // The SMS verification code has been sent to the provided phone number, we
                 // now need to ask the user to enter the code and then construct a credential
                 // by combining the code with a verification ID.
-            //    Log.d(TAG, "onCodeSent:$verificationId")
+                //    Log.d(TAG, "onCodeSent:$verificationId")
 
                 // Save verification ID and resending token so we can use them later
 
 
                 settings.set("storedVerificationId", verificationId)
-           //     settings.set("resendToken", token)
+                //     settings.set("resendToken", token)
 
             }
         }
-
 
 
         val options = PhoneAuthOptions.newBuilder(AppContext.firebaseAuth)
@@ -197,16 +214,17 @@ actual class FirebaseAuthRepository actual constructor() {
 
     }
 
-    private suspend fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential,
-                                                      onResult: (FirebaseAuthResult) -> Unit? = {},
-                                                      scope: CoroutineScope? = null
-                                                      ) {
+    private suspend fun signInWithPhoneAuthCredential(
+        credential: PhoneAuthCredential,
+        onResult: (FirebaseAuthResult) -> Unit? = {},
+        scope: CoroutineScope? = null
+    ) {
 
         AppContext.firebaseAuth.signInWithCredential(credential)
             .addOnCompleteListener(AppContext.activity) { task ->
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
-                 //   Log.d(TAG, "signInWithCredential:success")
+                    //   Log.d(TAG, "signInWithCredential:success")
 
                     val user = task.result?.user
                     val result = FirebaseAuthResult(
@@ -218,7 +236,7 @@ actual class FirebaseAuthRepository actual constructor() {
                     onResult(result)
                 } else {
                     // Sign in failed, display a message and update the UI
-                   // Log.w(TAG, "signInWithCredential:failure", task.exception)
+                    // Log.w(TAG, "signInWithCredential:failure", task.exception)
                     if (task.exception is FirebaseAuthInvalidCredentialsException) {
                         // The verification code entered was invalid
                     }
@@ -227,10 +245,11 @@ actual class FirebaseAuthRepository actual constructor() {
             }
     }
 
-    actual fun onOTPCodeEntered(code: String,
-                                onSuccess: (FirebaseAuthResult) -> Unit,
-                                onFailure: (Exception) -> Unit)
-    {
+    actual fun onOTPCodeEntered(
+        code: String,
+        onSuccess: (FirebaseAuthResult) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
         runBlocking {
             val storedVerificationId = settings.getString("storedVerificationId", "")
             val credential = PhoneAuthProvider.getCredential(storedVerificationId!!, code)
@@ -243,6 +262,7 @@ actual class FirebaseAuthRepository actual constructor() {
         }
 
     }
+
     //: AuthResult
     actual suspend fun signInWithFacebook() {
         TODO("Not yet implemented")
@@ -259,26 +279,30 @@ actual class FirebaseAuthRepository actual constructor() {
     }
 
 
-
     actual suspend fun signOut() {
         FirebaseAuth.getInstance().signOut()
     }
-/*
-    actual suspend fun signUpWithEmail(
-        email: String,
-        password: String
-    ): FirebaseAuthResult {
-        TODO("Not yet implemented")
-    }
-*/
+
     /*
     actual suspend fun signUpWithEmailAndPassword(
         email: String,
         password: String
     ): FirebaseAuthResult {
-        TODO("Not yet implemented")
+
+        return try {
+            val result =
+                FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password).await()
+            val user = result.user?.toAppFirebaseUser()
+            FirebaseAuthResult(success = true,
+                user = user,
+                authToken = FirebaseAuth.getInstance().currentUser?.getIdToken(true)?.await()?.token!!)
+        } catch (e: Exception) {
+            FirebaseAuthResult(success = false, errorMessage = e.message)
+        }
     }
-*/
+
+    */
+
 }
 
 

@@ -31,7 +31,10 @@ import com.iyr.ultrachango.ui.screens.shoppinglist.edition.ShoppingListAddEditVi
 import com.iyr.ultrachango.viewmodels.InviteViewModel
 import com.iyr.ultrachango.ui.screens.shoppinglist.main.ShoppingListViewModel
 import com.iyr.ultrachango.ui.screens.shoppinglist.members.ShoppingMembersSelectionViewModel
+import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
 import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
+//import com.iyr.ultrachango.utils.firebaseauth.AuthViewModel
+//import com.iyr.ultrachango.utils.firebaseauth.FirebaseAuthHelper
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.SearchWithScannerViewModel
 import com.iyr.ultrachango.utils.ui.places.borrar.PlacesSearchService
 import com.iyr.ultrachango.utils.ui.places.borrar.PlacesSearchViewModel
@@ -45,13 +48,18 @@ import kotlinx.serialization.json.Json
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 
 
-val appModule = module {
 
+val authModule = module {
+    singleOf(::AuthViewModel) // Proveedor de autenticación
+}
+
+val appModule = module {
 
     single {
         HttpClient {
@@ -76,6 +84,8 @@ val appModule = module {
         dbBuilder.setDriver(BundledSQLiteDriver()).build().productsDao()
     }
 */
+
+
     single<CloudUsersService> {
         CloudUsersService(
             client = get(),
@@ -164,6 +174,10 @@ val dataModule = module {
     }
 */
 
+
+
+
+
     factory {
         RegistrationProfileViewModel(
             authRepository = get(),
@@ -226,14 +240,16 @@ val viewModelsModule = module {
     viewModel {
         LoginViewModel(
             authRepository = get(),
-            scaffoldVM = get()
+            scaffoldVM = get(),
+            authViewModel = get()
         )
     }
 
     viewModel {
         RegisterViewModel(
             authService = get(),
-            scaffoldVM = get()
+            scaffoldVM = get(),
+            authViewModel = get()
         )
     }
 
@@ -318,6 +334,6 @@ expect val nativeModule: Module
 fun initKoin(config: KoinAppDeclaration? = null) {
     startKoin {
         config?.invoke(this)
-        modules(appModule, dataModule, viewModelsModule, nativeModule)
+        modules(appModule, authModule, dataModule, viewModelsModule, nativeModule)
     }
 }

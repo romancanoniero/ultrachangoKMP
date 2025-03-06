@@ -38,7 +38,6 @@ import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
@@ -338,7 +337,7 @@ private fun Screen(
                 ProductInfoDialog(
                     userKey = vm.getUserKey(),
                     vm = vm,
-                    data = state.productToShow!!.toProduct(),
+                    data = state.productToShow.toProduct(),
                     availableList = state.shoppingLists,
                     selectedShoppingLists = state.productShoppingLists,
                     onDismissRequest = { vm.onProductAlreadyShown() },
@@ -445,7 +444,7 @@ private fun Body(
 
 @Composable
 fun FastActions(vm: HomeScreenViewModel) {
-    Row() {
+    Row {
         Button(
             onClick = {
                 triggerHapticFeedback()

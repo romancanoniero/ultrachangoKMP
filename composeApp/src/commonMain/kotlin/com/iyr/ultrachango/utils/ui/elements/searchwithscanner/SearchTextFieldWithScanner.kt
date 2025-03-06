@@ -1,3 +1,5 @@
+@file:OptIn(FlowPreview::class)
+
 package com.iyr.ultrachango.utils.ui.elements.searchwithscanner
 
 import androidx.compose.foundation.layout.Row
@@ -38,6 +40,7 @@ import com.iyr.ultrachango.ui.screens.home.MIN_THRESHOLD_SEARCH
 import com.iyr.ultrachango.utils.ui.elements.MySearchTexField
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

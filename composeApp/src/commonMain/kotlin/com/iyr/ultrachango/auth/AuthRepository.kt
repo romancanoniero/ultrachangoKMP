@@ -9,6 +9,7 @@ import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.getUserLocally
 import com.iyr.ultrachango.setAuthToken
 import com.iyr.ultrachango.storeUserLocally
+import com.iyr.ultrachango.utils.firebase.AuthResult
 import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
 import com.iyr.ultrachango.utils.firebase.FirebaseAuthResult
 import com.russhwolf.settings.Settings
@@ -181,20 +182,27 @@ class AuthRepository(
 
     suspend fun signInWithEmail(email: String, password: String): LocalAuthResult {
         return try {
+
             val result = firebaseAuthRepository.signInWithEmail(email, password)
-            if (result.success) {
-                result.user?.let { it ->
-                    storeUser(it.toAuthenticatedUser())
+            when(result)
+            {
+                is AuthResult.Error -> {
+                    throw Exception(result.message)
                 }
-                result.authToken?.let { token ->
-                    storeAuthToken(token)
+                is AuthResult.Success -> {
+                    result.user?.let { it ->
+                        storeUser(it)
+                        println("Usuario autenticado por mail = ${Json.encodeToString(it)}")
+                    }
+                    result.authToken?.let { token ->
+                        storeAuthToken(token)
+                    }
+
+
                 }
-            } else {
-                throw Exception(result.errorMessage)
             }
-            LocalAuthResult(
-                success = true, user = result.user?.toAuthenticatedUser()
-            )
+
+            LocalAuthResult( success = true, user = result.user )
         } catch (e: Exception) {
             LocalAuthResult(success = false, errorMessage = e.message)
         }
@@ -217,8 +225,20 @@ class AuthRepository(
         scope.launch(Dispatchers.IO) {
             // crear el usuario en el autenticador y luego en el servidor
             try {
-                var newUser = firebaseAuthRepository.signUpWithEmail(email, password)
+                var response = firebaseAuthRepository.signUpWithEmail(email, password)
 
+                when(response)
+                {
+                    is AuthResult.Error -> {
+                        throw Exception(response.message)
+                    }
+                    is AuthResult.Success -> {
+                        updateUser(response.user)
+                        onResult(response.user)
+                    }
+                }
+
+               /*
                 if (newUser.success) {
                     val token = newUser.authToken
                     settings.setAuthToken(token!!)
@@ -239,6 +259,7 @@ class AuthRepository(
                 } else {
                     throw Exception(newUser.errorMessage)
                 }
+                */
                 //           newUser = firebaseAuthRepository.signUpWithEmail(email, password)
                 //          auth.createUserWithEmailAndPassword(email, password)
             } catch (e: Exception) {
@@ -255,47 +276,61 @@ class AuthRepository(
     }
 
     suspend fun signInWithGoogle(
-        onSuccess: (LocalAuthResult) -> Unit,
+        onSuccess: (AuthResult) -> Unit,
         onFailure: (Exception) -> Unit,
         scope: CoroutineScope
     ) {
         var scope = scope
         try {
             firebaseAuthRepository.signInWithGoogle(scope = scope,
+
                 onResult = { response ->
-                    var result: LocalAuthResult? = null
 
-                    val token = response.authToken
-                    settings.setAuthToken(token!!)
+                    var result: AuthResult? = null
 
-                    val userKey = response.user?.uid
-                    userKey?.let {
-                        runBlocking {
+                    when (response)
+                    {
+                        is AuthResult.Error -> {
 
-                            val existingUser = apiAuth.getAuthenticatedUser(userKey)
-                            if (existingUser == null) {
-                                // si el usuario no existe en el servidor significa que es un nuevo usuario
-                                val newAuthenticatedUser = AuthenticatedUser()
-                                response.user?.let { it ->
-                                    newAuthenticatedUser.uid = it.uid
-                                    newAuthenticatedUser.displayName = it.displayName
-                                    newAuthenticatedUser.email = it.email
-                                    newAuthenticatedUser.phoneNumber = it.phoneNumber
-                                    newAuthenticatedUser.photoUrl = it.photoUrl
-                                    newAuthenticatedUser.method = AuthenticationMethods.GOOGLE.name
-                                    newAuthenticatedUser.isAnonymous = false
-                                }
-                                updateUser(newAuthenticatedUser)
-                                result =
-                                    LocalAuthResult(success = true, user = newAuthenticatedUser)
-                            } else {
-                                result = LocalAuthResult(success = true, user = existingUser)
-                                settings.storeUserLocally(existingUser)
-                            }
-                            onSuccess(result!!)
                         }
-                    } ?: run {
-                        onFailure(Exception("User not found"))
+                        is AuthResult.Success -> {
+
+
+                            val token = response.authToken
+                            settings.setAuthToken(token!!)
+
+                            val userKey = response.user?.uid
+                            userKey?.let {
+                                runBlocking {
+
+                                    val existingUser = apiAuth.getAuthenticatedUser(userKey)
+                                    if (existingUser == null) {
+                                        // si el usuario no existe en el servidor significa que es un nuevo usuario
+                                        val newAuthenticatedUser = AuthenticatedUser()
+                                        response.user.let { it ->
+                                            newAuthenticatedUser.uid = it.uid
+                                            newAuthenticatedUser.displayName = it.displayName
+                                            newAuthenticatedUser.email = it.email
+                                            newAuthenticatedUser.phoneNumber = it.phoneNumber
+                                            newAuthenticatedUser.photoUrl = it.photoUrl
+                                            newAuthenticatedUser.method = AuthenticationMethods.GOOGLE.name
+                                            newAuthenticatedUser.isAnonymous = false
+                                        }
+                                        updateUser(newAuthenticatedUser)
+                                        result =
+                                            AuthResult.Success( user = newAuthenticatedUser,
+                                                authToken = token)
+                                    } else {
+                                        result = AuthResult.Success(user = existingUser,
+                                            authToken = token)
+                                        settings.storeUserLocally(existingUser)
+                                    }
+                                    onSuccess(result!!)
+                                }
+                            } ?: run {
+                                onFailure(Exception("User not found"))
+                            }
+                        }
                     }
 
 
@@ -317,7 +352,51 @@ class AuthRepository(
 
             val pp = firebaseAuthRepository.signInWithPhone(
                 phoneNumber,
-                onSuccess = { result ->
+                onSuccess = { response ->
+                    when(response)
+                    {
+                        is AuthResult.Error -> TODO()
+                        is AuthResult.Success -> {
+
+                            val userKey = response.user?.uid
+
+                            val token = response.authToken
+                            settings.setAuthToken(token!!)
+
+                            userKey?.let {
+                                runBlocking {
+                                    val existingUser = apiAuth.getAuthenticatedUser(userKey)
+                                    if (existingUser == null) {
+                                        // si el usuario no existe en el servidor significa que es un nuevo usuario
+                                        val newAuthenticatedUser = AuthenticatedUser()
+                                        response.user.let { it ->
+                                            newAuthenticatedUser.uid = it.uid
+                                            newAuthenticatedUser.displayName = it.displayName
+                                            newAuthenticatedUser.email = it.email
+                                            newAuthenticatedUser.phoneNumber = it.phoneNumber
+                                            newAuthenticatedUser.photoUrl = it.photoUrl
+                                            newAuthenticatedUser.method =
+                                                AuthenticationMethods.PHONE_NUMBER.name
+                                            newAuthenticatedUser.isAnonymous = false
+                                        }
+                                        updateUser(newAuthenticatedUser)
+                                        settings.storeUserLocally(newAuthenticatedUser)
+                                        toReturn =
+                                            LocalAuthResult(success = true, user = newAuthenticatedUser)
+                                    } else {
+                                        settings.storeUserLocally(existingUser)
+                                        toReturn = LocalAuthResult(success = true, user = existingUser)
+
+                                    }
+                                    onSuccess(toReturn!!)
+                                }
+
+                            }
+
+                        }
+                    }
+
+                  /*
                     if (result.success) {
                         val token = result.authToken
                         settings.setAuthToken(token!!)
@@ -328,7 +407,7 @@ class AuthRepository(
                                 if (existingUser == null) {
                                     // si el usuario no existe en el servidor significa que es un nuevo usuario
                                     val newAuthenticatedUser = AuthenticatedUser()
-                                    result.user?.let { it ->
+                                    result.user.let { it ->
                                         newAuthenticatedUser.uid = it.uid
                                         newAuthenticatedUser.displayName = it.displayName
                                         newAuthenticatedUser.email = it.email
@@ -349,12 +428,11 @@ class AuthRepository(
                                 }
                                 onSuccess(toReturn!!)
                             }
-                                ?: run {
-                                    onFailure(Exception("User not found"))
-                                }
                         }
                     }
-                },
+                */
+
+                            },
                 scope = scope,
             )
             //   return null
@@ -448,7 +526,7 @@ class AuthRepository(
         scope.launch(Dispatchers.IO) {
             if (!forceRefresh) {
                 // Busca el usuario almacenado , si no esta almacenado lo busca en el servidor
-                val userInSharedPrefs: AuthenticatedUser? = settings.getUserLocally()
+                val userInSharedPrefs: AuthenticatedUser = settings.getUserLocally()
                 userKey?.let {
                     result = userInSharedPrefs
                 }
@@ -458,7 +536,7 @@ class AuthRepository(
                 } else {
                     userKey?.let {
                         try {
-                            result = syncUser(userKey!!)
+                            result = syncUser(userKey)
                             callback(result)
 
                         } catch (ex: Exception) {
@@ -470,7 +548,7 @@ class AuthRepository(
             } else {
                 userKey?.let {
                     try {
-                        result = syncUser(userKey!!)
+                        result = syncUser(userKey)
                     } catch (ex: Exception) {
                         result = null
                     }
@@ -489,14 +567,14 @@ class AuthRepository(
 
     }
 
-    fun getCurrentUser(): AuthenticatedUser? {
+    fun getCurrentUser(): AuthenticatedUser {
         return settings.getUserLocally()
     }
 
 
     fun storeUser(user: AuthenticatedUser) {
         var EntityAsJson = Json.encodeToString(user)
-        settings.set("user", EntityAsJson);
+        settings.set("user", EntityAsJson)
     }
 
     fun saveSession(
@@ -547,7 +625,7 @@ class AuthRepository(
                             if (existingUser == null) {
                                 // si el usuario no existe en el servidor significa que es un nuevo usuario
                                 val newAuthenticatedUser = AuthenticatedUser()
-                                result.user?.let { it ->
+                                result.user.let { it ->
                                     newAuthenticatedUser.uid = it.uid
                                     newAuthenticatedUser.displayName = it.displayName
                                     newAuthenticatedUser.email = it.email
