@@ -20,6 +20,7 @@ import com.iyr.ultrachango.data.database.repositories.UserRepositoryImpl
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.auth.config.profile.RegistrationProfileViewModel
 import com.iyr.ultrachango.ui.screens.auth.login.LoginViewModel
+import com.iyr.ultrachango.ui.screens.auth.otp.OtpViewModel
 import com.iyr.ultrachango.ui.screens.auth.registration.RegisterViewModel
 import com.iyr.ultrachango.ui.screens.home.HomeScreenViewModel
 import com.iyr.ultrachango.ui.screens.locations.main.LocationsDetailsViewModel
@@ -102,8 +103,6 @@ val configModule: Module = module {
 
 val authModule = module {
 
-
-
     single<FirebaseInit> { FirebaseInit() }
 
     single<CloudAuthService> {
@@ -121,10 +120,12 @@ val authModule = module {
 
 
     single<AuthRepository> { AuthRepositoryImpl(get(), get(), get()) }
+    //single<AuthRepositoryImpl> { AuthRepositoryImpl(get(), get(), get()) }
 
-    single { AuthStateManager(get()) }
+    single<AuthStateManager> { AuthStateManager(get()) }
 
-    single<AuthViewModel> { AuthViewModel(get(), get()) }
+    viewModel { AuthViewModel(get(),get()) }
+
 
 }
 
@@ -268,6 +269,8 @@ val viewModelsModule = module {
     //  viewModelOf(::HomeScreenViewModel)
 
 
+    viewModel { OtpViewModel(get()) }
+
     viewModel {
         LoginViewModel(
             authRepository = get(),
@@ -290,7 +293,7 @@ val viewModelsModule = module {
             shoppingListRepository = get(),
             userLocationsRepository = get(),
             userViewModel = get(),
-            authRepositoryImpl = get(),
+            authRepository = get(),
             scaffoldVM = get()
         )
     }

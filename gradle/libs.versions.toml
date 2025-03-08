@@ -57,6 +57,7 @@ peekaboo = "0.5.2"
 qr = "3.0.6"
 firebaseAuthKtx = "23.2.0"
 cocoapods = "2.0.0"
+uiTextAndroid = "1.7.8"
 
 [libraries]
 
@@ -191,6 +192,7 @@ pullrefresh = { group = "dev.materii.pullrefresh", name = "pullrefresh", version
 # DateTime Wheel Picker
 datetime-wheel-picker = { group = "io.github.darkokoa", name = "datetime-wheel-picker", version.ref = "datetime-wheel-picker" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
+androidx-ui-text-android = { group = "androidx.compose.ui", name = "ui-text-android", version.ref = "uiTextAndroid" }
 
 
 #firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }

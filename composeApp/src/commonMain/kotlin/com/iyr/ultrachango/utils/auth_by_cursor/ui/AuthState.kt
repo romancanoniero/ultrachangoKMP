@@ -12,6 +12,10 @@ sealed class AuthState {
         val type: AuthErrorType,
         val retryAction: (() -> Unit)? = null
     ) : AuthState()
+    data class PhoneVerificationSent(
+        val verificationId: String,
+        val phoneNumber: String
+    ) : AuthState()
 }
 
 enum class AuthErrorType {

@@ -21,6 +21,7 @@ import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.auth.config.profile.RegistrationProfileScreen
 import com.iyr.ultrachango.ui.screens.auth.forgot.ForgotPasswordScreen
 import com.iyr.ultrachango.ui.screens.auth.login.LoginScreen
+import com.iyr.ultrachango.ui.screens.auth.otp.OtpScreen
 import com.iyr.ultrachango.ui.screens.auth.registration.RegisterScreen
 import com.iyr.ultrachango.ui.screens.fidelization.FidelizationScreen
 import com.iyr.ultrachango.ui.screens.home.HomeScreen
@@ -132,6 +133,23 @@ fun RootNavGraph(
 
         composable(route = RootRoutes.LoginRoute.route) {
             LoginScreen(rootNavController, permissionsController)
+        }
+
+        composable(
+            route = RootRoutes.OtpVerificationRoute.route,
+            arguments = listOf(
+                navArgument("verificationId") { type = NavType.StringType },
+                navArgument("phoneNumber") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val verificationId = backStackEntry.arguments?.getString("verificationId").toString()
+            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber").toString()
+            OtpScreen(
+                onNavigateToHome = { rootNavController.navigate(RootRoutes.HomeRoute.route) },
+                onNavigateBack = { rootNavController.popBackStack() },
+                verificationId = verificationId,
+                phoneNumber = phoneNumber,
+            )
         }
 
         composable(route = RootRoutes.ForgotPasswordRoute.route) {

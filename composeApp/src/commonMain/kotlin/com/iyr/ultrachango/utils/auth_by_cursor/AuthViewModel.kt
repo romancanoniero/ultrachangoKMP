@@ -1,5 +1,6 @@
 package com.iyr.ultrachango.utils.auth_by_cursor
 
+import androidx.lifecycle.ViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.auth.AuthError
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AuthResult
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
 
 data class AuthUiState(
     val isLoading: Boolean = false,
@@ -29,12 +31,12 @@ data class AuthUiState(
 class AuthViewModel(
     private val authRepository: AuthRepository,
     private val authStateManager: AuthStateManager
-) {
+) : ViewModel(), KoinComponent {
     private val viewModelScope = CoroutineScope(Dispatchers.Main)
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-  private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
+    private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
 
@@ -47,19 +49,23 @@ class AuthViewModel(
 
     private fun checkInitialAuthState() {
         val initialState = authStateManager.checkInitialAuthState()
-        _uiState.update { it.copy(
-            authState = initialState,
-            user = authStateManager.getCurrentUser()
-        )}
+        _uiState.update {
+            it.copy(
+                authState = initialState,
+                user = authStateManager.getCurrentUser()
+            )
+        }
     }
 
     private fun observeAuthState() {
         viewModelScope.launch {
             authStateManager.getAuthState().collect { authState ->
-                _uiState.update { it.copy(
-                    authState = authState,
-                    user = authStateManager.getCurrentUser()
-                )}
+                _uiState.update {
+                    it.copy(
+                        authState = authState,
+                        user = authStateManager.getCurrentUser()
+                    )
+                }
             }
         }
     }
@@ -70,19 +76,27 @@ class AuthViewModel(
 
             when (val result = authRepository.signInWithEmailAndPassword(email, password)) {
                 is AuthResult.Success -> {
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        user = result.data,
-                        authState = AuthStates.AUTHENTICATED
-                    )}
+
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            user = result.data,
+                            authState = AuthStates.AUTHENTICATED
+                        )
+                    }
                 }
+
                 is AuthResult.Error -> {
 
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        error = result.error.toString()
-                    )}
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = result.error.toString()
+                        )
+                    }
                 }
+
                 else -> Unit
             }
         }
@@ -90,23 +104,31 @@ class AuthViewModel(
 
     fun verifyPhoneNumber(phoneNumber: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+
 
             when (val result = authRepository.verifyPhoneNumber(phoneNumber)) {
                 is AuthResult.Success -> {
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        verificationId = result.data,
-                        authState = AuthStates.VERIFICATION_PENDING
-                    )}
+
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            verificationId = result.data,
+                            authState = AuthStates.VERIFICATION_PENDING
+                        )
+                    }
                 }
+
                 is AuthResult.Error -> {
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        error = result.error.toString()
-                    )}
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = result.error.toString()
+                        )
+                    }
                 }
-                else -> Unit
+
+                AuthResult.Loading ->   _uiState.update { it.copy(isLoading = true, error = null) }
             }
         }
     }
@@ -119,19 +141,25 @@ class AuthViewModel(
 
             when (val result = authRepository.signInWithPhoneNumber(verificationId, code)) {
                 is AuthResult.Success -> {
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        user = result.data,
-                        authState = AuthStates.AUTHENTICATED,
-                        verificationId = null
-                    )}
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            user = result.data,
+                            authState = AuthStates.AUTHENTICATED,
+                            verificationId = null
+                        )
+                    }
                 }
+
                 is AuthResult.Error -> {
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        error = result.error.toString()
-                    )}
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = result.error.toString()
+                        )
+                    }
                 }
+
                 else -> Unit
             }
         }
@@ -142,7 +170,7 @@ class AuthViewModel(
         _authState.value = AuthState.Loading
         when (val result = authRepository.signInWithGoogle(idToken)) {
             is AuthResult.Success -> _authState.value = AuthState.Success(result.data)
-            is AuthResult.Error -> _authState.value =  AuthState.Error(
+            is AuthResult.Error -> _authState.value = AuthState.Error(
                 message = when (val error = result.error) {
                     is AuthError.NetworkError -> error.message
                     is AuthError.InvalidCredentials -> error.message
@@ -155,6 +183,7 @@ class AuthViewModel(
                 },
                 type = AuthErrorType.GOOGLE_SIGN_IN_FAILED
             )
+
             AuthResult.Loading -> TODO()
         }
     }
@@ -164,7 +193,7 @@ class AuthViewModel(
         _authState.value = AuthState.Loading
         when (val result = authRepository.signInWithFacebook(accessToken)) {
             is AuthResult.Success -> _authState.value = AuthState.Success(result.data)
-            is AuthResult.Error -> _authState.value =  AuthState.Error(
+            is AuthResult.Error -> _authState.value = AuthState.Error(
                 message = when (val error = result.error) {
                     is AuthError.NetworkError -> error.message
                     is AuthError.InvalidCredentials -> error.message
@@ -177,6 +206,7 @@ class AuthViewModel(
                 },
                 type = AuthErrorType.GOOGLE_SIGN_IN_FAILED
             )
+
             AuthResult.Loading -> TODO()
         }
     }
@@ -186,7 +216,7 @@ class AuthViewModel(
         _authState.value = AuthState.Loading
         when (val result = authRepository.signInWithApple(idToken, nonce)) {
             is AuthResult.Success -> _authState.value = AuthState.Success(result.data)
-            is AuthResult.Error -> _authState.value =  AuthState.Error(
+            is AuthResult.Error -> _authState.value = AuthState.Error(
                 message = when (val error = result.error) {
                     is AuthError.NetworkError -> error.message
                     is AuthError.InvalidCredentials -> error.message
@@ -199,21 +229,22 @@ class AuthViewModel(
                 },
                 type = AuthErrorType.GOOGLE_SIGN_IN_FAILED
             )
+
             AuthResult.Loading -> TODO()
         }
     }
 
 
-
-
     fun signOut() {
         viewModelScope.launch {
             authRepository.signOut()
-            _uiState.update { it.copy(
-                authState = AuthStates.UNAUTHENTICATED,
-                user = null,
-                verificationId = null
-            )}
+            _uiState.update {
+                it.copy(
+                    authState = AuthStates.UNAUTHENTICATED,
+                    user = null,
+                    verificationId = null
+                )
+            }
         }
     }
 }

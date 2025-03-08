@@ -39,10 +39,7 @@ import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
-import com.iyr.ultrachango.auth.AuthManager
-import com.iyr.ultrachango.auth.IFirebaseAuthRepository
 import com.iyr.ultrachango.data.models.enums.Genders
-import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
 import com.iyr.ultrachango.preferences.managers.Persistence.Companion.KEY_USER_ID
 import com.iyr.ultrachango.preferences.managers.Persistence.Companion.KEY_USER_NAME
 import com.iyr.ultrachango.ui.ScaffoldViewModel
@@ -55,11 +52,11 @@ import com.iyr.ultrachango.ui.screens.navigation.navigationItemsLists
 import com.iyr.ultrachango.ui.screens.qrscanner.QRTypes
 import com.iyr.ultrachango.ui.screens.topbars.HomeTopAppBar
 import com.iyr.ultrachango.ui.screens.topbars.ScreenTopAppBar
-import com.iyr.ultrachango.utils.auth_by_cursor.AuthRepositoryImpl
 import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.auth.FirebaseInit
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
 import com.iyr.ultrachango.utils.sound.AudioPlayer
 import com.iyr.ultrachango.utils.ui.LoadingDialog
 import com.iyr.ultrachango.utils.ui.capitalizeFirstLetter
@@ -117,8 +114,6 @@ fun App(
         )
     */
 
-
-    // val authRepository: AuthRepositoryImpl = koinInject()
     var loginStatusChecked by remember { mutableStateOf<Boolean?>(null) }
 
 

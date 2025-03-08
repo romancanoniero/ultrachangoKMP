@@ -296,6 +296,7 @@ dependencies {
     implementation(libs.play.services.wallet)
     implementation(libs.androidx.sqlite.ktx)
     implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.ui.text.android)
     // implementation(libs.firebase.auth)
     debugImplementation(compose.uiTooling)
 }

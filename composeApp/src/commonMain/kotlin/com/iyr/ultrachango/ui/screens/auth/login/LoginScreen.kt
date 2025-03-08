@@ -55,6 +55,9 @@ import androidx.navigation.NavHostController
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.auth.registration.MethodDivider
+import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
+import com.iyr.ultrachango.utils.auth_by_cursor.statemanagers.AuthStates
+import com.iyr.ultrachango.utils.auth_by_cursor.ui.AuthState
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
 import com.iyr.ultrachango.utils.ui.elements.Body1Text
@@ -88,8 +91,7 @@ fun LoginScreen(
     permissionsController: PermissionsController? = null,
     vm: LoginViewModel = koinViewModel(),
     userViewModel: UserViewModel = koinViewModel(),
-
-
+    authViewModel: AuthViewModel = koinViewModel(),
 ) {
 
     val uiState by vm.uiState.collectAsState()
@@ -110,10 +112,32 @@ fun LoginScreen(
 
     // Define a mutable state to hold the state
     var showPassword by remember { mutableStateOf(false) }
+    val authState =   authViewModel.authState.collectAsState()
+    val authUIState =   authViewModel.uiState.collectAsState()
 
     if (isAuthenticated) {
         navController?.navigate(RootRoutes.HomeRoute.route)
     } else {
+
+        if (authUIState.value.authState == AuthStates.VERIFICATION_PENDING)
+        {
+            val pp = 33
+        }
+
+        when (val result = authState.value) {
+            is AuthState.PhoneVerificationSent -> {
+                LaunchedEffect(result) {
+                    navController?.navigate(
+                        RootRoutes.OtpVerificationRoute.createRoute(
+                            verificationId = result.verificationId,
+                            phoneNumber = result.phoneNumber
+                        )
+                    )
+                }
+            }
+            // ... otros estados
+            else -> {}
+        }
 
 
         if (uiState.loading) {
@@ -211,10 +235,11 @@ private fun OtherLoginOptions(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Button(modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White, shape = customShape)
-            .border(1.dp, Color.LightGray, customShape),
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, shape = customShape)
+                .border(1.dp, Color.LightGray, customShape),
             shape = customShape,
             colors = ButtonDefaults.buttonColors().copy(
                 containerColor = Color.White, contentColor = Color.Black
@@ -240,8 +265,9 @@ private fun OtherLoginOptions(
         //Apple Sign-In with Custom Button and authentication with Firebase
         //       AppleButtonUiContainer(onResult = onFirebaseResult, linkAccount = false) {
 
-        Button(modifier = Modifier.fillMaxWidth().background(Color.White, shape = customShape)
-            .border(1.dp, Color.LightGray, customShape),
+        Button(
+            modifier = Modifier.fillMaxWidth().background(Color.White, shape = customShape)
+                .border(1.dp, Color.LightGray, customShape),
             shape = customShape,
             colors = ButtonDefaults.buttonColors().copy(
                 containerColor = Color.White, contentColor = Color.Black
@@ -279,7 +305,8 @@ private fun InputSection(
         modifier = Modifier.fillMaxWidth()
     ) {
 
-        OutlinedTextField(value = uiState.emailOrPhoneNumber,
+        OutlinedTextField(
+            value = uiState.emailOrPhoneNumber,
             onValueChange = {
                 var authenticationMethod = AuthenticationMethods.NONE
                 //  emailOrPhone = it

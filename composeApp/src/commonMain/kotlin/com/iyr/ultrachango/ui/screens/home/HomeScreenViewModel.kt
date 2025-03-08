@@ -55,7 +55,7 @@ class HomeScreenViewModel(
     private val userLocationsRepository: UserLocationsRepository,
     private val shoppingListRepository: ShoppingListRepository,
     private val userViewModel: UserViewModel,
-    private val authRepositoryImpl: AuthRepository,
+    private val authRepository: AuthRepository,
     private val scaffoldVM: ScaffoldViewModel,
 ) : ViewModel(), KoinComponent {
 
@@ -90,7 +90,7 @@ class HomeScreenViewModel(
 
 
     private val _myName =
-        MutableStateFlow<String>(authRepositoryImpl.getCurrentUser()?.displayName ?: "")
+        MutableStateFlow<String>(authRepository.getCurrentUser()?.displayName ?: "")
     val myName: StateFlow<String> = _myName.asStateFlow()
 
 
@@ -429,15 +429,15 @@ class HomeScreenViewModel(
     }
 
     fun getUserFirstName(): String? {
-        return authRepositoryImpl.getCurrentUser()?.displayName
+        return authRepository.getCurrentUser()?.displayName
     }
 
     fun getUserKey(): String {
-        return authRepositoryImpl.getUserKey().toString()
+        return authRepository.getUserKey().toString()
     }
 
     fun getUser(): AppUser {
-        return authRepositoryImpl.getCurrentUser()!!
+        return authRepository.getCurrentUser()!!
     }
 
 
@@ -502,7 +502,7 @@ class HomeScreenViewModel(
     private suspend fun fetchLocations(requestRealLocation: Boolean) {
 
         println("fetchLocations = " )
-        val userKey = authRepositoryImpl.getUserKey()
+        val userKey = authRepository.getUserKey()
         var deferredResults: List<Deferred<Any>> = emptyList()
 
 

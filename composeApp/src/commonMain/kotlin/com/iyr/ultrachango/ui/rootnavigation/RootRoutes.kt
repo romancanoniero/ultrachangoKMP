@@ -26,6 +26,14 @@ sealed class RootRoutes(val route: String) {
 
     object LoginRoute : RootRoutes("login")
 
+    object OtpVerificationRoute : RootRoutes("otp_verification/{verificationId}/{phoneNumber}") {
+        fun createRoute(verificationId: String, phoneNumber: String): String {
+            val encodedPhone = URLEncoder.encode(phoneNumber)
+            return "otp_verification/$verificationId/$encodedPhone"
+        }
+    }
+
+
     object ForgotPasswordRoute : RootRoutes("forgot_password")
 
     object RegisterRoute : RootRoutes("register")

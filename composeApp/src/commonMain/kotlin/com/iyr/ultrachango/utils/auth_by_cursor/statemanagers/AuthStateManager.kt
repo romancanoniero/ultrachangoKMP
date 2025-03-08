@@ -1,7 +1,6 @@
 package com.iyr.ultrachango.utils.auth_by_cursor.statemanagers
 
 
-import com.iyr.ultrachango.utils.auth_by_cursor.AuthRepositoryImpl
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
