@@ -29,7 +29,7 @@ import ultrachango2.composeapp.generated.resources.gender_other
 @Composable
 fun GenderSelector(
     value: Genders,
-    onGenderSelected: (Int) -> Unit
+    onGenderSelected: (Genders) -> Unit
 ) {
 
     var expanded by remember { mutableStateOf(false) }
@@ -83,7 +83,7 @@ fun GenderSelector(
                             gender = Genders.OTHER.ordinal
                         }
                     }
-                    onGenderSelected(gender)
+                    onGenderSelected(Genders.values().get(gender))
                     expanded = false
                 })
             }

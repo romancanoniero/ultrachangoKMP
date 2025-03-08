@@ -1,10 +1,14 @@
 package com.iyr.ultrachango.utils.auth_by_cursor
 
+import com.iyr.ultrachango.utils.auth_by_cursor.auth.AuthError
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AuthResult
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AuthUser
+
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
-import com.iyr.ultrachango.utils.auth_by_cursor.statemanagers.AuthState
+import com.iyr.ultrachango.utils.auth_by_cursor.statemanagers.AuthStates
 import com.iyr.ultrachango.utils.auth_by_cursor.statemanagers.AuthStateManager
+import com.iyr.ultrachango.utils.auth_by_cursor.ui.AuthErrorType
+import com.iyr.ultrachango.utils.auth_by_cursor.ui.AuthState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,8 +19,8 @@ import kotlinx.coroutines.launch
 
 data class AuthUiState(
     val isLoading: Boolean = false,
-    val authState: AuthState = AuthState.UNAUTHENTICATED,
-    val user: AuthUser? = null,
+    val authState: AuthStates = AuthStates.UNAUTHENTICATED,
+    val user: AppUser? = null,
     val error: String? = null,
     val verificationId: String? = null
 )
@@ -29,6 +33,10 @@ class AuthViewModel(
     private val viewModelScope = CoroutineScope(Dispatchers.Main)
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+  private val _authState = MutableStateFlow<AuthState>(AuthState.Initial)
+    val authState: StateFlow<AuthState> = _authState.asStateFlow()
+
 
     init {
         // Verificar estado inicial de autenticación
@@ -65,7 +73,7 @@ class AuthViewModel(
                     _uiState.update { it.copy(
                         isLoading = false,
                         user = result.data,
-                        authState = AuthState.AUTHENTICATED
+                        authState = AuthStates.AUTHENTICATED
                     )}
                 }
                 is AuthResult.Error -> {
@@ -89,7 +97,7 @@ class AuthViewModel(
                     _uiState.update { it.copy(
                         isLoading = false,
                         verificationId = result.data,
-                        authState = AuthState.VERIFICATION_PENDING
+                        authState = AuthStates.VERIFICATION_PENDING
                     )}
                 }
                 is AuthResult.Error -> {
@@ -114,7 +122,7 @@ class AuthViewModel(
                     _uiState.update { it.copy(
                         isLoading = false,
                         user = result.data,
-                        authState = AuthState.AUTHENTICATED,
+                        authState = AuthStates.AUTHENTICATED,
                         verificationId = null
                     )}
                 }
@@ -129,11 +137,80 @@ class AuthViewModel(
         }
     }
 
+    // Google
+    suspend fun signInWithGoogle(idToken: String) {
+        _authState.value = AuthState.Loading
+        when (val result = authRepository.signInWithGoogle(idToken)) {
+            is AuthResult.Success -> _authState.value = AuthState.Success(result.data)
+            is AuthResult.Error -> _authState.value =  AuthState.Error(
+                message = when (val error = result.error) {
+                    is AuthError.NetworkError -> error.message
+                    is AuthError.InvalidCredentials -> error.message
+                    is AuthError.UserNotFound -> error.message
+                    is AuthError.WeakPassword -> error.message
+                    is AuthError.EmailAlreadyInUse -> error.message
+                    is AuthError.InvalidEmail -> error.message
+                    is AuthError.InvalidVerificationCode -> error.message
+                    is AuthError.Unknown -> error.message
+                },
+                type = AuthErrorType.GOOGLE_SIGN_IN_FAILED
+            )
+            AuthResult.Loading -> TODO()
+        }
+    }
+
+    // Facebook
+    suspend fun signInWithFacebook(accessToken: String) {
+        _authState.value = AuthState.Loading
+        when (val result = authRepository.signInWithFacebook(accessToken)) {
+            is AuthResult.Success -> _authState.value = AuthState.Success(result.data)
+            is AuthResult.Error -> _authState.value =  AuthState.Error(
+                message = when (val error = result.error) {
+                    is AuthError.NetworkError -> error.message
+                    is AuthError.InvalidCredentials -> error.message
+                    is AuthError.UserNotFound -> error.message
+                    is AuthError.WeakPassword -> error.message
+                    is AuthError.EmailAlreadyInUse -> error.message
+                    is AuthError.InvalidEmail -> error.message
+                    is AuthError.InvalidVerificationCode -> error.message
+                    is AuthError.Unknown -> error.message
+                },
+                type = AuthErrorType.GOOGLE_SIGN_IN_FAILED
+            )
+            AuthResult.Loading -> TODO()
+        }
+    }
+
+    // Apple
+    suspend fun signInWithApple(idToken: String, nonce: String?) {
+        _authState.value = AuthState.Loading
+        when (val result = authRepository.signInWithApple(idToken, nonce)) {
+            is AuthResult.Success -> _authState.value = AuthState.Success(result.data)
+            is AuthResult.Error -> _authState.value =  AuthState.Error(
+                message = when (val error = result.error) {
+                    is AuthError.NetworkError -> error.message
+                    is AuthError.InvalidCredentials -> error.message
+                    is AuthError.UserNotFound -> error.message
+                    is AuthError.WeakPassword -> error.message
+                    is AuthError.EmailAlreadyInUse -> error.message
+                    is AuthError.InvalidEmail -> error.message
+                    is AuthError.InvalidVerificationCode -> error.message
+                    is AuthError.Unknown -> error.message
+                },
+                type = AuthErrorType.GOOGLE_SIGN_IN_FAILED
+            )
+            AuthResult.Loading -> TODO()
+        }
+    }
+
+
+
+
     fun signOut() {
         viewModelScope.launch {
             authRepository.signOut()
             _uiState.update { it.copy(
-                authState = AuthState.UNAUTHENTICATED,
+                authState = AuthStates.UNAUTHENTICATED,
                 user = null,
                 verificationId = null
             )}

@@ -40,12 +40,9 @@ import coil3.ImageLoader
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import com.iyr.ultrachango.auth.AuthManager
-import com.iyr.ultrachango.auth.AuthRepository
-import com.iyr.ultrachango.auth.AuthenticatedUser
 import com.iyr.ultrachango.auth.IFirebaseAuthRepository
+import com.iyr.ultrachango.data.models.enums.Genders
 import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
-
-import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.preferences.managers.Persistence.Companion.KEY_USER_ID
 import com.iyr.ultrachango.preferences.managers.Persistence.Companion.KEY_USER_NAME
 import com.iyr.ultrachango.ui.ScaffoldViewModel
@@ -58,6 +55,11 @@ import com.iyr.ultrachango.ui.screens.navigation.navigationItemsLists
 import com.iyr.ultrachango.ui.screens.qrscanner.QRTypes
 import com.iyr.ultrachango.ui.screens.topbars.HomeTopAppBar
 import com.iyr.ultrachango.ui.screens.topbars.ScreenTopAppBar
+import com.iyr.ultrachango.utils.auth_by_cursor.AuthRepositoryImpl
+import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
+import com.iyr.ultrachango.utils.auth_by_cursor.auth.FirebaseInit
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.sound.AudioPlayer
 import com.iyr.ultrachango.utils.ui.LoadingDialog
 import com.iyr.ultrachango.utils.ui.capitalizeFirstLetter
@@ -84,17 +86,20 @@ import ultrachango2.composeapp.generated.resources.invite
 @Composable
 fun App(
     authRepository: AuthRepository = koinInject(),
+    authViewModel: AuthViewModel = koinInject(),
     firebaseRepository: FirebaseAuthRepository = FirebaseAuthRepository()
     // database: UltraChangoDatabase? = null
 ) {
     // MaterialTheme {
 
-println("Voy a llamarlo")
+    FirebaseInit().initialize()
+/*
+    println("Voy a llamarlo")
     val authManager = AuthManager(IFirebaseAuthRepository())
     println("Voy a llamarlo 1")
-    authManager.iniciarSesion("dfdfdfd","fdfdfd")
+    authManager.iniciarSesion("dfdfdfd", "fdfdfd")
 
-
+*/
     val navController = rememberNavController()
     val settings = Settings()
 
@@ -121,21 +126,25 @@ println("Voy a llamarlo")
         LoadingDialog()
     }
 
-    var user: AuthenticatedUser? = null
+    var user: AppUser? = null
     LaunchedEffect(Unit) {
 
         println("Reviso el Login")
-        if (authRepository.isLoggedIn) {
+        if (authRepository.isUserSignedIn()) {
             val authToken = authRepository.getAuthToken(refresh = true)
             settings.setAuthToken(authToken!!)
+ /*
             authRepository.fetchCurrentUser(forceRefresh = true) {
                 if (it == null) {
-                    authRepository.logout()
+                    authViewModel.signOut()
+//                    authRepository.logout()
                 } else {
                     user = it
                 }
                 loginStatusChecked = true
             }
+
+  */
         } else {
             loginStatusChecked = true
         }
@@ -146,12 +155,15 @@ println("Voy a llamarlo")
 
     loginStatusChecked?.let {
         if (it) {
-            NavHostMain(navController = navController, onNavigate = { rootName ->
-                navController.navigate(rootName)
-            })
+            NavHostMain(
+
+                navController = navController,
+                onNavigate = { rootName ->
+                    navController.navigate(rootName)
+                }
+            )
         }
-    }?:
-    run {
+    } ?: run {
 
         println("Putazo muestro")
 
@@ -163,6 +175,7 @@ println("Voy a llamarlo")
 fun NavHostMain(
     darkTheme: Boolean = isSystemInDarkTheme(), // Detecta el tema del sistema
     authRepository: AuthRepository = koinInject(),
+    authViewModel: AuthViewModel = koinInject(),
 
     userViewModel: UserViewModel = koinInject(),
     navController: NavHostController = rememberNavController(),
@@ -229,15 +242,24 @@ fun NavHostMain(
                     //   .background(backgroundColor)
                 )
                 {
-                    Scaffold(modifier = Modifier
-                        // .padding(statusBarValues.calculateTopPadding())
-                        .padding(0.dp),
+                    Scaffold(
+                        modifier = Modifier
+                            // .padding(statusBarValues.calculateTopPadding())
+                            .padding(0.dp),
                         topBar = {
-                            DynamicTopBar(authRepository, currentRoute, navController)
+           /*
+                            DynamicTopBar(
+                                authRepository,
+                                authViewModel,
+                                currentRoute,
+                                navController
+                            )
+
+            */
                         },
                         bottomBar = {
                             if (isBottomBarVisible) {
-                                DynamicBottomBar(currentRoute, navController)
+         //                       DynamicBottomBar(currentRoute, navController)
                             }
                         }) { innerPadding ->
 
@@ -265,6 +287,7 @@ fun NavHostMain(
 @Composable
 fun DynamicTopBar(
     authRepository: AuthRepository,
+    authViewModel: AuthViewModel,
     currentRoute: String?,
     navController: NavController
 ) {
@@ -272,7 +295,7 @@ fun DynamicTopBar(
         navController.navigate(
             RootRoutes.SharingRoute.createRoute(
                 QRTypes.USER,
-                authRepository.currentUserId
+                authRepository.getUserKey()!!
             )
         )
     }
@@ -281,9 +304,9 @@ fun DynamicTopBar(
     when (currentRoute?.substringBefore("/")) {
         "home" -> {
             val me = authRepository.getCurrentUser()!!
-            val name = (me.firstName?.capitalizeFirstLetter() ?: " ????? ").split(" ")[0]
+            val name = (me.displayName?.capitalizeFirstLetter() ?: " ????? ").split(" ")[0]
 
-            HomeTopAppBar(me.uid!!, name, me.photoUrl, shareButton)
+            HomeTopAppBar(me.uid!!, name, me.profilePictureUrl, shareButton)
         }
 
         RootRoutes.MembersRoute.route,
@@ -411,7 +434,7 @@ fun validateForm(
     imageProfile: ByteArray? = null,
     firstName: String?,
     lastName: String?,
-    gender: Int?,
+    gender: Genders?,
     birthDate: String?
 ): Boolean {
     return (!validateImage || imageProfile != null) && !firstName.isNullOrBlank() && !lastName.isNullOrBlank() && gender != null && !birthDate.isNullOrEmpty()
@@ -457,12 +480,12 @@ fun beep() {
 }
 
 
-fun Settings.getUserLocally(): AuthenticatedUser {
+fun Settings.getUserLocally(): AppUser {
     return Json.decodeFromString(this.getStringOrNull("user").toString())
 }
 
 
-fun Settings.storeUserLocally(user: AuthenticatedUser) {
+fun Settings.storeUserLocally(user: AppUser) {
     var EntityAsJson = Json.encodeToString(user)
     this.set("user", EntityAsJson)
 }

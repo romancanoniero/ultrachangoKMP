@@ -1,15 +1,12 @@
 package com.iyr.ultrachango.data.api.cloud.users
 
 
-import com.iyr.ultrachango.auth.AuthRepository
-import com.iyr.ultrachango.auth.AuthenticatedUser
 import com.iyr.ultrachango.config.Config.BASE_URL_CLOUD_SERVER
 import com.iyr.ultrachango.data.api.cloud.Response
-
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.getAuthToken
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.russhwolf.settings.Settings
-
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.MultiPartFormDataContent
@@ -30,7 +27,6 @@ class CloudUsersService(
     private val settings: Settings,
 
 
-
     //  private val localStorage: AuthRepositoryImpl
 ) : ICloudUsersService {
 
@@ -38,7 +34,7 @@ class CloudUsersService(
     val urlBase = "$BASE_URL_CLOUD_SERVER/users"
 
 
-    override suspend fun saveUser(user: AuthenticatedUser) {
+    override suspend fun saveUser(user: AppUser) {
         val token = settings.getAuthToken()
         val entityAsJson = Json.encodeToString(user)
         val call = client.post(urlBase) {
@@ -74,8 +70,7 @@ class CloudUsersService(
             contentType(ContentType.Application.Json)
             setBody(
                 mapOf(
-                    "id" to userId,
-                    "token" to token
+                    "id" to userId, "token" to token
                 )
             )
         }
@@ -94,20 +89,19 @@ class CloudUsersService(
         return null
     }
 
-    override suspend fun getAuthenticatedUser(userId: String): AuthenticatedUser? {
+    override suspend fun getAuthenticatedUser(userId: String): AppUser? {
         val url = "$urlBase/get"
         val token = settings.getAuthToken()
         val call = client.post(url) {
             contentType(ContentType.Application.Json)
             setBody(
                 mapOf(
-                    "id" to userId,
-                    "token" to token
+                    "id" to userId, "token" to token
                 )
             )
         }
 
-        val response = call.body<Response<AuthenticatedUser>>()
+        val response = call.body<Response<AppUser>>()
 
         when (call.status.value) {
             200 -> {
@@ -115,18 +109,19 @@ class CloudUsersService(
             }
 
             else -> {
-           //     throw Exception(response.message ?: "Error desconocido")
+                //     throw Exception(response.message ?: "Error desconocido")
             }
         }
         return null
     }
+
     /*
         override suspend fun updateUser(user: User) {
     asdasdasd
         }
     */
     @OptIn(InternalAPI::class)
-    override suspend fun updateUser(user: AuthenticatedUser, image: ByteArray?) {
+    override suspend fun updateUser(user: AppUser, image: ByteArray?) {
         val token = settings.getAuthToken()
 
         val entityAsJson = Json.encodeToString(user)
@@ -134,20 +129,18 @@ class CloudUsersService(
             contentType(ContentType.MultiPart.FormData)
             setBody(
                 MultiPartFormDataContent(
-                    formData {
-                        append("data", entityAsJson, Headers.build {
-                            append(HttpHeaders.ContentType, "application/json")
+                formData {
+                    append("data", entityAsJson, Headers.build {
+                        append(HttpHeaders.ContentType, "application/json")
+                    })
+                    append("token", token.toString())
+                    image?.let {
+                        append("image", image, Headers.build {
+                            append(HttpHeaders.ContentType, "image/*")
+                            append(HttpHeaders.ContentDisposition, "filename=\"image.jpg\"")
                         })
-                        append("token", token.toString())
-                        image?.let {
-                            append("image", image, Headers.build {
-                                append(HttpHeaders.ContentType, "image/*")
-                                append(HttpHeaders.ContentDisposition, "filename=\"image.jpg\"")
-                            })
-                        }
                     }
-                )
-            )
+                }))
         }
 
         val response = call.body<Response<String>>()

@@ -1,12 +1,12 @@
 package com.iyr.ultrachango.data.database.repositories
 
 
-import com.iyr.ultrachango.auth.AuthRepository
 import com.iyr.ultrachango.data.api.cloud.shoppinglist.CloudShoppingListService
 import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.ShoppingListComplete
 import com.iyr.ultrachango.data.models.ShoppingListMember
 import com.iyr.ultrachango.data.models.ShoppingListProduct
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -20,6 +20,7 @@ class ShoppingListRepository(
     fun fetchLists(): Flow<List<ShoppingList>> = flow {
         val userKey = authRepository.getUserKey()
         userKey.let {
+            userKey!!
             val cloudCall = shoppingListCloudService.getAll(userKey)
             val toShoppingList = mapToShoppingList(cloudCall)
             emit(toShoppingList)
@@ -29,8 +30,10 @@ class ShoppingListRepository(
 
     suspend fun list(): List<ShoppingListComplete> {
         val userKey = authRepository.getUserKey()
-        val cloudCall = shoppingListCloudService.getAll(userKey)
-        return cloudCall
+        userKey?.let {
+            val cloudCall = shoppingListCloudService.getAll(userKey)
+            return cloudCall
+        } ?: throw Exception("User not found")
     }
 
 
@@ -38,7 +41,8 @@ class ShoppingListRepository(
 
         val newList: ArrayList<ShoppingList> = ArrayList<ShoppingList>()
         shoppingListComplete.forEach {
-            val shoppingList = ShoppingList(listId = it.listId,
+            val shoppingList = ShoppingList(
+                listId = it.listId,
                 userId = it.userId,
                 listName = it.listName,
                 imageUrl = it.imageUrl,
@@ -50,11 +54,11 @@ class ShoppingListRepository(
                     )
                 } ?: emptyList(),
                 members = it.members,
-/*
-                members = it.members?.map { memberComplete ->
-                    ShoppingListMember(it.listId?.toInt()!!, memberComplete.userId)
-                } ?: emptyList(),
-*/
+                /*
+                                members = it.members?.map { memberComplete ->
+                                    ShoppingListMember(it.listId?.toInt()!!, memberComplete.userId)
+                                } ?: emptyList(),
+                */
                 creationTimestamp = it.shoppingListModel?.creationTimestamp,
                 updateTime = it.shoppingListModel?.updateTime ?: 0,
                 updateTimestamp = it.shoppingListModel?.updateTimestamp).apply {
@@ -114,15 +118,15 @@ class ShoppingListRepository(
 
         val userKey = authRepository.getUserKey()
         try {
+            userKey?.let { userKey ->
+                shoppingListCloudService.get(userKey, shoppingListId).let { entityCompleted ->
+                    val entity = entityCompleted.toShoppingList()
+                    entity.listName = newName
 
-            shoppingListCloudService.get(userKey, shoppingListId).let { entityCompleted ->
-                val entity = entityCompleted.toShoppingList()
-                entity.listName = newName
+                    shoppingListCloudService.save(entity)
 
-                shoppingListCloudService.save(entity)
-
-            }
-
+                }
+            } ?: throw Exception("User not found")
         } catch (e: Exception) {
             // si falla la nube, elimino el registro local
             //   shoppingListDao.deleteShoppingList(shoppingList.id)
@@ -146,7 +150,9 @@ class ShoppingListRepository(
 
     suspend fun getShoppingList(shoppingListId: Int): ShoppingListComplete {
         val userKey = authRepository.getUserKey()
-        return shoppingListCloudService.get(userKey, shoppingListId)
+        userKey?.let {
+            return shoppingListCloudService.get(userKey, shoppingListId)
+        }?: throw Exception("User not found")
     }
 
     suspend fun countShoppingList(): Int = shoppingListCloudService.count()
@@ -160,7 +166,9 @@ class ShoppingListRepository(
     suspend fun addProductToList(id: Int, ean: String, quantity: Int) {
         try {
             val userKey = authRepository.getUserKey()
-            shoppingListCloudService.addProductToList(id, ean, userKey, quantity)
+            userKey?.let {
+                shoppingListCloudService.addProductToList(id, ean, userKey, quantity)
+            } ?: throw Exception("User not found")
 
             //shoppingListDao.addProductToList(id, ean)
         } catch (e: Exception) {

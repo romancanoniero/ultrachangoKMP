@@ -34,7 +34,6 @@ import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.initialize
-import com.iyr.ultrachango.auth.AuthRepository
 
 
 import com.iyr.ultrachango.data.models.User

@@ -2,8 +2,9 @@ package com.iyr.ultrachango.ui.screens.setting.SettingScreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepository
+
 import com.iyr.ultrachango.data.database.repositories.ImagesRepository
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.helpers.getProfileImageURL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -32,7 +33,7 @@ class SettingsScreenViewModel(
     init {
         val user = authRepository.getCurrentUser()
         user.let { it ->
-            _imageUri.value = getProfileImageURL(it!!.uid.toString(), it.photoUrl.toString())
+            _imageUri.value = getProfileImageURL(it!!.uid.toString(), it.profilePictureUrl.toString())
 
         }
     }

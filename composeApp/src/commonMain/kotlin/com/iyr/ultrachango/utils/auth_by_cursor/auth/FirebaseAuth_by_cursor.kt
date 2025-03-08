@@ -1,6 +1,6 @@
 package com.iyr.ultrachango.utils.auth_by_cursor.auth
 
-expect class FirebaseAuth {
+expect class FirebaseAuth() {
     fun getCurrentUser(): NativeUser?
     suspend fun signInWithEmailPassword(email: String, password: String): NativeAuthResult
     suspend fun createUserWithEmailPassword(email: String, password: String): NativeAuthResult
@@ -19,28 +19,28 @@ expect class FirebaseAuth {
 
 }
 
+/***
+ * This is the common interface for the user object returned by the FirebaseAuth
+ */
 expect class NativeUser {
     val uid: String
     val email: String?
     val displayName: String?
     val photoUrl: String?
     val isEmailVerified: Boolean
-    val providerId: String
+    val providerId: String;
+
+
 }
-/*
-expect class NativeAuthResult {
-    val user: NativeUser?
-    val error: Exception?
-}
-*/
+
 expect class AuthCredential
 
 expect class AuthStateListener
-
+/*
 expect object GoogleAuthProvider {
     fun getCredential(idToken: String, accessToken: String? = null): AuthCredential
 }
-
+*/
 expect object FacebookAuthProvider {
     fun getCredential(accessToken: String): AuthCredential
 }

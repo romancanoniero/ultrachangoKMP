@@ -2,7 +2,7 @@ package com.iyr.ultrachango.ui.screens.auth.registration
 
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepository
+
 
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
@@ -10,9 +10,11 @@ import com.iyr.ultrachango.preferences.managers.settings
 import com.iyr.ultrachango.storeUserLocally
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.auth.login.LoginViewModel.UiState
+import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
-import com.iyr.ultrachango.utils.firebaseauth.AuthViewModel
+
 import com.iyr.ultrachango.utils.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -48,7 +50,7 @@ class RegisterViewModel(
     private val isButtonEnabled: StateFlow<Boolean> = combine(uiState) { states ->
         val state = states.first()
         state.firstName.isNotEmpty() && state.firstName.length >= 3 &&
-                state.lastName.isNotEmpty() && state.lastName.length >= 3 &&
+                state.familyName.isNotEmpty() && state.familyName.length >= 3 &&
                 state.emailOrPhoneNumber.isNotEmpty() &&
                 (state.emailOrPhoneNumber.isValidMobileNumber() || state.emailOrPhoneNumber.isEmail())
                 &&
@@ -90,7 +92,7 @@ class RegisterViewModel(
     private fun isCompleted(): Boolean {
         var isCompleted =
             _uiState.value.firstName.isNotEmpty() && _uiState.value.firstName.length >= 3 &&
-                    _uiState.value.lastName.isNotEmpty() && _uiState.value.lastName.length >= 3 &&
+                    _uiState.value.familyName.isNotEmpty() && _uiState.value.familyName.length >= 3 &&
                     _uiState.value.emailOrPhoneNumber.isNotEmpty() &&
                     (_uiState.value.emailOrPhoneNumber.isValidMobileNumber() || _uiState.value.emailOrPhoneNumber.isEmail())
                     &&
@@ -123,7 +125,7 @@ class RegisterViewModel(
 
     fun setLastName(text: String) {
         _uiState.value = _uiState.value.copy(
-            lastName = text,
+            familyName = text,
         )
         isCompleted()
     }
@@ -183,48 +185,54 @@ class RegisterViewModel(
 
             when (_uiState.value.authenticationMethod) {
                 AuthenticationMethods.EMAIL -> {
-                    authViewModel.signUp(_uiState.value.emailOrPhoneNumber,
-                        _uiState.value.password.toString())
-                    { success ->
-                        if (success) {
-                            println("Usuario registrado")
-                            _uiState.value = _uiState.value.copy(
-                                loading = false
-                            )
-                        } else {
-                            println("Error al registrar usuario" )
-                            _uiState.value = _uiState.value.copy(
-                                loading = false
-                            )
-                        }
 
-                    }
+                    /*
+                                      authViewModel.signUp(_uiState.value.emailOrPhoneNumber,
+                                          _uiState.value.password.toString())
+                                      { success ->
+                                          if (success) {
+                                              println("Usuario registrado")
+                                              _uiState.value = _uiState.value.copy(
+                                                  loading = false
+                                              )
+                                          } else {
+                                              println("Error al registrar usuario" )
+                                              _uiState.value = _uiState.value.copy(
+                                                  loading = false
+                                              )
+                                          }
+
+                                      }
+                  */
+
 
 
                     try {
-                        authService.signUpWithEmail(
-                            firstName = _uiState.value.firstName,
-                            lastName = _uiState.value.lastName,
-                            authenticationMethod = AuthenticationMethods.EMAIL.toString(),
-                            email = _uiState.value.emailOrPhoneNumber,
-                            password = _uiState.value.password,
-                            onFailure = {
-                                _uiState.value = _uiState.value.copy(
-                                    errorMessage = it.message,
-                                    showErrorMessage = true,
-                                    loading = false
-                                )
-                            }
-                        )
-                        {
-                            // Aca gestionar lo que sucede desdepues de haberse registrado
-                            val pp = 33
-                            settings.storeUserLocally(it)
-                            _uiState.value = _uiState.value.copy(
-                                loading = false
-                            )
-                        }
 
+                        /*
+                                                authService.signUpWithEmail(
+                                                    firstName = _uiState.value.firstName,
+                                                    lastName = _uiState.value.familyName,
+                                                    authenticationMethod = AuthenticationMethods.EMAIL.toString(),
+                                                    email = _uiState.value.emailOrPhoneNumber,
+                                                    password = _uiState.value.password,
+                                                    onFailure = {
+                                                        _uiState.value = _uiState.value.copy(
+                                                            errorMessage = it.message,
+                                                            showErrorMessage = true,
+                                                            loading = false
+                                                        )
+                                                    }
+                                                )
+                                                {
+                                                    // Aca gestionar lo que sucede desdepues de haberse registrado
+                                                    val pp = 33
+                                                    settings.storeUserLocally(it)
+                                                    _uiState.value = _uiState.value.copy(
+                                                        loading = false
+                                                    )
+                                                }
+                        */
                     } catch (ex: Exception) {
 
                         val message = when (ex.message) {
@@ -240,10 +248,14 @@ class RegisterViewModel(
 
                 }
 
-                AuthenticationMethods.PHONE_NUMBER -> authService.signUpWithEmail(
-                    _uiState.value.emailOrPhoneNumber
+                AuthenticationMethods.PHONE_NUMBER -> {
+                    /*
+                                        authService.signUpWithEmail(
+                                            _uiState.value.emailOrPhoneNumber
 
-                )
+                                        )
+                    */
+                }
 
                 else -> {
                 }
@@ -273,7 +285,7 @@ class RegisterViewModel(
         val errorMessage: String? = null,
         val showErrorMessage: Boolean = false,
         val firstName: String = "pirineo",
-        val lastName: String = "rodriguez",
+        val familyName: String = "rodriguez",
         val emailOrPhoneNumber: String = "pirineorodriguez@gmail.com",
         val password: String = "123456",
         val authenticationMethod: AuthenticationMethods = AuthenticationMethods.NONE,

@@ -1,12 +1,13 @@
 package com.iyr.ultrachango.data.database.repositories
 
 
-import com.iyr.ultrachango.auth.AuthRepository
+
 import com.iyr.ultrachango.data.api.cloud.products.CloudProductsService
 import com.iyr.ultrachango.data.api.preciosclaros.PreciosClarosService
 
 import com.iyr.ultrachango.data.models.PriceInBranch
 import com.iyr.ultrachango.data.models.Product
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.coroutines.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector

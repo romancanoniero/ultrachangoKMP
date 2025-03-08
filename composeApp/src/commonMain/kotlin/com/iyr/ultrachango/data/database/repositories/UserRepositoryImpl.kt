@@ -1,9 +1,10 @@
 package com.iyr.ultrachango.data.database.repositories
 
-import com.iyr.ultrachango.auth.AuthenticatedUser
+
 import com.iyr.ultrachango.data.api.cloud.users.CloudUsersService
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.storeUserLocally
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.russhwolf.settings.Settings
 
 
@@ -17,7 +18,7 @@ class UserRepositoryImpl(
         return apiClient.getUser(userId)
     }
 
-    override suspend fun saveUser(user: AuthenticatedUser) {
+    override suspend fun saveUser(user: AppUser) {
         try {
             apiClient.saveUser(user) // Envía al servidor
             //      localStorage.saveUser(user) // Guarda localmente
@@ -26,7 +27,7 @@ class UserRepositoryImpl(
         }
     }
 
-    override suspend fun updateUser(user: AuthenticatedUser, image: ByteArray?) {
+    override suspend fun updateUser(user: AppUser, image: ByteArray?) {
         try {
             apiClient.updateUser(user, image) // Actualiza en el servidor
             settings.storeUserLocally(user)
@@ -36,7 +37,7 @@ class UserRepositoryImpl(
         }
         //    localStorage.saveUser(user) // Actualiza localmente
     }
-    override suspend fun storeUser(user: AuthenticatedUser) {
+    override suspend fun storeUser(user: AppUser) {
         settings.storeUserLocally(user)
     }
 }

@@ -33,11 +33,12 @@ import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.iyr.ultrachango.auth.AuthRepository
+
 
 import com.iyr.ultrachango.ui.dialogs.ConfirmationDialog
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.ui.device.getScreenHeight
 import com.iyr.ultrachango.utils.ui.elements.MenuItem
 import com.iyr.ultrachango.utils.ui.elements.MenuTitle

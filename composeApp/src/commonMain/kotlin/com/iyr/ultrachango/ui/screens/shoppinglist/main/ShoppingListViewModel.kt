@@ -2,12 +2,11 @@ package com.iyr.ultrachango.ui.screens.shoppinglist.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepository
-
 import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
 import com.iyr.ultrachango.data.database.repositories.StoresRepository
 import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.ui.ScaffoldViewModel
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.ui.capitalizeFirstLetter
 import com.iyr.ultrachango.viewmodels.UserViewModel
 import kotlinx.coroutines.Dispatchers

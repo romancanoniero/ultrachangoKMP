@@ -5,10 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepository
+
 import com.iyr.ultrachango.data.database.repositories.FamilyMembersRepository
 import com.iyr.ultrachango.data.models.FamilyMember
 import com.iyr.ultrachango.data.models.Product
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
@@ -35,14 +36,23 @@ class MembersScreenViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val userKey: String = authRepository.getUserKey()
-                val call = familyMembersRepository.getList(userKey).collect {
+                val userKey: String? = authRepository.getUserKey()
+                userKey?.let {
+                    val call = familyMembersRepository.getList(userKey).collect {
+                        state = state.copy(
+                            loading = false,
+                            records = it
+                        )
+                    }
 
+                } ?: run {
                     state = state.copy(
                         loading = false,
-                        records = it
+                        showErrorMessage = true,
+                        errorMessage = "No se pudo obtener el usuario"
                     )
                 }
+
             } catch (e: Exception) {
                 state = state.copy(
                     loading = false,
@@ -76,8 +86,8 @@ class MembersScreenViewModel(
         )
     }
 
-    fun getUserKey(): String {
-        return authRepository.currentUserId
+    fun getUserKey(): String? {
+        return authRepository.getUserKey()
     }
 
 

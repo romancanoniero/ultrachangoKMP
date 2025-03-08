@@ -1,7 +1,5 @@
 package com.iyr.ultrachango.utils.firebase
 
-import com.iyr.ultrachango.auth.AuthenticatedUser
-
 /*
 sealed class FirebaseAuthResult {
     data class Success(

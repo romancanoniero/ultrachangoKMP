@@ -1,7 +1,7 @@
 package com.iyr.ultrachango.data.api.cloud.images
 
 
-import com.iyr.ultrachango.auth.AuthRepository
+
 import com.iyr.ultrachango.config.Config.BASE_URL_CLOUD_SERVER
 import com.iyr.ultrachango.data.api.cloud.Response
 import com.iyr.ultrachango.getAuthToken

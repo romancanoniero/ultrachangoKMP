@@ -1,12 +1,14 @@
 package com.iyr.ultrachango.utils.auth_by_cursor.statemanagers
 
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AuthUser
+
+import com.iyr.ultrachango.utils.auth_by_cursor.AuthRepositoryImpl
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 
-enum class AuthState {
+enum class AuthStates {
     AUTHENTICATED,
     UNAUTHENTICATED,
     ONBOARDING,
@@ -17,26 +19,26 @@ class AuthStateManager(
     private val authRepository: AuthRepository
 ) {
     // Estado actual de autenticación
-    fun getAuthState(): Flow<AuthState> =
+    fun getAuthState(): Flow<AuthStates> =
         authRepository.getAuthState().map { user ->
             when {
-                user != null -> AuthState.AUTHENTICATED
+                user != null -> AuthStates.AUTHENTICATED
                 // Aquí puedes añadir más lógica según tus necesidades
                 // Por ejemplo, verificar si es la primera vez que se abre la app
-                else -> AuthState.UNAUTHENTICATED
+                else -> AuthStates.UNAUTHENTICATED
             }
         }
 
     // Verificar estado inicial
-    fun checkInitialAuthState(): AuthState =
+    fun checkInitialAuthState(): AuthStates =
         if (authRepository.isUserSignedIn()) {
-            AuthState.AUTHENTICATED
+            AuthStates.AUTHENTICATED
         } else {
-            AuthState.UNAUTHENTICATED
+            AuthStates.UNAUTHENTICATED
         }
 
     // Obtener usuario actual
-    fun getCurrentUser(): AuthUser? =
+    fun getCurrentUser(): AppUser? =
         authRepository.getCurrentUser()
 
     // Verificar si el usuario está autenticado

@@ -1,16 +1,11 @@
 package com.iyr.ultrachango.ui.rootnavigation
 
-import coil3.Uri
-import com.iyr.ultrachango.auth.AuthenticatedUser
 import com.iyr.ultrachango.data.models.ShoppingList
-import com.iyr.ultrachango.data.models.User
-import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
 import com.iyr.ultrachango.ui.screens.qrscanner.QRTypes
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.expect.URLEncoder
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
 
 
 sealed class RootRoutes(val route: String) {
@@ -39,7 +34,7 @@ sealed class RootRoutes(val route: String) {
 
 
     object SetupProfileRoute : RootRoutes("setup_profile/{userAsJson}") {
-        fun createRoute(user: AuthenticatedUser? = null): String {
+        fun createRoute(user: AppUser? = null): String {
             val userAsJson = Json.encodeToString(user)
             val encoded = URLEncoder.encode(userAsJson)
             return "setup_profile/$encoded"

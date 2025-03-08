@@ -5,10 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepository
+
 import com.iyr.ultrachango.data.database.repositories.UserLocationsRepository
 import com.iyr.ultrachango.data.models.Location
 import com.iyr.ultrachango.ui.ScaffoldViewModel
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.ui.places.borrar.PlacesSearchService
 import com.iyr.ultrachango.utils.ui.places.google.model.Result
 import com.iyr.ultrachango.utils.ui.places.models.CustomPlace
@@ -51,7 +52,7 @@ class LocationsViewModel(
 
      suspend fun fetchLists() {
        val userKey = authRepository.getUserKey()
-        fetchLists(userKey)
+        fetchLists(userKey!!)
 
     }
 
@@ -109,7 +110,7 @@ class LocationsViewModel(
 
     fun onLocationUpdateRequested(title: String, customPlace: CustomPlace) {
         val userKey = userViewModel.getUserKey()
-        val location = customPlace.toLocation(userKey, title)
+        val location = customPlace.toLocation(userKey!!, title)
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 locationRepository.save(location)
@@ -140,7 +141,7 @@ class LocationsViewModel(
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 val userKey = userViewModel.getUserKey()
-                locationRepository.delete(userKey, locationID.toInt())
+                locationRepository.delete(userKey!!, locationID.toInt())
                 fetchLists()
             }
         }

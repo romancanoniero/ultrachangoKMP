@@ -2,9 +2,8 @@ package com.iyr.ultrachango.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepository
-
 import com.iyr.ultrachango.data.models.User
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -32,9 +31,8 @@ class UserViewModel(
         _user.value = _user.value?.copy(uid = key)
     }
 
-    fun getUserKey():String
+    fun getUserKey():String?
     {
-        return authRepository.currentUserId
-   //     return _user.value?.id.toString()
+        return authRepository.getUserKey()
     }
 }

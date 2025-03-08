@@ -125,7 +125,7 @@ fun MembersScreen(
                 onClick = {
                     // Handle button click
                     navController.navigate(RootRoutes.SharingRoute.createRoute(QRTypes.FAMILY_MEMBER,
-                        vm.getUserKey()
+                        vm.getUserKey()!!
                     ))
                 },
                 content = {

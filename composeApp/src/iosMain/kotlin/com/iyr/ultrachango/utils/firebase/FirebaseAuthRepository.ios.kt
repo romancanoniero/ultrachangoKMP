@@ -7,24 +7,13 @@ import cocoapods.FirebaseAuth.FIRPhoneAuthProvider
 import cocoapods.FirebaseAuth.FIRUser
 import cocoapods.GoogleSignIn.GIDSignIn
  */
-import com.iyr.ultrachango.auth.AuthenticatedUser
-import com.iyr.ultrachango.preferences.managers.settings
-import com.russhwolf.settings.set
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.cinterop.*
 
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import platform.UIKit.UIApplication
-import platform.UIKit.UIWindowScene
 
-import platform.darwin.DISPATCH_TIME_FOREVER
 import platform.darwin.dispatch_semaphore_create
-import platform.darwin.dispatch_semaphore_signal
-import platform.darwin.dispatch_semaphore_wait
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 @OptIn(ExperimentalForeignApi::class)
 actual class FirebaseAuthRepository actual constructor() {
@@ -153,7 +142,7 @@ actual class FirebaseAuthRepository actual constructor() {
                     newUser.email = profile?.email
                     newUser.photoUrl = profile?.imageURLWithDimension(320u)?.absoluteString
                     newUser.firstName = profile?.givenName ?: ""
-                    newUser.lastName = profile?.familyName ?: ""
+                    newUser.familyName = profile?.familyName ?: ""
                     println("** - User = ${Json.encodeToString(newUser)}")
                     onResult(AuthResult.Success(newUser, authToken))
                 } else {
@@ -283,7 +272,7 @@ private fun FIRUser.toAuthenticatedUser(): AuthenticatedUser {
     val newObject = AuthenticatedUser(this.uid())
     newObject.displayName = this.displayName()
     newObject.firstName = ""
-    newObject.lastName = ""
+    newObject.familyName = ""
     newObject.email = this.email()
     newObject.phoneNumber = this.phoneNumber()
     newObject.photoUrl = this.photoURL()?.absoluteString

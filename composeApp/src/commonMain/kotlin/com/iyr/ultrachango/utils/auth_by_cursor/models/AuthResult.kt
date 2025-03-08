@@ -13,11 +13,29 @@ sealed class AuthResult<out T> {
             Error(AuthError.fromException(exception))
     }
 }
+
+
+/*
 data class AuthUser(
     val uid: String,
     val email: String?,
+    val phoneNumber: String?,
     val displayName: String?,
     val photoUrl: String?,
     val isEmailVerified: Boolean,
-    val providerId: String
-)
+    val providerId: String,
+
+) {
+    fun toAppUser(): AppUser {
+        return AppUser(
+            uid = uid,
+            email = email,
+            phoneNumber = phoneNumber,
+            displayName = displayName,
+            profilePictureUrl = photoUrl,
+            isEmailVerified = isEmailVerified,
+        )
+    }
+}
+
+ */

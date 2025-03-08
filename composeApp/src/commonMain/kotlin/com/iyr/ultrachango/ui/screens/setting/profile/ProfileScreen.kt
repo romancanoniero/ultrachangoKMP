@@ -47,6 +47,8 @@ import coil3.Uri
 import coil3.compose.AsyncImage
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.Genders
+import com.iyr.ultrachango.data.models.enums.toGender
+import com.iyr.ultrachango.data.models.enums.toStorageString
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
 import com.iyr.ultrachango.utils.ui.LoadingDialog
 import com.iyr.ultrachango.utils.ui.camera_gallery.rememberCameraManager
@@ -114,13 +116,9 @@ fun ProfileScreen(
 
     var nickname by remember { mutableStateOf(currentUser?.displayName) }
     var firstName by remember { mutableStateOf(currentUser?.firstName) }
-    var lastName by remember { mutableStateOf(currentUser?.lastName) }
-    var gender by remember {
-        mutableStateOf<Genders?>(
-            Genders.entries.get(
-                currentUser?.gender ?: 0
-            )
-        )
+    var lastName by remember { mutableStateOf(currentUser?.familyName) }
+    var gender by remember { mutableStateOf("")
+
     }
     var birthDate by remember { mutableStateOf(currentUser?.birthDate) }
 
@@ -157,7 +155,7 @@ fun ProfileScreen(
             it?.let {
                 nickname = it.nick
                 firstName = it.firstName.toString()
-                lastName = it.lastName.toString()
+                lastName = it.familyName.toString()
                 birthDate = it.birthDate.toString()
                 gender = it.gender.toString()
             }
@@ -371,9 +369,9 @@ fun ProfileScreen(
 
 
             GenderSelector(
-                value = gender ?: Genders.MALE,
+                value = gender.toGender() ?: Genders.MALE,
                 onGenderSelected = { value ->
-                    gender = Genders.values().get(value)
+                    gender = value.toStorageString()
                     viewModel.onGenderChange(value)
                 }
             )
@@ -479,7 +477,7 @@ fun ProfileScreen(
                     viewModel.saveChanges(
                         firstName = firstName.toString(),
                         lastName = lastName.toString(),
-                        gender = gender!!,
+                        gender = gender.toGender(),
                         birthDate = birthDateAsSnappedDateTime!!,
 
                         )

@@ -47,6 +47,7 @@ import coil3.Uri
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.Genders
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.ui.LoadingDialog
 import com.iyr.ultrachango.utils.ui.camera_gallery.rememberCameraManager
 import com.iyr.ultrachango.utils.ui.camera_gallery.rememberGalleryManager
@@ -88,7 +89,7 @@ import ultrachango2.composeapp.generated.resources.profile_pic
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    currentUser: User? = null,
+    currentUser: AppUser? = null,
     navController: NavController? = null,
     permissionsController: PermissionsController? = null,
     viewModel: ProfileViewModel = koinViewModel()
@@ -106,15 +107,11 @@ fun ProfileScreen(
 
 
 
-    var nickname by remember { mutableStateOf(currentUser?.nick) }
+    var nickname by remember { mutableStateOf(currentUser?.displayName) }
     var firstName by remember { mutableStateOf(currentUser?.firstName) }
-    var lastName by remember { mutableStateOf(currentUser?.lastName) }
+    var lastName by remember { mutableStateOf(currentUser?.familyName) }
     var gender by remember {
-        mutableStateOf<Genders?>(
-            Genders.entries.get(
-                currentUser?.gender ?: 0
-            )
-        )
+        mutableStateOf(Genders.UNKNOWN )
     }
     var birthDate by remember { mutableStateOf(currentUser?.birthDate) }
 
@@ -155,7 +152,7 @@ fun ProfileScreen(
             it?.let {
                 nickname = it.nick
                 firstName = it.firstName.toString()
-                lastName = it.lastName.toString()
+                lastName = it.familyName.toString()
                 birthDate = it.birthDate.toString()
                 gender = it.gender.toString()
             }
@@ -354,7 +351,7 @@ fun ProfileScreen(
             GenderSelector(
                 value = gender ?: Genders.MALE,
                 onGenderSelected = { value ->
-                    gender = Genders.values().get(value)
+                    gender = Genders.values().get(value.ordinal)
                viewModel.onGenderChange(value)
                 }
             )

@@ -11,8 +11,7 @@ import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-
-import com.iyr.ultrachango.auth.AuthenticatedUser
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -130,7 +129,7 @@ class GoogleAuthAndroid(
         }
     }
 
-    suspend fun handleSignInResult(data: Intent?): AuthenticatedUser? {
+    suspend fun handleSignInResult(data: Intent?): AppUser? {
         try {
             val credential = oneTapClient.getSignInCredentialFromIntent(data)
             val idToken = credential.googleIdToken

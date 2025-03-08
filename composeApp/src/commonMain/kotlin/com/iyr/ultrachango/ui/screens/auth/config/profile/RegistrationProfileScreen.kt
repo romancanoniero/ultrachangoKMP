@@ -14,14 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,10 +36,9 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.Uri
-import com.iyr.ultrachango.auth.AuthenticatedUser
-import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.Genders
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.ui.LoadingDialog
 import com.iyr.ultrachango.utils.ui.camera_gallery.rememberCameraManager
 import com.iyr.ultrachango.utils.ui.camera_gallery.rememberGalleryManager
@@ -54,7 +46,6 @@ import com.iyr.ultrachango.utils.ui.component.ImageOptionDialog
 import com.iyr.ultrachango.utils.ui.elements.GenderSelector
 import com.iyr.ultrachango.utils.ui.elements.RegularButton
 import com.iyr.ultrachango.utils.ui.elements.StyleTextBig
-import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 import com.mohamedrejeb.calf.picker.toImageBitmap
 
 import dev.darkokoa.datetimewheelpicker.WheelDatePicker
@@ -76,19 +67,15 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import ultrachango2.composeapp.generated.resources.Res
-import ultrachango2.composeapp.generated.resources.gender_female
-import ultrachango2.composeapp.generated.resources.gender_male
-import ultrachango2.composeapp.generated.resources.gender_other
 import ultrachango2.composeapp.generated.resources.profile_pic
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistrationProfileScreen(
-    currentUser: AuthenticatedUser? = null,
+    currentUser: AppUser? = null,
     navController: NavController? = null,
     permissionsController: PermissionsController? = null,
     viewModel: RegistrationProfileViewModel = koinViewModel()
@@ -107,11 +94,11 @@ fun RegistrationProfileScreen(
 
     var nickname by remember { mutableStateOf(currentUser?.displayName) }
     var firstName by remember { mutableStateOf(currentUser?.firstName) }
-    var lastName by remember { mutableStateOf(currentUser?.lastName) }
+    var lastName by remember { mutableStateOf(currentUser?.familyName) }
     var gender by remember {
         mutableStateOf<Genders?>(
             Genders.entries.get(
-                currentUser?.gender ?: 0
+                currentUser?.gender?.ordinal ?: 0
             )
         )
     }
@@ -131,7 +118,7 @@ fun RegistrationProfileScreen(
 
     var birthDateAsSnappedDateTime by remember {
 
-        val birthDateParts = birthDate?.split("-")
+        val birthDateParts = birthDate?.toString()?.split("-")
         val birthYear = birthDateParts?.getOrNull(0)?.toIntOrNull()
         val birthMonth = birthDateParts?.getOrNull(1)?.toIntOrNull()
         val birthDay = birthDateParts?.getOrNull(2)?.toIntOrNull()
@@ -154,7 +141,7 @@ fun RegistrationProfileScreen(
             it?.let {
                 nickname = it.nick
                 firstName = it.firstName.toString()
-                lastName = it.lastName.toString()
+                lastName = it.familyName.toString()
                 birthDate = it.birthDate.toString()
                 gender = it.gender.toString()
             }
@@ -338,7 +325,7 @@ fun RegistrationProfileScreen(
             GenderSelector(
                 value = gender ?: Genders.MALE,
                 onGenderSelected = { value ->
-                    gender = Genders.values().get(value)
+                    gender = value
                     viewModel.onGenderChange(value)
                 }
             )

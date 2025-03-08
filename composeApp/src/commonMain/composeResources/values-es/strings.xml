@@ -16,6 +16,9 @@
     <string name="gender_male">Masculino</string>
     <string name="gender_female">Femenino</string>
     <string name="gender_other">Otro</string>
+    <string name="gender_non_binary">No binario</string>
+    <string name="gender_unknown">Desconocido</string>
+
     <string name="products">productos</string>
     <string name="no_products">sin productos</string>
     <string name="PRODUCT_DOES_NOT_EXIST">Producto no encontrado</string>

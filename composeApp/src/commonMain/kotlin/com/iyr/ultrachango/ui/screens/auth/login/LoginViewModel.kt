@@ -1,12 +1,11 @@
 package com.iyr.ultrachango.ui.screens.auth.login
 
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepository
-
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
 import com.iyr.ultrachango.utils.firebase.AuthResult
@@ -24,7 +23,7 @@ class LoginViewModel(
     //   private val userViewModel: UserViewModel,
     private val authRepository: AuthRepository,
     private val scaffoldVM: ScaffoldViewModel,
-    private val  authViewModel: AuthViewModel,
+    private val authViewModel: AuthViewModel,
 ) : BaseViewModel(), KoinComponent {
 
     private val _uiState = MutableStateFlow(UiState())
@@ -105,35 +104,39 @@ class LoginViewModel(
         viewModelScope.launch {
             //val result = authService.createUser(_uiState.value.email, _uiState.value.password)
             if (_uiState.value.emailOrPhoneNumber.isEmail()) {
-              println("signInWithEmail")
-                authViewModel.signInWithEmailAndPassword(_uiState.value.emailOrPhoneNumber, _uiState.value.password)
-    /*
-                val call = authRepository.signInWithEmail(
+                println("signInWithEmail")
+                authViewModel.signInWithEmailAndPassword(
                     _uiState.value.emailOrPhoneNumber,
                     _uiState.value.password
                 )
-                _isAuthenticated.value = call.success
+                /*
+                            val call = authRepository.signInWithEmail(
+                                _uiState.value.emailOrPhoneNumber,
+                                _uiState.value.password
+                            )
+                            _isAuthenticated.value = call.success
 
-                _uiState.value = _uiState.value.copy(
-                    loading = false,
-                )
-*/
+                            _uiState.value = _uiState.value.copy(
+                                loading = false,
+                            )
+            */
 
             } else {
+                val phoneNumber = _uiState.value.emailOrPhoneNumber
 
-                authViewModel.signInWithPhoneNumber(_uiState.value.emailOrPhoneNumber)
- /*
-                authRepository.signInWithPhoneNumber(
-                    _uiState.value.emailOrPhoneNumber,
-                    onSuccess = {
-                        _isAuthenticated.value = it.success
-                    },
-                    onFailure = {
-                        _isAuthenticated.value = false
-                    },
-                    scope = this
-                )
-                */
+                authViewModel.verifyPhoneNumber(phoneNumber)
+                /*
+                               authRepository.signInWithPhoneNumber(
+                                   _uiState.value.emailOrPhoneNumber,
+                                   onSuccess = {
+                                       _isAuthenticated.value = it.success
+                                   },
+                                   onFailure = {
+                                       _isAuthenticated.value = false
+                                   },
+                                   scope = this
+                               )
+                               */
                 _uiState.value = _uiState.value.copy(
                     showOTP = true
                 )
@@ -182,42 +185,47 @@ class LoginViewModel(
     }
 
     fun onSignInWithGoogle() {
-        viewModelScope.launch(Dispatchers.Main) {
-            authRepository.signInWithGoogle(scope = this, onSuccess = { response ->
-                when(response){
-                    is AuthResult.Success -> {
-                        authRepository.storeUser(response.user!!)
-                        _isAuthenticated.value = true
-                    }
-                    is AuthResult.Error -> {
-                        println(response.message)
-                    }
-                }
-/*
-                if (authResult.success) {
-                    authRepository.storeUser(authResult.user!!)
-                    // aca hay que asegurarse que los datos del usuario esten cargados.
-                    _isAuthenticated.value = true
-                }
+        /*
+                viewModelScope.launch(Dispatchers.Main) {
+              //      authViewModel.signInWithEmailAndPassword("","")
+                    authRepository.signInWithGoogle(scope = this, onSuccess = { response ->
+                        when(response){
+                            is AuthResult.Success -> {
+                                authRepository.storeUser(response.user!!)
+                                _isAuthenticated.value = true
+                            }
+                            is AuthResult.Error -> {
+                                println(response.message)
+                            }
+                        }
+        /*
+                        if (authResult.success) {
+                            authRepository.storeUser(authResult.user!!)
+                            // aca hay que asegurarse que los datos del usuario esten cargados.
+                            _isAuthenticated.value = true
+                        }
 
- */
-            }, onFailure = {
-                println("onFailure")
-            })
-        }
-
+         */
+                    }, onFailure = {
+                        println("onFailure")
+                    })
+                }
+        */
     }
 
     fun onOTPCodeEntered(code: String) {
-        authRepository.onOTPCodeEntered(code,
-            onSuccess = {
-                _isAuthenticated.value = it.success
-            },
-            onFailure = {
-                _isAuthenticated.value = false
-            },
+        /*
+              authRepository.onOTPCodeEntered(code,
+                  onSuccess = {
+                      _isAuthenticated.value = it.success
+                  },
+                  onFailure = {
+                      _isAuthenticated.value = false
+                  },
 
-        )
+              )
+
+         */
     }
 
 

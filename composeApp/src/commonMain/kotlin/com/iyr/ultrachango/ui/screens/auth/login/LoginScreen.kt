@@ -57,7 +57,6 @@ import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.auth.registration.MethodDivider
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
-import com.iyr.ultrachango.utils.firebaseauth.AuthViewModel
 import com.iyr.ultrachango.utils.ui.elements.Body1Text
 import com.iyr.ultrachango.utils.ui.elements.CustomButton
 import com.iyr.ultrachango.utils.ui.elements.StyleButton

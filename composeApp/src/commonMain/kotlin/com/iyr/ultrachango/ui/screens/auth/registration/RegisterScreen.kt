@@ -24,11 +24,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.iyr.ultrachango.auth.AuthenticatedUser
-import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
-import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.utils.ui.ShowKeyboard
 import com.iyr.ultrachango.utils.ui.elements.CustomButton
 import com.iyr.ultrachango.utils.ui.elements.StyleButton
@@ -78,7 +75,7 @@ fun RegisterScreen(
     var registerButtonEnabled = state.value.registerButtonEnabled
 
     var firstName by remember { mutableStateOf(TextFieldValue(state.value.firstName)) }
-    var lastName by remember { mutableStateOf(TextFieldValue(state.value.lastName)) }
+    var lastName by remember { mutableStateOf(TextFieldValue(state.value.familyName)) }
     var emailOfPhoneNumber by remember { mutableStateOf(TextFieldValue(state.value.emailOrPhoneNumber)) }
     var password by remember { mutableStateOf(TextFieldValue(state.value.password)) }
 

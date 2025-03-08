@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
@@ -18,22 +16,17 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.iyr.ultrachango.auth.AuthRepository
-import com.iyr.ultrachango.auth.AuthenticatedUser
-import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
-import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.ui.MainScreen
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.auth.config.profile.RegistrationProfileScreen
-import com.iyr.ultrachango.ui.screens.fidelization.FidelizationScreen
-import com.iyr.ultrachango.ui.screens.home.HomeScreen
-import com.iyr.ultrachango.ui.screens.landing.LandingScreen
-import com.iyr.ultrachango.ui.screens.locations.main.LocationsScreen
 import com.iyr.ultrachango.ui.screens.auth.forgot.ForgotPasswordScreen
-
 import com.iyr.ultrachango.ui.screens.auth.login.LoginScreen
 import com.iyr.ultrachango.ui.screens.auth.registration.RegisterScreen
+import com.iyr.ultrachango.ui.screens.fidelization.FidelizationScreen
+import com.iyr.ultrachango.ui.screens.home.HomeScreen
 import com.iyr.ultrachango.ui.screens.invite.InviteScreen
+import com.iyr.ultrachango.ui.screens.landing.LandingScreen
+import com.iyr.ultrachango.ui.screens.locations.main.LocationsScreen
 import com.iyr.ultrachango.ui.screens.member.MembersScreen
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
 import com.iyr.ultrachango.ui.screens.qrscanner.QRScannerScreen
@@ -43,6 +36,8 @@ import com.iyr.ultrachango.ui.screens.setting.profile.ProfileScreen
 import com.iyr.ultrachango.ui.screens.shoppinglist.edition.ShoppingListAddEditScreen
 import com.iyr.ultrachango.ui.screens.shoppinglist.main.ShoppingListScreen
 import com.iyr.ultrachango.ui.screens.shoppinglist.members.ShoppingMembersSelectionScreen
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.validateForm
 import dev.icerock.moko.permissions.PermissionsController
 import kotlinx.serialization.json.Json
@@ -69,32 +64,44 @@ fun RootNavGraph(
 ) {
 
     // lo saco para que pueda manejar la registracion
-    val isLoggedIn = authRepository.isLoggedIn
+    val isLoggedIn = authRepository.isUserSignedIn()
 
     // Obtengo el usuario actual
 
-    NavHost(
-        modifier = modifier.padding(0.dp).fillMaxSize().background(Color.Transparent),
-        navController = rootNavController,
-        startDestination = if (isLoggedIn) {
+    /*
+              if (isLoggedIn)
+            {
             val me = authRepository.getCurrentUser()
 
             val isProfileComplete = validateForm(
                 validateImage = false,
-                firstName = me?.firstName,
-                lastName = me?.lastName,
-                gender = me?.gender,
-                birthDate = me?.birthDate,
+                firstName = "me?.firstName",
+                lastName = "me?.familyName",
+                imageProfile = TODO(),
+                gender = TODO(),
+                birthDate = TODO(),
+                //       gender = me?.gender,
+                //       birthDate = me?.birthDate,
             )
 
 //Graph.ROOT_NAVIGATION_SCREEN_MAIN
             if (isProfileComplete) RootRoutes.HomeRoute.route
             else {
 
-                val route = RootRoutes.SetupProfileRoute.createRoute(me)
-                route
+//                val route = RootRoutes.SetupProfileRoute.createRoute(me)
+//                route
             }
-        } else Graph.ROOT_NAVIGATION_SCREEN_LANDING,
+        } else RootRoutes.LandingRoute.route,
+
+
+     */
+
+    NavHost(
+        modifier = modifier.padding(0.dp).fillMaxSize().background(Color.Transparent),
+        navController = rootNavController,
+        startDestination = RootRoutes.LandingRoute.route
+
+
     ) {
 
         composable(
@@ -139,7 +146,7 @@ fun RootNavGraph(
             route = "setup_profile/{userAsJson}",
             arguments = listOf(navArgument("userAsJson") { type = NavType.StringType })
         ) { backStackEntry ->
-            val user = Json.decodeFromString<AuthenticatedUser>(
+            val user = Json.decodeFromString<AppUser>(
                 backStackEntry.arguments?.getString("userAsJson").toString()
             )
             RegistrationProfileScreen(

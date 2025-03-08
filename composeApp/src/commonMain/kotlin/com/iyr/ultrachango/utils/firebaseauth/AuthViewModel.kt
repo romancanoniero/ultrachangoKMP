@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 
-class AuthViewModel(private val authHelper: FirebaseAuthHelper) : ViewModel() {
+class AuthViewModel_old(private val authHelper: FirebaseAuthHelper) : ViewModel() {
 
     var isAuthenticated = false
         private set

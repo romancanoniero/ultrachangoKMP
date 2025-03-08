@@ -2,7 +2,7 @@ package com.iyr.ultrachango.ui.screens.shoppinglist.edition
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepository
+
 
 import com.iyr.ultrachango.data.database.repositories.ProductsRepository
 import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
@@ -13,6 +13,7 @@ import com.iyr.ultrachango.data.models.ShoppingListMemberComplete
 import com.iyr.ultrachango.data.models.ShoppingListProductComplete
 import com.iyr.ultrachango.data.models.ShoppingListQuantities
 import com.iyr.ultrachango.ui.ScaffoldViewModel
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.coroutines.Resource
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.ALREADY_EXISTS
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.NON_EXISTING
@@ -85,7 +86,7 @@ class ShoppingListAddEditViewModel(
                     _state.value = _state.value.copy(
                         listId = shoppingList?.listId ?: 0,
                         name = shoppingList?.listName.toString(),
-                        itemsList = prepareItems(userKey, shoppingList!!),
+                        itemsList = prepareItems(userKey!!, shoppingList!!),
                         membersList = shoppingList?.members ?: emptyList()
                     )
                 }

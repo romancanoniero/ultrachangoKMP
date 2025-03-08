@@ -1,15 +1,13 @@
 package com.iyr.ultrachango.ui.screens.auth.config.profile
 
 import androidx.lifecycle.viewModelScope
-import com.iyr.ultrachango.auth.AuthRepository
-import com.iyr.ultrachango.auth.AuthenticatedUser
-
 import com.iyr.ultrachango.data.database.repositories.ImagesRepository
 import com.iyr.ultrachango.data.database.repositories.UserRepositoryImpl
-import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.data.models.enums.Genders
 import com.iyr.ultrachango.ui.ScaffoldViewModel
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
 import com.iyr.ultrachango.utils.viewmodel.BaseViewModel
@@ -29,10 +27,10 @@ class ProfileViewModel(
 ) : BaseViewModel(), KoinComponent {
 
 
-    private val _originalUser = MutableStateFlow<AuthenticatedUser?>(null)
+    private val _originalUser = MutableStateFlow<AppUser?>(null)
     val originalUser = _originalUser.asStateFlow()
 
-    private val _currentUser = MutableStateFlow<AuthenticatedUser?>(null)
+    private val _currentUser = MutableStateFlow<AppUser?>(null)
     val currentUser = _currentUser.asStateFlow()
 
     private val _uiState = MutableStateFlow(UiState())
@@ -62,10 +60,10 @@ class ProfileViewModel(
 
     init {
         val me = authService.getCurrentUser()
-
+/*
         _originalUser.value = me?.copy()
         _currentUser.value = me
-
+*/
 
         //     var firebaseAuth = Firebase.auth(Firebase.initialize(AppContext.getContext()!!)!!).currentUser
 //val pepe = firebaseAuth?.displayName
@@ -131,7 +129,7 @@ class ProfileViewModel(
         launchWithCatchingException {
             _isProcessing.value = true
             //val result = authService.createUser(_uiState.value.email, _uiState.value.password)
-            authService.signInWithEmail(_uiState.value.emailOrPhoneNumber, _uiState.value.password)
+           // authService.signInWithEmail(_uiState.value.emailOrPhoneNumber, _uiState.value.password)
             _isProcessing.value = false
         }
 
@@ -154,7 +152,7 @@ class ProfileViewModel(
 
     }
 
-    fun saveProfile(user: AuthenticatedUser) {
+    fun saveProfile(user: AppUser) {
         var pp = 33
         viewModelScope.launch {
             try {
@@ -195,7 +193,7 @@ class ProfileViewModel(
         println("cierro la camara")
     }
 
-    fun updateProfile(user: AuthenticatedUser) {
+    fun updateProfile(user: AppUser) {
 
         if (user.uid.isNullOrEmpty()) {
             user.uid = ""  /*aca Firebase.auth.currentUser?.uid.toString() */
@@ -228,7 +226,7 @@ class ProfileViewModel(
     }
 
     fun onLastNameChange(text: String) {
-        currentUser.value?.lastName = text
+        currentUser.value?.familyName = text
         _uiState.value = UiState(loginButtonEnabled = validate())
 
     }
@@ -240,8 +238,8 @@ class ProfileViewModel(
     }
 
 
-    fun onGenderChange(value: Int) {
-        currentUser.value?.gender = value
+    fun onGenderChange(gender: Genders) {
+        currentUser.value?.gender = gender
         _uiState.value = UiState(loginButtonEnabled = validate())
     }
 
@@ -260,8 +258,8 @@ class ProfileViewModel(
 
         var auxUser = currentUser.value?.copy(
             firstName = firstName,
-            lastName = lastName,
-            gender = gender.ordinal,
+            familyName = lastName,
+            gender = gender,
             birthDate = birthDate.toString(),
 
             )
@@ -270,7 +268,7 @@ class ProfileViewModel(
 
     }
 
-    fun getMe(): AuthenticatedUser? {
+    fun getMe(): AppUser? {
         return currentUser.value
     }
 
@@ -289,8 +287,8 @@ class ProfileViewModel(
         return validateForm(
             imageProfile = _imageProfile.value,
             firstName = _currentUser.value?.firstName,
-            lastName = _currentUser.value?.lastName,
-            gender = _currentUser.value?.gender,
+            lastName = _currentUser.value?.familyName,
+            gender =_currentUser.value?.gender ,
             birthDate = _currentUser.value?.birthDate
         )
 

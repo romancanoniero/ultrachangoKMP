@@ -87,6 +87,8 @@ kotlin {
         pod("GoogleSignIn") {
             version = "~> 7.0"
         }
+
+ //       pod("GoogleSignInSwift")
     }
 
 
@@ -95,6 +97,11 @@ kotlin {
     sourceSets {
 
         androidMain.dependencies {
+
+            implementation("com.google.firebase:firebase-auth-ktx:22.3.0")
+            implementation("com.google.android.gms:play-services-auth:20.7.0")
+
+
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.android.playservices.auth)
@@ -253,6 +260,13 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        val webClientId = "1077576417175-8b3deus3foi11547ikbjr3plhoi52b6f.apps.googleusercontent.com"
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$webClientId\"")
+    }
+
+    // Añadir esta configuración
+    buildFeatures {
+        buildConfig = true
     }
     packaging {
         resources {

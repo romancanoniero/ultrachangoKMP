@@ -10,8 +10,10 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
-import com.iyr.ultrachango.auth.AuthenticatedUser
+
 import com.iyr.ultrachango.preferences.managers.settings
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+
 import com.russhwolf.settings.set
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
@@ -23,15 +25,31 @@ import kotlinx.coroutines.tasks.await
 import java.util.concurrent.TimeUnit
 
 
-private fun FirebaseUser.toAuthenticatedUser(): AuthenticatedUser {
+private fun FirebaseUser.toAppUser(): AppUser {
 
-    val user = AuthenticatedUser(this.uid)
+    val user = AppUser(
+        uid = this.uid,
+        email = this.email,
+        phoneNumber = this.phoneNumber,
+        firstName = this.displayName?.split(" ")?.firstOrNull() ?: "",
+        familyName = this.displayName?.split(" ")?.drop(1)?.joinToString(" ") ?: "",
+        birthDate = null,
+        displayName = TODO(),
+        gender = TODO(),
+        profilePictureUrl = TODO(),
+        createdAt = TODO(),
+        updatedAt = TODO(),
+        isEmailVerified = TODO(),
+        isPhoneVerified = TODO(),
+    )
+/*
     user.uid = this.uid
     user.displayName = this.displayName
     user.email = this.email
     user.phoneNumber = this.phoneNumber
     user.photoUrl = this.photoUrl?.path
     user.isAnonymous = this.isAnonymous ?: false
+*/
     return user
 }
 
@@ -85,9 +103,10 @@ actual class FirebaseAuthRepository actual constructor() {
 
             var tokenCall = FirebaseAuth.getInstance().currentUser?.getIdToken(true)?.await()
             var authToken: String? = tokenCall?.token
-            val user = result.user?.toAuthenticatedUser()
+            val user = result.user
             if (user != null) {
-                AuthResult.Success(user = user, authToken = authToken!!)
+                // hay que buscar el usuario en el servidor y devolverlo
+                AuthResult.Success(user = user.toAppUser(), authToken = authToken!!)
             } else {
                 AuthResult.Error("Unknown error occurred")
             }
@@ -108,13 +127,13 @@ actual class FirebaseAuthRepository actual constructor() {
                 val result =
                     FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                         .await()
-                val user = result.user?.toAuthenticatedUser()
+                val user = result.user
 
                 var tokenCall = FirebaseAuth.getInstance().currentUser?.getIdToken(true)?.await()
                 var authToken: String? = tokenCall?.token
 
                 if (user != null) {
-                    AuthResult.Success(user = user, authToken = authToken!!)
+                    AuthResult.Success(user = user.toAppUser(), authToken = authToken!!)
                 } else {
                     AuthResult.Error("Unknown error occurred")
                 }
@@ -304,7 +323,19 @@ actual class FirebaseAuthRepository actual constructor() {
     */
 
 }
-
+/*
+private fun FirebaseUser?.toAuthUser(): AuthUser {
+    return AuthUser(
+        uid = this?.uid ?: "",
+        email = this?.email,
+        phoneNumber = this?.phoneNumber,
+        displayName = this?.displayName,
+        photoUrl = this?.photoUrl?.path,
+        isEmailVerified = this?.isEmailVerified ?: false,
+        providerId = this?.providerId ?: "",
+    )
+}
+*/
 
 fun FirebaseUser.toAppFirebaseUser(): AppFirebaseUser {
     var user = AppFirebaseUser()

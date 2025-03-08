@@ -5,9 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyr.ultrachango.Constants
-import com.iyr.ultrachango.auth.AuthRepository
-import com.iyr.ultrachango.auth.AuthenticatedUser
-
 import com.iyr.ultrachango.data.database.repositories.ProductsRepository
 import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
 import com.iyr.ultrachango.data.database.repositories.UserLocationsRepository
@@ -18,9 +15,10 @@ import com.iyr.ultrachango.data.models.Product
 import com.iyr.ultrachango.data.models.ProductOnSearch
 import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.ShoppingListComplete
-import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.coroutines.Resource
 import com.iyr.ultrachango.utils.extensions.toLocalLocation
 import com.iyr.ultrachango.utils.geo.getPlaceFromCoordinates
@@ -92,7 +90,7 @@ class HomeScreenViewModel(
 
 
     private val _myName =
-        MutableStateFlow<String>(authRepositoryImpl.getCurrentUser()?.firstName ?: "")
+        MutableStateFlow<String>(authRepositoryImpl.getCurrentUser()?.displayName ?: "")
     val myName: StateFlow<String> = _myName.asStateFlow()
 
 
@@ -431,14 +429,14 @@ class HomeScreenViewModel(
     }
 
     fun getUserFirstName(): String? {
-        return authRepositoryImpl.getCurrentUser()?.firstName
+        return authRepositoryImpl.getCurrentUser()?.displayName
     }
 
     fun getUserKey(): String {
         return authRepositoryImpl.getUserKey().toString()
     }
 
-    fun getUser(): AuthenticatedUser {
+    fun getUser(): AppUser {
         return authRepositoryImpl.getCurrentUser()!!
     }
 
@@ -511,7 +509,7 @@ class HomeScreenViewModel(
         if (requestRealLocation) {
             deferredResults = listOf(
                 viewModelScope.async {
-                    getUserLocations(userKey)
+                    getUserLocations(userKey!!)
                 },
                 viewModelScope.async {
                     _fetchingLocations.value = true
@@ -531,7 +529,7 @@ class HomeScreenViewModel(
         } else {
             deferredResults = listOf(
                 viewModelScope.async {
-                    getUserLocations(userKey)
+                    getUserLocations(userKey!!)
                 },
             )
         }
