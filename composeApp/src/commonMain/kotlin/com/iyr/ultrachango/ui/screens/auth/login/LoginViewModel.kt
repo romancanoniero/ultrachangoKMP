@@ -214,6 +214,7 @@ class LoginViewModel(
     }
 
     fun onOTPCodeEntered(code: String) {
+
         /*
               authRepository.onOTPCodeEntered(code,
                   onSuccess = {
@@ -224,8 +225,8 @@ class LoginViewModel(
                   },
 
               )
+*/
 
-         */
     }
 
 

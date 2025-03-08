@@ -1,5 +1,6 @@
 package com.iyr.ultrachango
 
+
 import AppContext
 import android.app.Activity
 import android.content.Context
@@ -17,7 +18,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
@@ -27,28 +27,13 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavHostController
-import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
-import com.google.firebase.initialize
-
-
 import com.iyr.ultrachango.data.models.User
-import com.iyr.ultrachango.ui.ScaffoldViewModel
-import com.iyr.ultrachango.ui.screens.auth.login.LoginScreen
-import com.iyr.ultrachango.ui.screens.auth.login.LoginViewModel
-import com.iyr.ultrachango.ui.screens.locations.main.LocationsDetailsScreen
 import com.iyr.ultrachango.utils.firebase.GoogleAuth
-import com.iyr.ultrachango.utils.firebase.GoogleAuthAndroid
 import com.iyr.ultrachango.utils.firebase.provideGoogleAuth
-import com.iyr.ultrachango.utils.shared.firebase.FirebaseConfig
-import com.iyr.ultrachango.viewmodels.UserViewModel
 import com.iyr.ultrachango.voice.handleVoiceCommand
-import dev.icerock.moko.permissions.PermissionsController
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -179,6 +164,15 @@ private fun EnableTransparentStatusBar() {
         }
     }
 }
+
+fun verifyWebClientId() {
+    println("WebClientId: ${BuildConfig.GOOGLE_WEB_CLIENT_ID}")
+    // Verifica que termina en .apps.googleusercontent.com
+    require(BuildConfig.GOOGLE_WEB_CLIENT_ID.endsWith(".apps.googleusercontent.com")) {
+        "Invalid Web Client ID format"
+    }
+}
+
 
 
 @Preview
