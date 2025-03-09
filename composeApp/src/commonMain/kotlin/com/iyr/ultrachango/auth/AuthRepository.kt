@@ -458,7 +458,7 @@ class AuthRepository_old(
         scope.launch(Dispatchers.IO) {
             if (!forceRefresh) {
                 // Busca el usuario almacenado , si no esta almacenado lo busca en el servidor
-                val userInSharedPrefs: AppUser = settings.getUserLocally()
+                val userInSharedPrefs: AppUser? = settings.getUserLocally()
                 userKey?.let {
                     result = userInSharedPrefs
                 }
@@ -499,7 +499,7 @@ class AuthRepository_old(
 
     }
 
-    fun getCurrentUser(): AppUser {
+    fun getCurrentUser(): AppUser? {
         return settings.getUserLocally()
     }
 

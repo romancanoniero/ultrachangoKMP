@@ -34,6 +34,8 @@ import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.utils.firebase.GoogleAuth
 import com.iyr.ultrachango.utils.firebase.provideGoogleAuth
 import com.iyr.ultrachango.voice.handleVoiceCommand
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
 
 class MainActivity : ComponentActivity() {
 
@@ -121,9 +123,8 @@ class MainActivity : ComponentActivity() {
         ShortcutManagerCompat.pushDynamicShortcut(this, shortcut)
 
 
+
         setContent {
-
-
             EnableTransparentStatusBar()
             App()
         }
@@ -172,7 +173,6 @@ fun verifyWebClientId() {
         "Invalid Web Client ID format"
     }
 }
-
 
 
 @Preview
@@ -224,8 +224,6 @@ fun AppAndroidPreview() {
      LandingScreen(
          NavController(LocalView.current.context), PermissionsController(LocalView.current.context))
   */
-
-
 
 
     /*
@@ -292,5 +290,5 @@ fun AppAndroidPreview() {
 
     // InviteScreen(InviteViewModel())
 
-  //  LoginScreen()
+    //  LoginScreen()
 }

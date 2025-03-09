@@ -10,6 +10,7 @@ import com.iyr.ultrachango.utils.auth_by_cursor.statemanagers.AuthStates
 import com.iyr.ultrachango.utils.auth_by_cursor.statemanagers.AuthStateManager
 import com.iyr.ultrachango.utils.auth_by_cursor.ui.AuthErrorType
 import com.iyr.ultrachango.utils.auth_by_cursor.ui.AuthState
+import com.mmk.kmpauth.google.GoogleUser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,7 +78,9 @@ class AuthViewModel(
             when (val result = authRepository.signInWithEmailAndPassword(email, password)) {
                 is AuthResult.Success -> {
 
-
+                    _authState.update {
+                        AuthState.Success(result.data)
+                    }
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -109,6 +112,9 @@ class AuthViewModel(
             when (val result = authRepository.verifyPhoneNumber(phoneNumber)) {
                 is AuthResult.Success -> {
 
+                    _authState.update {
+                        AuthState.PhoneVerificationSent(result.data, phoneNumber)
+                    }
 
                     _uiState.update {
                         it.copy(
@@ -166,9 +172,9 @@ class AuthViewModel(
     }
 
     // Google
-    suspend fun signInWithGoogle(idToken: String) {
+    suspend fun signInWithGoogle(user: GoogleUser?, idToken: String) {
         _authState.value = AuthState.Loading
-        when (val result = authRepository.signInWithGoogle(idToken)) {
+        when (val result = authRepository.signInWithGoogle(user)) {
             is AuthResult.Success -> _authState.value = AuthState.Success(result.data)
             is AuthResult.Error -> _authState.value = AuthState.Error(
                 message = when (val error = result.error) {
@@ -180,6 +186,7 @@ class AuthViewModel(
                     is AuthError.InvalidEmail -> error.message
                     is AuthError.InvalidVerificationCode -> error.message
                     is AuthError.Unknown -> error.message
+                    is AuthError.Cancelled -> error.message
                 },
                 type = AuthErrorType.GOOGLE_SIGN_IN_FAILED
             )
@@ -203,6 +210,7 @@ class AuthViewModel(
                     is AuthError.InvalidEmail -> error.message
                     is AuthError.InvalidVerificationCode -> error.message
                     is AuthError.Unknown -> error.message
+                    is AuthError.Cancelled -> error.message
                 },
                 type = AuthErrorType.GOOGLE_SIGN_IN_FAILED
             )
@@ -226,6 +234,7 @@ class AuthViewModel(
                     is AuthError.InvalidEmail -> error.message
                     is AuthError.InvalidVerificationCode -> error.message
                     is AuthError.Unknown -> error.message
+                    is AuthError.Cancelled -> error.message
                 },
                 type = AuthErrorType.GOOGLE_SIGN_IN_FAILED
             )

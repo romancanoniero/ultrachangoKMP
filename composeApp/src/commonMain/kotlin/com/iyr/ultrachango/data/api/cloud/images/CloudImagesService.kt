@@ -1,7 +1,6 @@
 package com.iyr.ultrachango.data.api.cloud.images
 
 
-
 import com.iyr.ultrachango.config.Config.BASE_URL_CLOUD_SERVER
 import com.iyr.ultrachango.data.api.cloud.Response
 import com.iyr.ultrachango.getAuthToken
@@ -26,7 +25,7 @@ class CloudImagesService(
     private val client: HttpClient,
     private val settings: Settings,
 
-) : ICloudImagesService {
+    ) : ICloudImagesService {
 
     val urlBase = "$BASE_URL_CLOUD_SERVER/api"
 
@@ -44,8 +43,10 @@ class CloudImagesService(
                 200 -> {
                     return response.payload
                 }
+
                 else -> {
-                    throw Exception(response.message ?: "Error desconocido")
+                    //   throw Exception(response.message ?: "Error desconocido")
+                    return null
                 }
             }
 

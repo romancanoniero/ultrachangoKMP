@@ -83,12 +83,13 @@ kotlin {
             version = "~> 10.19.0"
         }
 
+        /*
         // Authentication Providers
         pod("GoogleSignIn") {
             version = "~> 7.0"
         }
-
- //       pod("GoogleSignInSwift")
+       pod("GoogleSignInSwift")
+*/
     }
 
 
@@ -214,6 +215,10 @@ kotlin {
 
             implementation(libs.kim)
 
+            // Auth
+            implementation(libs.kmpaut.google)
+            implementation(libs.kmpaut.uihelper)
+            implementation(libs.kmpaut.firebase)
 
         }
         iosMain.dependencies {
@@ -260,7 +265,8 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
-        val webClientId = "1077576417175-8b3deus3foi11547ikbjr3plhoi52b6f.apps.googleusercontent.com"
+        val webClientId =
+            "1077576417175-8b3deus3foi11547ikbjr3plhoi52b6f.apps.googleusercontent.com"
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$webClientId\"")
     }
 

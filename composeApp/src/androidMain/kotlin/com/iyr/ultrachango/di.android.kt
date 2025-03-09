@@ -2,11 +2,15 @@ package com.iyr.ultrachango
 
 import com.iyr.ultrachango.auth.PhoneVerificationViewModel
 import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
+import org.koin.core.context.startKoin
 import org.koin.dsl.module
 
 actual val nativeModule = module {
 
    // single { PhoneVerificationViewModel() }
+
+
+
 }
 
 /*

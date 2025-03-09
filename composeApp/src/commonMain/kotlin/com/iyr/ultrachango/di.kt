@@ -17,6 +17,7 @@ import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
 import com.iyr.ultrachango.data.database.repositories.StoresRepository
 import com.iyr.ultrachango.data.database.repositories.UserLocationsRepository
 import com.iyr.ultrachango.data.database.repositories.UserRepositoryImpl
+import com.iyr.ultrachango.di.platformAuthModule
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.auth.config.profile.RegistrationProfileViewModel
 import com.iyr.ultrachango.ui.screens.auth.login.LoginViewModel
@@ -36,6 +37,7 @@ import com.iyr.ultrachango.utils.auth_by_cursor.AuthRepositoryImpl
 import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.auth.FirebaseAuth
 import com.iyr.ultrachango.utils.auth_by_cursor.auth.FirebaseInit
+import com.iyr.ultrachango.utils.auth_by_cursor.auth.GoogleSignInAuth
 import com.iyr.ultrachango.utils.auth_by_cursor.di.BuildConfig
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.auth_by_cursor.statemanagers.AuthStateManager
@@ -48,6 +50,7 @@ import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.util.Platform
 import kotlinx.serialization.json.Json
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
@@ -102,6 +105,8 @@ val configModule: Module = module {
 }
 
 val authModule = module {
+
+  //  includes(platformAuthModule())
 
     single<FirebaseInit> { FirebaseInit() }
 

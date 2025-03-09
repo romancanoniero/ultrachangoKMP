@@ -62,8 +62,11 @@ import com.iyr.ultrachango.utils.ui.LoadingDialog
 import com.iyr.ultrachango.utils.ui.capitalizeFirstLetter
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 import com.iyr.ultrachango.viewmodels.UserViewModel
+import com.mmk.kmpauth.google.GoogleAuthCredentials
+import com.mmk.kmpauth.google.GoogleAuthProvider
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
+import dev.gitlive.firebase.auth.FirebaseUser
 import dev.icerock.moko.permissions.PermissionsController
 import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
 import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
@@ -90,13 +93,6 @@ fun App(
     // MaterialTheme {
 
     FirebaseInit().initialize()
-/*
-    println("Voy a llamarlo")
-    val authManager = AuthManager(IFirebaseAuthRepository())
-    println("Voy a llamarlo 1")
-    authManager.iniciarSesion("dfdfdfd", "fdfdfd")
-
-*/
     val navController = rememberNavController()
     val settings = Settings()
 
@@ -105,14 +101,26 @@ fun App(
 
     ImageLoader.Builder(LocalPlatformContext.current).memoryCachePolicy(CachePolicy.ENABLED)
 
-    /*aca
-        var serverId = "1077576417175-8b3deus3foi11547ikbjr3plhoi52b6f.apps.googleusercontent.com"
-        GoogleAuthProvider.create(
-            credentials = GoogleAuthCredentials(
-                serverId = serverId
-            )
+    val onFirebaseResult: (Result<FirebaseUser?>) -> Unit = { result ->
+        if (result.isSuccess) {
+            val firebaseUser = result.getOrNull()
+      //      signedInUserName =
+       //         firebaseUser?.displayName ?: firebaseUser?.email ?: "Null User"
+        } else {
+        //    signedInUserName = "Null User"
+            println("Error Result: ${result.exceptionOrNull()?.message}")
+        }
+
+    }
+
+
+    var serverId = "1077576417175-8b3deus3foi11547ikbjr3plhoi52b6f.apps.googleusercontent.com"
+    GoogleAuthProvider.create(
+        credentials = GoogleAuthCredentials(
+            serverId = serverId
         )
-    */
+    )
+
 
     var loginStatusChecked by remember { mutableStateOf<Boolean?>(null) }
 
@@ -121,6 +129,8 @@ fun App(
         LoadingDialog()
     }
 
+
+
     var user: AppUser? = null
     LaunchedEffect(Unit) {
 
@@ -128,18 +138,18 @@ fun App(
         if (authRepository.isUserSignedIn()) {
             val authToken = authRepository.getAuthToken(refresh = true)
             settings.setAuthToken(authToken!!)
- /*
-            authRepository.fetchCurrentUser(forceRefresh = true) {
-                if (it == null) {
-                    authViewModel.signOut()
-//                    authRepository.logout()
-                } else {
-                    user = it
-                }
-                loginStatusChecked = true
-            }
+            /*
+                       authRepository.fetchCurrentUser(forceRefresh = true) {
+                           if (it == null) {
+                               authViewModel.signOut()
+           //                    authRepository.logout()
+                           } else {
+                               user = it
+                           }
+                           loginStatusChecked = true
+                       }
 
-  */
+             */
         } else {
             loginStatusChecked = true
         }
@@ -242,19 +252,19 @@ fun NavHostMain(
                             // .padding(statusBarValues.calculateTopPadding())
                             .padding(0.dp),
                         topBar = {
-           /*
-                            DynamicTopBar(
-                                authRepository,
-                                authViewModel,
-                                currentRoute,
-                                navController
-                            )
+                            /*
+                                             DynamicTopBar(
+                                                 authRepository,
+                                                 authViewModel,
+                                                 currentRoute,
+                                                 navController
+                                             )
 
-            */
+                             */
                         },
                         bottomBar = {
                             if (isBottomBarVisible) {
-         //                       DynamicBottomBar(currentRoute, navController)
+                                //                       DynamicBottomBar(currentRoute, navController)
                             }
                         }) { innerPadding ->
 
@@ -426,7 +436,7 @@ popUpTo(navController.graph.startDestinationRoute ?: "") {
 
 fun validateForm(
     validateImage: Boolean = true,
-    imageProfile: ByteArray? = null,
+    imageProfile: String? = null,
     firstName: String?,
     lastName: String?,
     gender: Genders?,
@@ -475,8 +485,12 @@ fun beep() {
 }
 
 
-fun Settings.getUserLocally(): AppUser {
-    return Json.decodeFromString(this.getStringOrNull("user").toString())
+fun Settings.getUserLocally(): AppUser? {
+    return try {
+        Json.decodeFromString(this.getStringOrNull("user").toString())
+    } catch (ex: Exception) {
+        null
+    }
 }
 
 

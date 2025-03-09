@@ -132,7 +132,28 @@ fun RootNavGraph(
         }
 
         composable(route = RootRoutes.LoginRoute.route) {
-            LoginScreen(rootNavController, permissionsController)
+
+
+            val onAuthenticated = { user: AppUser ->
+                val isProfileComplete = validateForm(
+                    validateImage = false,
+                    firstName = user.firstName,
+                    lastName = user.familyName,
+                    imageProfile = user.profilePictureUrl,
+                    gender = user.gender,
+                    birthDate = user.birthDate,
+                )
+                if (isProfileComplete)
+                    rootNavController.navigate(RootRoutes.HomeRoute.route)
+                else
+                    rootNavController.navigate(RootRoutes.SetupProfileRoute.createRoute(user))
+            }
+
+            LoginScreen(
+                navController = rootNavController,
+                permissionsController = permissionsController,
+                onAuthenticated = onAuthenticated
+            )
         }
 
         composable(
@@ -189,7 +210,8 @@ fun RootNavGraph(
             val listName: String = backStackEntry.arguments?.getString("listName").toString()
 
 
-            ShoppingListAddEditScreen(userKey,
+            ShoppingListAddEditScreen(
+                userKey,
                 shoppingListId,
                 listName = listName,
                 rootNavController,
@@ -256,7 +278,8 @@ fun RootNavGraph(
         composable(
             route = "shoppinglistadd"
         ) { backStackEntry ->
-            ShoppingListAddEditScreen("",
+            ShoppingListAddEditScreen(
+                "",
                 null,
                 listName = "",
                 rootNavController,
@@ -290,7 +313,8 @@ fun RootNavGraph(
             val shoppingListId = backStackEntry.arguments?.getInt("listId")
             val listName: String = backStackEntry.arguments?.getString("listName").toString()
 
-            ShoppingListAddEditScreen(userKey,
+            ShoppingListAddEditScreen(
+                userKey,
                 shoppingListId,
                 listName = listName,
                 rootNavController,
@@ -315,7 +339,8 @@ fun RootNavGraph(
 
 
             val uriHandler = LocalUriHandler.current
-            QRScannerScreen(listId = 1,
+            QRScannerScreen(
+                listId = 1,
                 navController = rootNavController,
                 scaffoldVM = scaffoldVM,
                 onSuccess = { qrType, result ->

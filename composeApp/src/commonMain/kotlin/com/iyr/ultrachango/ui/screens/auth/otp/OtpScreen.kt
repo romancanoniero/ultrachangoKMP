@@ -2,6 +2,7 @@
 
 package com.iyr.ultrachango.ui.screens.auth.otp
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,12 +38,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
 import com.iyr.ultrachango.ui.screens.auth.otp.state.OtpEvent
 import com.iyr.ultrachango.ui.screens.auth.otp.state.OtpState
+import com.iyr.ultrachango.utils.ui.otp.OtpInputField
+import com.iyr.ultrachango.utils.ui.otp.pxToDp
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -54,9 +59,10 @@ fun OtpScreen(
     viewModel: OtpViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    var otpValue by remember { mutableStateOf("") }
     var isResendEnabled by remember { mutableStateOf(false) }
     var countdown by remember { mutableStateOf(60) }
+    val otpValue = remember { mutableStateOf("") }
+
 
     LaunchedEffect(Unit) {
         viewModel.initialize(verificationId, phoneNumber)
@@ -98,14 +104,29 @@ fun OtpScreen(
                     )
 
                     OtpTextField(
-                        value = otpValue,
-                        onValueChange = { if (it.length <= 6) otpValue = it },
-                        modifier = Modifier.fillMaxWidth()
+                        value = otpValue.value,
+                        onValueChange = { if (it.length <= 6) otpValue.value = it },
+                        modifier = Modifier.fillMaxWidth().height(200.dp).background(Color.Green)
+                    )
+//------
+                    OtpInputField(
+                        otp = otpValue,
+                        count = 6,
+                        textColor = Color.DarkGray,
+                        otpBoxModifier = Modifier.border(
+                            7.pxToDp(), Color(0xFF277F51), shape = RoundedCornerShape(12.pxToDp())
+                        )
                     )
 
+                if (otpValue.value.length >= 6) {
+
+                viewModel.onEvent(OtpEvent.VerifyCode(otpValue.value))
+                // vm.onOTPCodeEntered(otpValue.value)
+                }
+        //---------
                     Button(
-                        onClick = { viewModel.onEvent(OtpEvent.VerifyCode(otpValue)) },
-                        enabled = otpValue.length == 6,
+                        onClick = { viewModel.onEvent(OtpEvent.VerifyCode(otpValue.value)) },
+                        enabled = otpValue.value.length == 6,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Verificar")

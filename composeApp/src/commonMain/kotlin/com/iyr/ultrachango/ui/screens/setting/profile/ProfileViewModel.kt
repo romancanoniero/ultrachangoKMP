@@ -286,7 +286,7 @@ class ProfileViewModel(
 
     fun validate(): Boolean {
         return validateForm(
-            imageProfile = _imageProfile.value,
+            imageProfile = "_imageProfile.value",
             firstName = _currentUser.value?.firstName,
             lastName = _currentUser.value?.familyName,
             gender = _currentUser.value?.gender,

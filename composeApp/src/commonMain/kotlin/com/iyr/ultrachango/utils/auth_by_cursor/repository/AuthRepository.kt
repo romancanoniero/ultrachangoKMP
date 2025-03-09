@@ -2,6 +2,7 @@ package com.iyr.ultrachango.utils.auth_by_cursor.repository
 
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AuthResult
+import com.mmk.kmpauth.google.GoogleUser
 import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
@@ -16,6 +17,7 @@ interface AuthRepository {
 
     // Autenticación con proveedores
     suspend fun signInWithGoogle(idToken: String): AuthResult<AppUser>
+    suspend fun signInWithGoogle(user: GoogleUser?): AuthResult<AppUser>
     suspend fun signInWithFacebook(accessToken: String): AuthResult<AppUser>
     suspend fun signInWithApple(idToken: String, nonce: String? = null): AuthResult<AppUser>
     suspend fun signInWithTwitter(token: String, secret: String): AuthResult<AppUser>

@@ -9,6 +9,8 @@ sealed class AuthError {
     data class InvalidEmail(val message: String) : AuthError()
     data class InvalidVerificationCode(val message: String) : AuthError()
     data class Unknown(val message: String) : AuthError()
+    data class Cancelled(val message: String) : AuthError()
+
 
     companion object {
         fun fromException(e: Exception): AuthError {

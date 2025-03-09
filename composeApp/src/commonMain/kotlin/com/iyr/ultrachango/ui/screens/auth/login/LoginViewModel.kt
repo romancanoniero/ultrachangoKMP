@@ -6,6 +6,7 @@ import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.utils.auth_by_cursor.ui.AuthState
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
 import com.iyr.ultrachango.utils.firebase.AuthResult
@@ -81,11 +82,18 @@ class LoginViewModel(
         )
     }
 
+    fun getEmailOrPhoneNumber(): String {
+        return _uiState.value.emailOrPhoneNumber
+    }
+
     fun setPassword(text: String) {
         _uiState.value = _uiState.value.copy(
             password = text, loginButtonEnabled = isLoggeable()
         )
+    }
 
+    fun getPassword(): String {
+        return _uiState.value.password
     }
 
     private fun isLoggeable(): Boolean {
@@ -123,23 +131,15 @@ class LoginViewModel(
 
             } else {
                 val phoneNumber = _uiState.value.emailOrPhoneNumber
-
+/*
                 authViewModel.verifyPhoneNumber(phoneNumber)
-                /*
-                               authRepository.signInWithPhoneNumber(
-                                   _uiState.value.emailOrPhoneNumber,
-                                   onSuccess = {
-                                       _isAuthenticated.value = it.success
-                                   },
-                                   onFailure = {
-                                       _isAuthenticated.value = false
-                                   },
-                                   scope = this
-                               )
-                               */
                 _uiState.value = _uiState.value.copy(
                     showOTP = true
                 )
+*/
+
+
+
             }
 
             _isProcessing.value = false
@@ -235,7 +235,7 @@ class LoginViewModel(
         val loading: Boolean = false,
         val errorMessage: String? = null,
         val showErrorMessage: Boolean = false,
-        val emailOrPhoneNumber: String = "+5491161274148",
+        val emailOrPhoneNumber: String = "pirineorodriguez@gmail.com",
         val password: String = "123456",
         val authenticationMethod: AuthenticationMethods = AuthenticationMethods.PHONE_NUMBER,
         val loginButtonEnabled: Boolean = false,

@@ -5,9 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -17,9 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Key
@@ -41,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,13 +46,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.auth.registration.MethodDivider
 import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
+import com.iyr.ultrachango.utils.auth_by_cursor.di.BuildConfig
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.statemanagers.AuthStates
 import com.iyr.ultrachango.utils.auth_by_cursor.ui.AuthState
 import com.iyr.ultrachango.utils.extensions.isEmail
@@ -72,12 +70,12 @@ import com.iyr.ultrachango.utils.ui.otp.pxToDp
 import com.iyr.ultrachango.utils.ui.showLoader
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 import com.iyr.ultrachango.viewmodels.UserViewModel
+import com.mmk.kmpauth.google.GoogleButtonUiContainer
 import dev.icerock.moko.permissions.PermissionsController
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.KoinApplication.Companion.init
 import ultrachango2.composeapp.generated.resources.Res
 import ultrachango2.composeapp.generated.resources.enter_otp_code
 import ultrachango2.composeapp.generated.resources.logo_facebook
@@ -92,7 +90,9 @@ fun LoginScreen(
     vm: LoginViewModel = koinViewModel(),
     userViewModel: UserViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel(),
-) {
+    onAuthenticated: (AppUser) -> Unit = {},
+
+    ) {
 
     val uiState by vm.uiState.collectAsState()
     val emailError by vm.emailError.collectAsState()
@@ -112,15 +112,17 @@ fun LoginScreen(
 
     // Define a mutable state to hold the state
     var showPassword by remember { mutableStateOf(false) }
-    val authState =   authViewModel.authState.collectAsState()
-    val authUIState =   authViewModel.uiState.collectAsState()
+    val authState = authViewModel.authState.collectAsState()
+    val authUIState = authViewModel.uiState.collectAsState()
+
+
+
 
     if (isAuthenticated) {
         navController?.navigate(RootRoutes.HomeRoute.route)
     } else {
 
-        if (authUIState.value.authState == AuthStates.VERIFICATION_PENDING)
-        {
+        if (authUIState.value.authState == AuthStates.VERIFICATION_PENDING) {
             val pp = 33
         }
 
@@ -135,8 +137,22 @@ fun LoginScreen(
                     )
                 }
             }
+
             // ... otros estados
-            else -> {}
+            is AuthState.Error -> {
+                val implementar = 33
+            }
+
+            AuthState.Initial -> {}
+            AuthState.Loading -> {
+                showLoader()
+            }
+
+            is AuthState.Success -> {
+                LaunchedEffect(Unit) {
+                    onAuthenticated(result.user)
+                }
+            }
         }
 
 
@@ -160,7 +176,7 @@ fun LoginScreen(
                     .fillMaxHeight()
             )
 
-            InputSection(uiState, vm, showPassword, navController, otpValue)
+            InputSection(uiState, vm, authViewModel, showPassword, navController, otpValue)
 
             Spacer(
                 modifier = Modifier.fillMaxWidth()
@@ -169,7 +185,9 @@ fun LoginScreen(
 
 
             OtherLoginOptions(
-                modifier = Modifier.fillMaxWidth().weight(1f), vm
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                vm = vm,
+                authViewModel = authViewModel
             )
 
 
@@ -222,8 +240,11 @@ fun LinkToRegister(
 
 @Composable
 private fun OtherLoginOptions(
-    modifier: Modifier = Modifier, vm: LoginViewModel
+    modifier: Modifier = Modifier,
+    vm: LoginViewModel,
+    authViewModel: AuthViewModel,
 ) {
+    val scope = rememberCoroutineScope()
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Bottom
@@ -234,6 +255,53 @@ private fun OtherLoginOptions(
         MethodDivider(text = stringResource(Res.string.or_login_with))
 
         Spacer(modifier = Modifier.height(10.dp))
+
+        //Google Sign-In with Custom Button (only one tap sign-in functionality)
+        GoogleButtonUiContainer(onGoogleSignInResult = { googleUser ->
+            val idToken = googleUser?.idToken // Send this idToken to your backend to verify
+            val user = googleUser
+      //-------
+            scope.launch {
+                authViewModel.signInWithGoogle(user,idToken!!)
+            }
+
+
+
+            //------
+        }) {
+//            Button(onClick = { this.onClick() }) { Text("Google Sign-In(Custom Design)") }
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, shape = customShape)
+                    .border(1.dp, Color.LightGray, customShape),
+                shape = customShape,
+                colors = ButtonDefaults.buttonColors().copy(
+                    containerColor = Color.White, contentColor = Color.Black
+                ),
+                onClick = {
+                    triggerHapticFeedback()
+                    this.onClick()
+                    //          vm.onSignInWithGoogle()
+//                    scope.launch {
+//                        authViewModel.signInWithGoogle(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+//                    }
+
+                }) {
+                Image(
+                    modifier = Modifier.height(36.dp).aspectRatio(1f / 1f).padding(end = 4.dp),
+                    painter = painterResource(Res.drawable.logo_google),
+                    contentDescription = "Google"
+                )
+                Text(
+                    "Google", style = StyleButton().copy(color = Color.Black)
+                )
+            }
+
+
+        }
+
+
 
         Button(
             modifier = Modifier
@@ -246,7 +314,11 @@ private fun OtherLoginOptions(
             ),
             onClick = {
                 triggerHapticFeedback()
-                vm.onSignInWithGoogle()
+                //          vm.onSignInWithGoogle()
+                scope.launch {
+                   // authViewModel.signInWithGoogle(user, BuildConfig.GOOGLE_WEB_CLIENT_ID)
+                }
+
             }) {
             Image(
                 modifier = Modifier.height(36.dp).aspectRatio(1f / 1f).padding(end = 4.dp),
@@ -296,6 +368,7 @@ private fun OtherLoginOptions(
 private fun InputSection(
     uiState: LoginViewModel.UiState,
     vm: LoginViewModel,
+    authViewModel: AuthViewModel,
     showPassword: Boolean,
     navController: NavHostController?,
     otpValue: MutableState<String>
@@ -425,18 +498,31 @@ private fun InputSection(
                 enabled = uiState.loginButtonEnabled,
                 onClick = {
                     triggerHapticFeedback()
-                    vm.onSignInClick()/*
-                            authViewModel.signUp(emailOrPhone.text, password.text)
-                            {
-                                val message = if (it) "SignUp Successful" else "SignUp Failed"
-                                println(message)
-                            }
 
-                            authViewModel.signIn(emailOrPhone.text, password.text) { success ->
-                                val message = if (success) "Login Successful" else "Login Failed"
-                                println(message)
-                            }
-                            */
+                    val emailOrPhone = vm.getEmailOrPhoneNumber()
+
+                    if (emailOrPhone.isValidMobileNumber()) {
+                        authViewModel.verifyPhoneNumber(emailOrPhone)
+                    } else
+                        if (emailOrPhone.isEmail()) {
+                            authViewModel.signInWithEmailAndPassword(emailOrPhone, vm.getPassword())
+                        }
+
+
+                    //           vm.onSignInClick()
+
+                    /*
+                 authViewModel.signUp(emailOrPhone.text, password.text)
+                 {
+                     val message = if (it) "SignUp Successful" else "SignUp Failed"
+                     println(message)
+                 }
+
+                 authViewModel.signIn(emailOrPhone.text, password.text) { success ->
+                     val message = if (success) "Login Successful" else "Login Failed"
+                     println(message)
+                 }
+                 */
                 },
                 content = {
                     Text(

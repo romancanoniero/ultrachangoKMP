@@ -28,7 +28,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
           open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]
         ) -> Bool {
 
-      /*
+
             var handled: Bool
           handled = GIDSignIn.sharedInstance.handle(url)
           if handled {
@@ -37,7 +37,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
           // Handle other custom URL types.
 
           // If not handled by this app, return false.
-       */
+
        return false
         }
 
