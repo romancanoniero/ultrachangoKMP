@@ -28,6 +28,7 @@ interface AuthRepository {
     fun getUserKey(): String?
     fun isUserSignedIn(): Boolean
     fun getAuthToken(refresh : Boolean): String?
+    suspend fun getAuthTokenS(refresh: Boolean): AuthResult<String>
     fun storeAuthToken( token: String,)
 
 

@@ -259,7 +259,31 @@ class AuthRepositoryImpl(
 
 
     override fun getAuthToken(refresh: Boolean): String? =
-        "firebaseAuthRepository.getAuthToken(false)"
+        try {
+            val token = firebaseAuth.getCurrentUser()?.let { user ->
+                firebaseAuth.getIdToken(refresh)
+
+            } ?: throw Exception("Usuario no autenticado")
+
+            token
+        } catch (e: Exception) {
+            throw e
+        }
+
+
+
+
+    override suspend fun getAuthTokenS(refresh: Boolean): AuthResult<String> =
+        try {
+            val token = firebaseAuth.getCurrentUser()?.let { user ->
+                firebaseAuth.getIdToken(refresh)
+
+            } ?: throw Exception("Usuario no autenticado")
+
+            AuthResult.Success(token)
+        } catch (e: Exception) {
+            AuthResult.Error(AuthError.Unknown(e.message.toString()))
+        }
 
     override fun storeAuthToken(
         token: String,

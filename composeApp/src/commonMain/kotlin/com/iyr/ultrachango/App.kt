@@ -138,6 +138,8 @@ fun App(
         if (authRepository.isUserSignedIn()) {
             val authToken = authRepository.getAuthToken(refresh = true)
             settings.setAuthToken(authToken!!)
+
+
             /*
                        authRepository.fetchCurrentUser(forceRefresh = true) {
                            if (it == null) {

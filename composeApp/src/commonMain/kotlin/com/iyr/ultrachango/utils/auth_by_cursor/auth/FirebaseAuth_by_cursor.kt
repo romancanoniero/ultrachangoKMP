@@ -16,6 +16,8 @@ expect class FirebaseAuth() {
     suspend fun signInWithCredential(credential: AuthCredential): NativeAuthResult
     suspend fun linkWithCredential(credential: AuthCredential): NativeAuthResult
 
+    fun getIdToken(refresh: Boolean) : String?
+
 
 }
 
