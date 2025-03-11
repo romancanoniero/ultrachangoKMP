@@ -75,6 +75,7 @@ import dev.jordond.compass.geolocation.Geolocator
 import dev.jordond.compass.geolocation.GeolocatorResult
 import dev.jordond.compass.geolocation.mobile
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource
@@ -310,11 +311,13 @@ fun DynamicTopBar(
 
     when (currentRoute?.substringBefore("/")) {
         "home" -> {
-            val me = authRepository.getCurrentUser()!!
-            val name = (me.displayName?.capitalizeFirstLetter() ?: " ????? ").split(" ")[0]
+            var me : AppUser? = null
+            var name : String? = null
+                 me = authRepository.getCurrentUser()
+                 name = (me?.displayName?.capitalizeFirstLetter() ?: " ????? ").split(" ")[0]
+           HomeTopAppBar(me?.uid!!, name?:"??????", me?.profilePictureUrl, shareButton)
 
-            HomeTopAppBar(me.uid!!, name, me.profilePictureUrl, shareButton)
-        }
+         }
 
         RootRoutes.MembersRoute.route,
         AppRoutes.SettingRoute.route,

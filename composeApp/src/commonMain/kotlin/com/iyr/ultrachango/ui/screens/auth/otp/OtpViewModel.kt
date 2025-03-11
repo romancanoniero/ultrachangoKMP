@@ -37,7 +37,7 @@ class OtpViewModel(
         viewModelScope.launch {
             _state.value = OtpState.Loading
             when (val result = authRepository.signInWithPhoneNumber(verificationId, code)) {
-                is AuthResult.Success -> _state.value = OtpState.Success(result.data)
+                is AuthResult.Success -> _state.value = OtpState.Success(result.data!!)
                 is AuthResult.Error -> _state.value = OtpState.Error(result.error.toString())
                 is AuthResult.Loading -> _state.value = OtpState.Loading
             }

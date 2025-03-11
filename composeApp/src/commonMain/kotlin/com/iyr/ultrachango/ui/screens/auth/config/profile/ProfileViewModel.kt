@@ -5,6 +5,8 @@ import com.iyr.ultrachango.data.database.repositories.ImagesRepository
 import com.iyr.ultrachango.data.database.repositories.UserRepositoryImpl
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.data.models.enums.Genders
+import com.iyr.ultrachango.getUserLocally
+import com.iyr.ultrachango.preferences.managers.settings
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
@@ -15,6 +17,7 @@ import com.iyr.ultrachango.validateForm
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
 import org.koin.core.component.KoinComponent
 
@@ -59,7 +62,11 @@ class ProfileViewModel(
 
 
     init {
-        val me = authService.getCurrentUser()
+        var me : AppUser?
+        runBlocking {
+            me = authService.getCurrentUser()
+
+        }
 /*
         _originalUser.value = me?.copy()
         _currentUser.value = me
@@ -68,7 +75,8 @@ class ProfileViewModel(
         //     var firebaseAuth = Firebase.auth(Firebase.initialize(AppContext.getContext()!!)!!).currentUser
 //val pepe = firebaseAuth?.displayName
         viewModelScope.launch {
-            imagesRepository.getProfileImageURL(me?.uid ?: "xxxx")?.let {
+            var userKey = settings.getUserLocally()?.uid
+            imagesRepository.getProfileImageURL(userKey ?: "xxxx")?.let {
                 _imageProfile.value = it
                 _uiState.value = UiState(loginButtonEnabled = validate())
             }

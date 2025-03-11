@@ -33,6 +33,7 @@ class AuthViewModel(
     private val authRepository: AuthRepository,
     private val authStateManager: AuthStateManager
 ) : ViewModel(), KoinComponent {
+
     private val viewModelScope = CoroutineScope(Dispatchers.Main)
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -79,7 +80,7 @@ class AuthViewModel(
                 is AuthResult.Success -> {
 
                     _authState.update {
-                        AuthState.Success(result.data)
+                        AuthState.Success(result.data!!)
                     }
                     _uiState.update {
                         it.copy(
@@ -175,7 +176,7 @@ class AuthViewModel(
     suspend fun signInWithGoogle(user: GoogleUser?, idToken: String) {
         _authState.value = AuthState.Loading
         when (val result = authRepository.signInWithGoogle(user)) {
-            is AuthResult.Success -> _authState.value = AuthState.Success(result.data)
+            is AuthResult.Success -> _authState.value = AuthState.Success(result.data!!)
             is AuthResult.Error -> _authState.value = AuthState.Error(
                 message = when (val error = result.error) {
                     is AuthError.NetworkError -> error.message
@@ -199,7 +200,7 @@ class AuthViewModel(
     suspend fun signInWithFacebook(accessToken: String) {
         _authState.value = AuthState.Loading
         when (val result = authRepository.signInWithFacebook(accessToken)) {
-            is AuthResult.Success -> _authState.value = AuthState.Success(result.data)
+            is AuthResult.Success -> _authState.value = AuthState.Success(result.data!!)
             is AuthResult.Error -> _authState.value = AuthState.Error(
                 message = when (val error = result.error) {
                     is AuthError.NetworkError -> error.message
@@ -223,7 +224,7 @@ class AuthViewModel(
     suspend fun signInWithApple(idToken: String, nonce: String?) {
         _authState.value = AuthState.Loading
         when (val result = authRepository.signInWithApple(idToken, nonce)) {
-            is AuthResult.Success -> _authState.value = AuthState.Success(result.data)
+            is AuthResult.Success -> _authState.value = AuthState.Success(result.data!!)
             is AuthResult.Error -> _authState.value = AuthState.Error(
                 message = when (val error = result.error) {
                     is AuthError.NetworkError -> error.message

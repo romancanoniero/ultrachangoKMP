@@ -31,8 +31,6 @@ expect class NativeUser {
     val photoUrl: String?
     val isEmailVerified: Boolean
     val providerId: String;
-
-
 }
 
 expect class AuthCredential

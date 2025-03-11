@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
@@ -65,8 +68,8 @@ fun RootNavGraph(
 ) {
 
     // lo saco para que pueda manejar la registracion
-    val isLoggedIn = authRepository.isUserSignedIn()
-
+    //val isLoggedIn =  authRepository.isUserSignedIn()
+    val isLoggedIn by remember { mutableStateOf(authRepository.isUserSignedIn()) }
     // Obtengo el usuario actual
 
     /*
@@ -189,9 +192,9 @@ fun RootNavGraph(
                 backStackEntry.arguments?.getString("userAsJson").toString()
             )
             RegistrationProfileScreen(
+                currentUser = user,
                 navController = rootNavController,
                 permissionsController = permissionsController,
-                currentUser = user,
 
                 )
         }

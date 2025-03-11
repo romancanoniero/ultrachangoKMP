@@ -67,7 +67,8 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
-import org.koin.compose.viewmodel.koinViewModel
+import org.koin.compose.koinInject
+import org.koin.core.parameter.parametersOf
 import ultrachango2.composeapp.generated.resources.Res
 import ultrachango2.composeapp.generated.resources.profile_pic
 
@@ -76,9 +77,14 @@ import ultrachango2.composeapp.generated.resources.profile_pic
 @Composable
 fun RegistrationProfileScreen(
     currentUser: AppUser? = null,
+    viewModel: RegistrationProfileViewModel<AppUser?> = koinInject {
+        parametersOf(currentUser)
+    },
     navController: NavController? = null,
     permissionsController: PermissionsController? = null,
-    viewModel: RegistrationProfileViewModel = koinViewModel()
+    modifier: Modifier = Modifier.clickable {
+        viewModel?.resetFocus()
+    }
 ) {
     //  val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -133,7 +139,7 @@ fun RegistrationProfileScreen(
     }
 
 
-    var showDatePicker by remember { mutableStateOf(false) }
+    var showDatePicker = uiState.showDatePicker
 
 
     /*
@@ -230,6 +236,7 @@ fun RegistrationProfileScreen(
             modifier = Modifier.fillMaxSize().background(Color.White).padding(
                 top = 40.dp, bottom = 20.dp
             ).padding(horizontal = 16.dp)
+                .clickable { viewModel.resetFocus() }
         ) {
             Box(modifier = Modifier.size(120.dp).background(Color.Gray, shape = CircleShape)
                 .clip(CircleShape).align(Alignment.CenterHorizontally)
@@ -300,9 +307,8 @@ fun RegistrationProfileScreen(
             */
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(value = firstName ?: "", onValueChange = {
-                firstName = it
-                viewModel.onFirstNameChange(it)
+            OutlinedTextField(value = uiState.currentData.firstName ?: "", onValueChange = {
+                viewModel.updateField(RegistrationProfileViewModel.Fields.FIRST_NAME, it)
             }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth()
             )
 
@@ -343,7 +349,8 @@ fun RegistrationProfileScreen(
 
                 label = { Text("Fecha de Nacimiento") },
                 modifier = Modifier.fillMaxWidth().clickable {
-                    showDatePicker = !showDatePicker
+                    viewModel.toggleDatePicker()
+                  //  showDatePicker = !showDatePicker
                 })
 
 

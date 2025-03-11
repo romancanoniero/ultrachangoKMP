@@ -1,7 +1,6 @@
 package com.iyr.ultrachango
 
 
-
 import com.iyr.ultrachango.data.api.cloud.auth.CloudAuthService
 import com.iyr.ultrachango.data.api.cloud.familymembers.CloudFamilyMembersService
 import com.iyr.ultrachango.data.api.cloud.images.CloudImagesService
@@ -39,6 +38,7 @@ import com.iyr.ultrachango.utils.auth_by_cursor.auth.FirebaseAuth
 import com.iyr.ultrachango.utils.auth_by_cursor.auth.FirebaseInit
 import com.iyr.ultrachango.utils.auth_by_cursor.auth.GoogleSignInAuth
 import com.iyr.ultrachango.utils.auth_by_cursor.di.BuildConfig
+import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.auth_by_cursor.statemanagers.AuthStateManager
 import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
@@ -106,7 +106,7 @@ val configModule: Module = module {
 
 val authModule = module {
 
-  //  includes(platformAuthModule())
+    //  includes(platformAuthModule())
 
     single<FirebaseInit> { FirebaseInit() }
 
@@ -117,7 +117,7 @@ val authModule = module {
         )
     }
 
-    single {FirebaseAuth()}
+    single { FirebaseAuth() }
 
     single<FirebaseAuthRepository> {
         FirebaseAuthRepository()
@@ -129,13 +129,12 @@ val authModule = module {
 
     single<AuthStateManager> { AuthStateManager(get()) }
 
-    viewModel { AuthViewModel(get(),get()) }
+    single { AuthViewModel(get(), get()) }
 
 
 }
 
 val appModule = module {
-
 
 
     single<CloudUsersService> {
@@ -171,7 +170,7 @@ val dataModule = module {
     factory {
         ProductsRepository(
             authRepository = get(),
-         //   productsDao = get(),
+            //   productsDao = get(),
             preciosClarosService = get(),
             productsCloudService = get()
         )
@@ -201,22 +200,22 @@ val dataModule = module {
     }
 
 
-
-
-/*
-    factory {
-        AuthViewModel(
-            authRepository = get()
-        )
-    }
-*/
+    /*
+        factory {
+            AuthViewModel(
+                authRepository = get()
+            )
+        }
+    */
 
 
 
 
 
-    factory {
+    factory<RegistrationProfileViewModel<AppUser?>> { (currentUser: AppUser?) ->
+
         RegistrationProfileViewModel(
+            initialData = currentUser,
             authRepository = get(),
             scaffoldVM = get(),
             usersRepository = get(),
@@ -224,46 +223,47 @@ val dataModule = module {
         )
     }
 
-    factoryOf(::InviteViewModel)
 
-    factory {
-        PlacesSearchViewModel(
-            placesSearchService = get()
-        )
-    }
+factoryOf(::InviteViewModel)
 
-    factory {
-        LocationsViewModel(
-            scaffoldVM = get(),
-            userViewModel = get(),
-            placesSearchService = get(),
-            locationRepository = get(),
-            authRepository = get(),
-        )
-    }
+factory {
+    PlacesSearchViewModel(
+        placesSearchService = get()
+    )
+}
 
-
-
-
-    factoryOf(::PlacesSearchService)
-    factoryOf(::CloudProductsService)
-    factoryOf(::CloudLocationsService)
-    factoryOf(::CloudFamilyMembersService)
-    factoryOf(::CloudShoppingListService)
-    // factoryOf(::CloudUsersService)
-
-    factoryOf(::SearchWithScannerViewModel)
+factory {
+    LocationsViewModel(
+        scaffoldVM = get(),
+        userViewModel = get(),
+        placesSearchService = get(),
+        locationRepository = get(),
+        authRepository = get(),
+    )
+}
 
 
 
-    factory {
-        ProfileViewModel(
-            authService = get(),
-            scaffoldVM = get(),
-            usersRepository = get(),
-            imagesRepository = get()
-        )
-    }
+
+factoryOf(::PlacesSearchService)
+factoryOf(::CloudProductsService)
+factoryOf(::CloudLocationsService)
+factoryOf(::CloudFamilyMembersService)
+factoryOf(::CloudShoppingListService)
+// factoryOf(::CloudUsersService)
+
+factoryOf(::SearchWithScannerViewModel)
+
+
+
+factory {
+    ProfileViewModel(
+        authService = get(),
+        scaffoldVM = get(),
+        usersRepository = get(),
+        imagesRepository = get()
+    )
+}
 
 }
 
@@ -323,20 +323,20 @@ val viewModelsModule = module {
         )
     }
 
-/*
-    viewModel {
-        ShoppingListAddEditViewModel(
-            permissionsController = get(),
-            userKey = get(),
-            shoppingListId = get(),
-            authRepository = get(),
-            shoppingListRepository = get(),
-            productsRepository = get(),
-            userViewModel = get(),
-            scaffoldVM = get()
-        )
-    }
-    */
+    /*
+        viewModel {
+            ShoppingListAddEditViewModel(
+                permissionsController = get(),
+                userKey = get(),
+                shoppingListId = get(),
+                authRepository = get(),
+                shoppingListRepository = get(),
+                productsRepository = get(),
+                userViewModel = get(),
+                scaffoldVM = get()
+            )
+        }
+        */
     viewModel {
         ShoppingListAddEditViewModel(
             userKey = get(),
@@ -373,6 +373,14 @@ expect val nativeModule: Module
 fun initKoin(config: KoinAppDeclaration? = null) {
     startKoin {
         config?.invoke(this)
-        modules(baseModule, appModule, configModule, authModule,  dataModule, viewModelsModule, nativeModule)
+        modules(
+            baseModule,
+            appModule,
+            configModule,
+            authModule,
+            dataModule,
+            viewModelsModule,
+            nativeModule
+        )
     }
 }

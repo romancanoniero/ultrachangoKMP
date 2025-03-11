@@ -65,10 +65,7 @@ fun RegisterScreen(
     userViewModel: UserViewModel = koinViewModel()
 
 ) {
-
-
     var state = vm.uiState.collectAsState()
-
     //  var authenticationMethod by remember { mutableStateOf(AuthenticationMethods.NONE) }
     var showErrorMessage = state.value.showErrorMessage
     var errorMessage = state.value.errorMessage
@@ -87,7 +84,6 @@ fun RegisterScreen(
         hideVirtualKeyboard = false
     }
     var acceptedTerms = remember { mutableStateOf(false) }
-
 
     if (state.value.loading) {
         showLoader()
@@ -127,7 +123,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-
         OutlinedTextField(value = firstName,
             onValueChange = {
                 firstName = it
@@ -163,8 +158,6 @@ fun RegisterScreen(
                 Text(
                     text = stringResource(Res.string.identification_method),
                     maxLines = 1,
-
-
                     )
 
             },

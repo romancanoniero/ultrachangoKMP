@@ -10,9 +10,9 @@ import kotlinx.serialization.Serializable
 data class AppUser(
     var uid: String,
     var providerId: String? =null,
-    var email: String?,
-    var phoneNumber: String?? =  null,
-    var displayName: String?,
+    var email: String? =null,
+    var phoneNumber: String? =  null,
+    var displayName: String? =  null,
     var firstName: String? =  null,
     var familyName: String? =  null,
     var birthDate: String? = null,
@@ -21,7 +21,13 @@ data class AppUser(
     val createdAt: Long = DateTimeProvider.getCurrentTimeMillis(),
     val updatedAt: Long = DateTimeProvider.getCurrentTimeMillis(),
     val isEmailVerified: Boolean?= false,
-    val isPhoneVerified: Boolean? = false
+    val isPhoneVerified: Boolean? = false,
+    val isOnline: Boolean = false,
+    val lastSeenTimestamp: Long = 0,
+    val lastSyncTimestamp: Long = 0,
+    // Información pública adicional
+    val bio: String? = null,
+    val badges: List<String> = emptyList(),
 ) {
     val fullName: String
         get() = "$firstName $familyName".trim()
