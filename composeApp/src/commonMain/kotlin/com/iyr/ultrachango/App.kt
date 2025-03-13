@@ -97,18 +97,18 @@ fun App(
     val navController = rememberNavController()
     val settings = Settings()
 
-    settings[KEY_USER_NAME] = "USERNAME"
-    settings[KEY_USER_ID] = "XXXX"
+//    settings[KEY_USER_NAME] = "USERNAME"
+//    settings[KEY_USER_ID] = "XXXX"
 
     ImageLoader.Builder(LocalPlatformContext.current).memoryCachePolicy(CachePolicy.ENABLED)
 
     val onFirebaseResult: (Result<FirebaseUser?>) -> Unit = { result ->
         if (result.isSuccess) {
             val firebaseUser = result.getOrNull()
-      //      signedInUserName =
-       //         firebaseUser?.displayName ?: firebaseUser?.email ?: "Null User"
+            //      signedInUserName =
+            //         firebaseUser?.displayName ?: firebaseUser?.email ?: "Null User"
         } else {
-        //    signedInUserName = "Null User"
+            //    signedInUserName = "Null User"
             println("Error Result: ${result.exceptionOrNull()?.message}")
         }
 
@@ -131,7 +131,6 @@ fun App(
     }
 
 
-
     var user: AppUser? = null
     LaunchedEffect(Unit) {
 
@@ -140,6 +139,14 @@ fun App(
             val authToken = authRepository.getAuthToken(refresh = true)
             settings.setAuthToken(authToken!!)
 
+            val it = authRepository.getCurrentUser(true)
+            if (it == null) {
+                authViewModel.signOut()
+                //                    authRepository.logout()
+            } else {
+                user = it
+            }
+            loginStatusChecked = true
 
             /*
                        authRepository.fetchCurrentUser(forceRefresh = true) {
@@ -255,19 +262,19 @@ fun NavHostMain(
                             // .padding(statusBarValues.calculateTopPadding())
                             .padding(0.dp),
                         topBar = {
-                            /*
-                                             DynamicTopBar(
-                                                 authRepository,
-                                                 authViewModel,
-                                                 currentRoute,
-                                                 navController
-                                             )
 
-                             */
+                            DynamicTopBar(
+                                authRepository,
+                                authViewModel,
+                                currentRoute,
+                                navController
+                            )
+
+
                         },
                         bottomBar = {
                             if (isBottomBarVisible) {
-                                //                       DynamicBottomBar(currentRoute, navController)
+                                DynamicBottomBar(currentRoute, navController)
                             }
                         }) { innerPadding ->
 
@@ -311,13 +318,13 @@ fun DynamicTopBar(
 
     when (currentRoute?.substringBefore("/")) {
         "home" -> {
-            var me : AppUser? = null
-            var name : String? = null
-                 me = authRepository.getCurrentUser()
-                 name = (me?.displayName?.capitalizeFirstLetter() ?: " ????? ").split(" ")[0]
-           HomeTopAppBar(me?.uid!!, name?:"??????", me?.profilePictureUrl, shareButton)
+            var me: AppUser? = null
+            var name: String? = null
+            me = authRepository.getCurrentUser()
+            name = (me?.displayName?.capitalizeFirstLetter() ?: " ????? ").split(" ")[0]
+            HomeTopAppBar(me?.uid!!, name ?: "??????", me?.profilePicturePath, shareButton)
 
-         }
+        }
 
         RootRoutes.MembersRoute.route,
         AppRoutes.SettingRoute.route,
@@ -444,7 +451,7 @@ fun validateForm(
     imageProfile: String? = null,
     firstName: String?,
     lastName: String?,
-    gender: Genders?,
+    gender: String?,
     birthDate: String?
 ): Boolean {
     return (!validateImage || imageProfile != null) && !firstName.isNullOrBlank() && !lastName.isNullOrBlank() && gender != null && !birthDate.isNullOrEmpty()

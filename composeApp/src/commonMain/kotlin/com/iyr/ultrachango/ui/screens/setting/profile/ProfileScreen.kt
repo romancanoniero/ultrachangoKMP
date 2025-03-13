@@ -116,7 +116,7 @@ fun ProfileScreen(
 
     var nickname by remember { mutableStateOf(currentUser?.displayName) }
     var firstName by remember { mutableStateOf(currentUser?.firstName) }
-    var lastName by remember { mutableStateOf(currentUser?.familyName) }
+    var lastName by remember { mutableStateOf(currentUser?.lastName) }
     var gender by remember { mutableStateOf("")
 
     }

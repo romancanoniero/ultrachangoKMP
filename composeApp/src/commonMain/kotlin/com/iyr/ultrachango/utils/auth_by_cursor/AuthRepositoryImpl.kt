@@ -30,7 +30,7 @@ private fun NativeUser?.toAppUser(): AppUser {
         uid = this?.uid ?: "",
         email = this?.email,
         displayName = this?.displayName,
-        profilePictureUrl = this?.photoUrl,
+        profilePicturePath = this?.photoUrl,
         isEmailVerified = this?.isEmailVerified == true,
     )
 
@@ -58,7 +58,7 @@ class AuthRepositoryImpl(
                 uid = it.uid,
                 email = it.email,
                 displayName = it.displayName,
-                profilePictureUrl = it.photoUrl,
+                profilePicturePath = it.photoUrl,
                 isEmailVerified = it.isEmailVerified,
                 providerId = it.providerId,
 
@@ -69,29 +69,30 @@ class AuthRepositoryImpl(
 
     private fun handleNativeResult(result: NativeAuthResult): AuthResult<AppUser?> {
         println("trace: handleNativeResult")
-        var response : AuthResult<AppUser?> =  AuthResult.Loading
+        var response: AuthResult<AppUser?> = AuthResult.Loading
         runBlocking {
             return@runBlocking try {
                 var user = getUser(result.user?.uid!!, true)
                 // si el usuario no existe en el servidor, lo completo con los datos que tengo de firebase
-                if (user.getOrNull()==null)
-             {
-                    user = Result.success(AppUser(
-                        uid = result.user?.uid!!,
-                        email = result.user?.email,
-                        displayName = result.user?.displayName,
-                        profilePictureUrl = result.user?.photoUrl,
-                        isEmailVerified = result.user?.isEmailVerified,
-                        providerId = result.user?.providerId,
-                    ))
-             }
+                if (user.getOrNull() == null) {
+                    user = Result.success(
+                        AppUser(
+                            uid = result.user?.uid!!,
+                            email = result.user?.email,
+                            displayName = result.user?.displayName,
+                            profilePicturePath = result.user?.photoUrl,
+                            isEmailVerified = result.user?.isEmailVerified,
+                            providerId = result.user?.providerId,
+                        )
+                    )
+                }
 
-                response =  AuthResult.Success(user.getOrNull())
+                response = AuthResult.Success(user.getOrNull())
             } catch (ex: Exception) {
-                response =  AuthResult.Error(AuthError.fromException(Exception("Unknown error")))
+                response = AuthResult.Error(AuthError.fromException(Exception("Unknown error")))
             }
         }
-       return response
+        return response
     }
 
     override suspend fun signInWithEmailAndPassword(
@@ -211,10 +212,16 @@ class AuthRepositoryImpl(
         TODO("Implement email verification")
 
     override suspend fun updateProfile(
-        displayName: String?,
-        photoUrl: String?
-    ): AuthResult<Unit> =
-        TODO("Implement profile update")
+        user: AppUser,
+        image: ByteArray?
+    ): AuthResult<Unit> {
+        return try {
+            val result = apiAuth.updateUser(user, image)
+            AuthResult.Success(result)
+        } catch (ex: Exception) {
+            AuthResult.error(ex)
+        }
+    }
 
     override suspend fun registerDeviceToken(token: String): Result<Unit> {
         TODO("Not yet implemented")
@@ -392,8 +399,20 @@ class AuthRepositoryImpl(
     }
 
 
-    override fun getCurrentUser(): AppUser? {
-        return settings.getUserLocally()
+    override fun getCurrentUser(forceRefresh: Boolean): AppUser? {
+        var userApp: AppUser? = null
+        if (!forceRefresh && settings.getUserLocally() != null)
+            return settings.getUserLocally()
+        else {
+            val userKey = firebaseAuth.getCurrentUser()?.uid
+            userApp = runBlocking {
+                return@runBlocking getUser(userKey!!, true).getOrNull()
+            }
+        }
+        if (userApp != null) {
+            settings.storeUserLocally(userApp)
+        }
+        return userApp
     }
 
     override suspend fun updateProfile(
@@ -421,7 +440,7 @@ class AuthRepositoryImpl(
 
 
                     val remoteUser = apiAuth.getAuthenticatedUser(userId)
-                        //?: AppUser(uid = userId)
+                    //?: AppUser(uid = userId)
 
                     // 4. Actualizar caché local
 
@@ -453,7 +472,7 @@ class AuthRepositoryImpl(
 
     private fun shouldSyncUser(user: AppUser): Boolean {
         val currentTime = clock.now().toEpochMilliseconds()
-        val timeSinceLastSync = currentTime - user.lastSyncTimestamp
+        val timeSinceLastSync = currentTime - (user.lastSyncTimestamp?:0)
         // Sincronizar si han pasado más de 15 minutos
         return timeSinceLastSync > SYNC_THRESHOLD_MS
     }

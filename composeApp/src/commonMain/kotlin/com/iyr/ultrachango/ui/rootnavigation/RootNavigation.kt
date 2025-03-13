@@ -19,6 +19,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.iyr.ultrachango.data.models.enums.toGender
 import com.iyr.ultrachango.ui.MainScreen
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.auth.config.profile.RegistrationProfileScreen
@@ -68,42 +69,37 @@ fun RootNavGraph(
 ) {
 
     // lo saco para que pueda manejar la registracion
-    //val isLoggedIn =  authRepository.isUserSignedIn()
+    // val isLoggedIn =  authRepository.isUserSignedIn()
     val isLoggedIn by remember { mutableStateOf(authRepository.isUserSignedIn()) }
     // Obtengo el usuario actual
 
-    /*
-              if (isLoggedIn)
-            {
-            val me = authRepository.getCurrentUser()
+    val me = authRepository.getCurrentUser()
+    val checkLoggedIn = isLoggedIn && validateForm(
+        validateImage = false,
+        firstName = me?.firstName,
+        lastName = me?.lastName,
+        imageProfile = me?.profilePicturePath,
+        gender = me?.gender,
+        birthDate = me?.birthDate,
+    )
+    val isProfileComplete by remember { mutableStateOf(checkLoggedIn) }
 
-            val isProfileComplete = validateForm(
-                validateImage = false,
-                firstName = "me?.firstName",
-                lastName = "me?.familyName",
-                imageProfile = TODO(),
-                gender = TODO(),
-                birthDate = TODO(),
-                //       gender = me?.gender,
-                //       birthDate = me?.birthDate,
-            )
-
-//Graph.ROOT_NAVIGATION_SCREEN_MAIN
-            if (isProfileComplete) RootRoutes.HomeRoute.route
-            else {
-
-//                val route = RootRoutes.SetupProfileRoute.createRoute(me)
-//                route
-            }
-        } else RootRoutes.LandingRoute.route,
+   var start =  if (isLoggedIn) {
+        if (isProfileComplete)
+            RootRoutes.HomeRoute.route
+        else {
+                RootRoutes.SetupProfileRoute.createRoute(me)
+        }
+    } else {
+        RootRoutes.LandingRoute.route
+    }
 
 
-     */
 
     NavHost(
         modifier = modifier.padding(0.dp).fillMaxSize().background(Color.Transparent),
         navController = rootNavController,
-        startDestination = RootRoutes.LandingRoute.route
+        startDestination = start
 
 
     ) {
@@ -141,9 +137,9 @@ fun RootNavGraph(
                 val isProfileComplete = validateForm(
                     validateImage = false,
                     firstName = user.firstName,
-                    lastName = user.familyName,
-                    imageProfile = user.profilePictureUrl,
-                    gender = user.gender,
+                    lastName = user.lastName,
+                    imageProfile = user.profilePicturePath,
+                    gender = user.gender.toGender().name.toString(),
                     birthDate = user.birthDate,
                 )
                 if (isProfileComplete)

@@ -143,15 +143,17 @@ class CloudUsersService(
                 }))
         }
 
-        val response = call.body<Response<String>>()
+
 
         when (call.status.value) {
             200 -> {
+                val response = call.body<Response<String>>()
                 //  return response.payload;
             }
 
             else -> {
-                throw Exception(response.message ?: "Error desconocido")
+
+                throw Exception(call.status.description ?: "unknown")
             }
         }
 

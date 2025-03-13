@@ -234,7 +234,7 @@ class ProfileViewModel(
     }
 
     fun onLastNameChange(text: String) {
-        currentUser.value?.familyName = text
+        currentUser.value?.lastName = text
         _uiState.value = UiState(loginButtonEnabled = validate())
 
     }
@@ -247,7 +247,7 @@ class ProfileViewModel(
 
 
     fun onGenderChange(gender: Genders) {
-        currentUser.value?.gender = gender
+        currentUser.value?.gender = gender.name
         _uiState.value = UiState(loginButtonEnabled = validate())
     }
 
@@ -255,7 +255,7 @@ class ProfileViewModel(
     fun saveChanges(
         firstName: String,
         lastName: String,
-        gender: Genders,
+        gender: String,
         birthDate: LocalDate,
     ) {
         _uiState.value = _uiState.value.copy(
@@ -266,7 +266,7 @@ class ProfileViewModel(
 
         var auxUser = currentUser.value?.copy(
             firstName = firstName,
-            familyName = lastName,
+            lastName = lastName,
             gender = gender,
             birthDate = birthDate.toString(),
 
@@ -295,7 +295,7 @@ class ProfileViewModel(
         return validateForm(
             imageProfile = "_imageProfile.value",
             firstName = _currentUser.value?.firstName,
-            lastName = _currentUser.value?.familyName,
+            lastName = _currentUser.value?.lastName,
             gender =_currentUser.value?.gender ,
             birthDate = _currentUser.value?.birthDate
         )

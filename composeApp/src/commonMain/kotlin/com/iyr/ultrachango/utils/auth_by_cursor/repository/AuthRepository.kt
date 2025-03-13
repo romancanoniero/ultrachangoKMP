@@ -32,7 +32,7 @@ interface AuthRepository {
     fun storeAuthToken( token: String,)
 
     // Obtener datos del usuario autenticado
-    fun getCurrentUser(): AppUser?
+    fun getCurrentUser(forceRefresh: Boolean = false): AppUser?
 
     // Observar cambios en el usuario autenticado
     //fun observeCurrentUser(): Flow<AppUser?>
@@ -66,7 +66,7 @@ interface AuthRepository {
     suspend fun sendEmailVerification(): AuthResult<Unit>
 
     // Actualización de perfil
-    suspend fun updateProfile(displayName: String? = null, photoUrl: String? = null): AuthResult<Unit>
+    suspend fun updateProfile( user: AppUser, image: ByteArray? = null): AuthResult<Unit>
     suspend fun updateEmail(email: String): AuthResult<Unit>
     suspend fun updatePassword(password: String): AuthResult<Unit>
 

@@ -52,6 +52,6 @@ return AppUser(
     providerId = this?.providerId ?: "",
     email =  this?.email ?: "",
     displayName = this?.displayName ?: "",
-    profilePictureUrl = this?.photoUrl ?: "",
+    profilePicturePath = this?.photoUrl ?: "",
     isEmailVerified = this?.isEmailVerified ?: false, )
 }

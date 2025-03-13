@@ -33,7 +33,7 @@ class SettingsScreenViewModel(
     init {
         val user = authRepository.getCurrentUser()
         user.let { it ->
-            _imageUri.value = getProfileImageURL(it!!.uid.toString(), it.profilePictureUrl.toString())
+            _imageUri.value = getProfileImageURL(it!!.uid.toString(), it.profilePicturePath.toString())
 
         }
     }

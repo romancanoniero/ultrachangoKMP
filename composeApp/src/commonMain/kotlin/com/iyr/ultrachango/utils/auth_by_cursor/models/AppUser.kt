@@ -1,6 +1,7 @@
 package com.iyr.ultrachango.utils.auth_by_cursor.models
 
 import com.iyr.ultrachango.data.models.enums.Genders
+import com.iyr.ultrachango.data.models.enums.toGender
 import com.iyr.ultrachango.utils.auth_by_cursor.auth.NativeUser
 import com.iyr.ultrachango.utils.datetime.DateTimeProvider
 import kotlinx.datetime.LocalDate
@@ -9,31 +10,38 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AppUser(
     var uid: String,
-    var providerId: String? =null,
-    var email: String? =null,
-    var phoneNumber: String? =  null,
     var displayName: String? =  null,
     var firstName: String? =  null,
-    var familyName: String? =  null,
+    var lastName: String? =  null,
+    var email: String? =null,
+    var phoneNumber: String? =  null,
+
     var birthDate: String? = null,
-    var gender: Genders = Genders.UNKNOWN,
-    var profilePictureUrl: String? = null,
+    var gender: String = Genders.UNKNOWN.name
+
+    ,
+    var profilePicturePath: String? = null,
+
     val createdAt: Long = DateTimeProvider.getCurrentTimeMillis(),
     val updatedAt: Long = DateTimeProvider.getCurrentTimeMillis(),
     val isEmailVerified: Boolean?= false,
     val isPhoneVerified: Boolean? = false,
     val isOnline: Boolean = false,
-    val lastSeenTimestamp: Long = 0,
-    val lastSyncTimestamp: Long = 0,
+    val lastSeenTimestamp: Long? = 0,
+    val lastSyncTimestamp: Long? = 0,
     // Información pública adicional
-    val bio: String? = null,
-    val badges: List<String> = emptyList(),
-) {
+  //  val bio: String? = null,
+  //  val badges: List<String> = emptyList(),
+    var providerId: String? =null,
+
+    ) {
     val fullName: String
-        get() = "$firstName $familyName".trim()
+        get() = "$firstName ${lastName}".trim()
 
     val age: Int
         get() = if (birthDate != null) calculateAge(birthDate!!) else 0
+
+    // Propiedad calculada que convierte automáticamente
 
     companion object {
         fun fromNativeUser(user: NativeUser): AppUser {
@@ -42,9 +50,9 @@ data class AppUser(
                 email = user.email,
                 displayName = user.displayName,
                 firstName = user.displayName?.split(" ")?.firstOrNull() ?: "",
-                familyName = user.displayName?.split(" ")?.drop(1)?.joinToString(" ") ?: "",
+                lastName = user.displayName?.split(" ")?.drop(1)?.joinToString(" ") ?: "",
                 birthDate = null, // Valor por defecto
-                gender = Genders.UNKNOWN,
+                gender = Genders.UNKNOWN.name,
 
             )
         }

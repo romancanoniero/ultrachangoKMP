@@ -37,5 +37,6 @@ fun Int.toGender(): Genders = Genders.fromInt(this)
 fun Genders.toInt(): Int = ordinal
 
 // Extensiones para String
-fun String?.toGender(): Genders = Genders.fromString(this)
-fun Genders.toStorageString(): String = "value"
+fun String.toGender(): Genders = Genders.fromString(this)
+
+fun Genders.toStorageString(): String {return this.name}

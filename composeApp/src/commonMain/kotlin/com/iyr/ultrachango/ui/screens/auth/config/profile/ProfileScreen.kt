@@ -109,7 +109,7 @@ fun ProfileScreen(
 
     var nickname by remember { mutableStateOf(currentUser?.displayName) }
     var firstName by remember { mutableStateOf(currentUser?.firstName) }
-    var lastName by remember { mutableStateOf(currentUser?.familyName) }
+    var lastName by remember { mutableStateOf(currentUser?.lastName) }
     var gender by remember {
         mutableStateOf(Genders.UNKNOWN )
     }
@@ -457,7 +457,7 @@ fun ProfileScreen(
                     viewModel.saveChanges(
                         firstName = firstName.toString(),
                         lastName = lastName.toString(),
-                        gender = gender!!,
+                        gender = gender.name,
                         birthDate = birthDateAsSnappedDateTime!!,
 
                         )

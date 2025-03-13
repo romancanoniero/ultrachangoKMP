@@ -28,7 +28,7 @@ data class FirebaseAuthResult(
             displayName = this.user.displayName,
             email = this.user.email,
             phoneNumber = this.user.phoneNumber,
-            profilePictureUrl = this.user.photoUrl,
+            profilePicturePath = this.user.photoUrl,
         )
         return user
     }
@@ -53,7 +53,7 @@ class AppFirebaseUser {
             displayName = this.displayName,
             email = this.email,
             phoneNumber = this.phoneNumber,
-            profilePictureUrl = this.photoUrl,
+            profilePicturePath = this.photoUrl,
 
         )
     }

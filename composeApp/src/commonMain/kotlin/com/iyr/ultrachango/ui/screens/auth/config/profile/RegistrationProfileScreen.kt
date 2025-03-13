@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.Uri
 import com.iyr.ultrachango.data.models.enums.Genders
+import com.iyr.ultrachango.data.models.enums.toGender
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.ui.LoadingDialog
@@ -89,6 +90,11 @@ fun RegistrationProfileScreen(
     //  val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
+    val uiState by viewModel.uiState.collectAsState()
+    val dataState by viewModel.dataState.collectAsState()
+
+
+
     var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var launchCamera by remember { mutableStateOf(value = false) }
     var launchGallery by remember { mutableStateOf(value = false) }
@@ -100,18 +106,17 @@ fun RegistrationProfileScreen(
 
     var nickname by remember { mutableStateOf(currentUser?.displayName) }
     var firstName by remember { mutableStateOf(currentUser?.firstName) }
-    var lastName by remember { mutableStateOf(currentUser?.familyName) }
+    var lastName by remember { mutableStateOf(currentUser?.lastName) }
     var gender by remember {
         mutableStateOf<Genders?>(
             Genders.entries.get(
-                currentUser?.gender?.ordinal ?: 0
+                currentUser?.gender?.toGender()?.ordinal ?: 0
             )
         )
     }
     var birthDate by remember { mutableStateOf(currentUser?.birthDate) }
 
 
-    val uiState by viewModel.uiState.collectAsState()
 
     var currentDateArray: Array<Int>? = null
     val currentDate = Clock.System.now().toLocalDateTime(
@@ -166,9 +171,9 @@ fun RegistrationProfileScreen(
     }
 
 
-    val showImagePicker by viewModel.showImagePicker.collectAsState()
 
-    if (showImagePicker) {
+
+    if (uiState.showImagePicker) {
         ImageOptionDialog(onDismissRequest = {
             viewModel.onImagePickerCloseRequest()
         }, onGalleryRequest = {
@@ -283,7 +288,9 @@ fun RegistrationProfileScreen(
                 }) {
                 profileImageBitmap?.let {
                     Image(
-                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        modifier = Modifier.fillMaxSize().clip(CircleShape).clickable {
+
+                        },
                         bitmap = it.toImageBitmap(),
                         contentDescription = null,
                         contentScale = ContentScale.Crop
@@ -314,9 +321,12 @@ fun RegistrationProfileScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(value = lastName ?: "", onValueChange = {
-                lastName = it
-                viewModel.onLastNameChange(it)
+            OutlinedTextField(value = uiState.currentData.lastName ?: "", onValueChange = {
+              //  lastName = it
+              //  viewModel.onLastNameChange(it)
+                viewModel.updateField(RegistrationProfileViewModel.Fields.LAST_NAME, it)
+
+
             }, label = { Text("Apellido") }, modifier = Modifier.fillMaxWidth()
             )
 
@@ -329,10 +339,11 @@ fun RegistrationProfileScreen(
                         )
             */
             GenderSelector(
-                value = gender ?: Genders.MALE,
+                value = uiState.currentData.gender.toGender() ?: Genders.MALE,
                 onGenderSelected = { value ->
-                    gender = value
-                    viewModel.onGenderChange(value)
+           //         gender = value
+           //         viewModel.onGenderChange(value)
+                    viewModel.updateField(RegistrationProfileViewModel.Fields.GENDER, value)
                 }
             )
 
@@ -341,10 +352,11 @@ fun RegistrationProfileScreen(
 
 
             OutlinedTextField(enabled = false,
-                value = birthDate.toString(),
+                value = uiState.currentData.birthDate?:"",
                 onValueChange = {
-                    birthDate = it
-                    viewModel.onBirthDateChange(it)
+       //             birthDate = it
+       //             viewModel.onBirthDateChange(it)
+                    viewModel.updateField(RegistrationProfileViewModel.Fields.BIRTH_DATE, it)
                 },
 
                 label = { Text("Fecha de Nacimiento") },
@@ -428,15 +440,15 @@ fun RegistrationProfileScreen(
                     showDatePicker = false
 
                     viewModel.saveChanges(
-                        firstName = firstName.toString(),
-                        lastName = lastName.toString(),
-                        gender = gender!!,
+                        firstName = uiState.currentData.firstName.toString(),
+                        lastName =uiState.currentData.lastName.toString(),
+                        gender = uiState.currentData.gender.toGender(),
                         birthDate = birthDateAsSnappedDateTime!!,
 
                         )
                     //      navController?.navigate("home")
                 },
-                enabled = viewModel.uiState.value.loginButtonEnabled,
+                enabled = uiState.isValid,
                 modifier = Modifier.fillMaxWidth()
             )
 

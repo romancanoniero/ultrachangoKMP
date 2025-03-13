@@ -1,8 +1,6 @@
 package com.iyr.ultrachango.ui.screens.auth.config.profile
 
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.iyr.ultrachango.data.database.repositories.ImagesRepository
 import com.iyr.ultrachango.data.database.repositories.UserRepositoryImpl
@@ -19,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import org.koin.core.component.KoinComponent
 
@@ -38,17 +37,20 @@ class RegistrationProfileViewModel<T>(
     )
     val uiState = _uiState.asStateFlow()
 
+    private val _dataState = MutableStateFlow(initialData)
+    val dataState = _dataState.asStateFlow()
 
-    private val _originalUser = MutableStateFlow<AppUser?>(null)
-    val originalUser = _originalUser.asStateFlow()
+    /*
+        private val _originalUser = MutableStateFlow<AppUser?>(null)
+        val originalUser = _originalUser.asStateFlow()
 
-    private val _currentUser = MutableStateFlow<AppUser?>(null)
-    val currentUser = _currentUser.asStateFlow()
-
-
-    private val _showImagePicker = MutableStateFlow(false)
-    val showImagePicker = _showImagePicker.asStateFlow()
-
+        private val _currentUser = MutableStateFlow<AppUser?>(null)
+        val currentUser = _currentUser.asStateFlow()
+    */
+    /*
+        private val _showImagePicker = MutableStateFlow(false)
+        val showImagePicker = _showImagePicker.asStateFlow()
+    */
     private val _emailError = MutableStateFlow(false)
     val emailError = _emailError.asStateFlow()
 
@@ -156,21 +158,21 @@ class RegistrationProfileViewModel<T>(
         var modifiedData = _uiState.value.copy().currentData
         when (field) {
             Fields.FIRST_NAME -> modifiedData.firstName = value as String
-            Fields.LAST_NAME -> modifiedData.familyName = value as String
-            Fields.GENDER -> modifiedData.gender = value as Genders
+            Fields.LAST_NAME -> modifiedData.lastName = value as String
+            Fields.GENDER -> modifiedData.gender = value as String
             Fields.BIRTH_DATE -> modifiedData.birthDate = value as String?
-            Fields.PROFILE_IMAGE_PATH -> modifiedData.profilePictureUrl as String
+            Fields.PROFILE_IMAGE_PATH -> modifiedData.profilePicturePath as String
         }
 
+        _uiState.update { currentState ->
+            currentState.copy(
+                time = Clock.System.now().nanosecondsOfSecond,
+                currentData = modifiedData,
+                isDirty = modifiedData != _uiState.value.originalData,
+                isValid = validateData(modifiedData)
+            )
+        }
 
-       viewModelScope.launch {
-           _uiState.emit(_uiState.value.copy(
-               currentData = modifiedData,
-               isDirty = modifiedData != _uiState.value.originalData,
-               isValid = validateData(modifiedData)
-           ))
-
-       }
     }
 
 
@@ -180,6 +182,7 @@ class RegistrationProfileViewModel<T>(
             emailOrPhoneNumber = text,
             loginButtonEnabled = isLoggeable()
         )
+
     }
 
     fun setPassword(text: String) {
@@ -262,11 +265,23 @@ class RegistrationProfileViewModel<T>(
     }
 
     fun onImagePickerRequest() {
-        _showImagePicker.value = true
+        resetFocus()
+//        _showImagePicker.value = true
+        _uiState.update {
+            it.copy(
+                showImagePicker = true,
+                showDatePicker = false
+            )
+        }
     }
 
     fun onImagePickerCloseRequest() {
-        _showImagePicker.value = false
+        _uiState.update {
+            it.copy(
+                showImagePicker = false,
+                showDatePicker = false
+            )
+        }
     }
 
 
@@ -275,8 +290,12 @@ class RegistrationProfileViewModel<T>(
     }
 
     fun hideImagePicker() {
-        _showImagePicker.value = false
-        println("cierro la camara")
+        _uiState.update {
+            it.copy(
+                showImagePicker = false,
+                showDatePicker = false
+            )
+        }
     }
 
     fun updateProfile(user: AppUser) {
@@ -289,15 +308,22 @@ class RegistrationProfileViewModel<T>(
         }
         viewModelScope.launch {
             try {
-                usersRepository.updateUser(user, _imageProfile.value)
+                authRepository.updateProfile( user, _imageProfile.value  )
+//                usersRepository.updateUser(user, _imageProfile.value)
                 _uiState.value = _uiState.value.copy(
                     loading = false,
                     isComplete = true
                 )
             } catch (exception: Exception) {
+
+                val message = when (exception.message?.lowercase()) {
+                    "not found" -> "Sin Conectividad"
+                    else -> exception.message
+                }
+
                 _uiState.value = _uiState.value.copy(
                     loading = false,
-                    errorMessage = exception.message,
+                    errorMessage = message,
                     showErrorMessage = true
                 )
             }
@@ -305,25 +331,18 @@ class RegistrationProfileViewModel<T>(
     }
 
     fun onNicknameChange(text: String) {
-        currentUser.value?.displayName = text
-
+        _uiState.value.currentData.displayName = text
     }
 
     fun onFirstNameChange(text: String) {
-//        currentUser.value?.firstName = text
-//        _uiState.value = UiState(loginButtonEnabled = validate())
         updateField(Fields.FIRST_NAME, text)
     }
 
     fun onLastNameChange(text: String) {
-        //      currentUser.value?.familyName = text
-        //     _uiState.value = UiState(loginButtonEnabled = validate())
         updateField(Fields.LAST_NAME, text)
     }
 
     fun onBirthDateChange(text: String) {
-//        currentUser.value?.birthDate = text
-//        _uiState.value = UiState(loginButtonEnabled = validate())
         updateField(Fields.BIRTH_DATE, text)
     }
 
@@ -348,10 +367,10 @@ class RegistrationProfileViewModel<T>(
             )
 
 
-        var auxUser = currentUser.value?.copy(
+        var auxUser = _uiState.value.currentData.copy(
             firstName = firstName,
-            familyName = lastName,
-            gender = gender,
+            lastName = lastName,
+            gender = gender.name,
             birthDate = birthDate.toString(),
 
             )
@@ -361,11 +380,11 @@ class RegistrationProfileViewModel<T>(
     }
 
     fun getMe(): AppUser? {
-        return currentUser.value
+        return _uiState.value.currentData
     }
 
     fun getBirthDate(): String {
-        return currentUser.value?.birthDate ?: ""
+        return _uiState.value.currentData.birthDate ?: ""
     }
 
     fun closeErrorDialogRequest() {
@@ -381,17 +400,17 @@ class RegistrationProfileViewModel<T>(
 
         return validateForm(
             imageProfile = "_imageProfile.value",
-            firstName = _currentUser.value?.firstName,
-            lastName = _currentUser.value?.familyName,
-            gender = _currentUser.value?.gender,
-            birthDate = _currentUser.value?.birthDate
+            firstName = data.firstName,
+            lastName = data.lastName,
+            gender = data.gender,
+            birthDate = data.birthDate
         )
 
         if ((data.firstName ?: "").isBlank()) {
             errors["name"] = "El nombre es requerido"
         }
 
-        if ((data.familyName ?: "").isBlank()) {
+        if ((data.lastName ?: "").isBlank()) {
             errors["familyName"] = "El apellido es requerido"
         }
 
@@ -427,8 +446,10 @@ class RegistrationProfileViewModel<T>(
 
 
     data class UiState(
+
         val originalData: AppUser?,
         val currentData: AppUser,
+        val time: Int? = null,
         val isValid: Boolean = false,
         val isDirty: Boolean = false,
         val errors: Map<String, String> = emptyMap(),
@@ -442,8 +463,8 @@ class RegistrationProfileViewModel<T>(
         val haveCameraPermission: Boolean = false,
         val haveGalleryPermission: Boolean = false,
         val isComplete: Boolean = false,
-        val showDatePicker: Boolean = false
-
+        val showDatePicker: Boolean = false,
+        val showImagePicker: Boolean = false
     )
 
 }
