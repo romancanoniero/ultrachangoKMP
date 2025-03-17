@@ -154,13 +154,14 @@ fun HomeScreen(
     navController.clearBackStack(RootRoutes.HomeRoute.route)
 
     LaunchedEffect(Unit) {
-        vm.setPermissionsController(permissionsController)
+      //  vm.setPermissionsController(permissionsController)
+
+        vm.fetchData(true)
     }
 
     // val state by remember { mutableStateOf(vm.state) }
     val state by vm.state.collectAsState()
-
-    val fetchingLocations by vm.fetchingLocations.collectAsState()
+//    val fetchingLocations by vm.fetchingLocations.collectAsState()
     val locations by vm.knownLocations.collectAsState()
 
     val productsList by vm.productsList.collectAsState()
@@ -218,15 +219,11 @@ fun HomeScreen(
     }
 
     LaunchedEffect(Unit) {
-        //  vm.fetchData()
+
+
     }
 
-
-    println("Base - ubicaciones = " + Json.encodeToString(locations))
-
-
-    if (fetchingLocations) {
-
+    if (vm.state.value.fetchingDeviceLocation) {
         getCurrentLocation(onLocationObtained = {
             println("Location obtained")
             //   vm.onLocationObtained(it)
@@ -287,7 +284,7 @@ fun HomeScreen(
             vm,
            // salutation,
             focusRequester,
-            fetchingLocations,
+            vm.state.value.fetchingDeviceLocation,
             locations,
             searchText,
             productsDropdownExpanded,
@@ -388,7 +385,7 @@ private fun UpperSection(
     state: HomeScreenViewModel.UiState
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(Color.LightGray)
 
     ) {
        // Salutation(salutation)
@@ -899,7 +896,7 @@ fun Header(
 
 
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth().background(Color.Gray)) {
 
         Spacer(modifier = Modifier.height(10.dp))
 

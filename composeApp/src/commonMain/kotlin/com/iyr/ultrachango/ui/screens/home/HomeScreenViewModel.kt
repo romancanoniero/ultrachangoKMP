@@ -1,7 +1,6 @@
 package com.iyr.ultrachango.ui.screens.home
 
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.iyr.ultrachango.Constants
@@ -27,9 +26,6 @@ import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
 import dev.icerock.moko.permissions.DeniedAlwaysException
 import dev.icerock.moko.permissions.DeniedException
-import dev.icerock.moko.permissions.Permission
-import dev.icerock.moko.permissions.PermissionState
-import dev.icerock.moko.permissions.PermissionsController
 import dev.jordond.compass.Place
 import dev.jordond.compass.geolocation.Geolocator
 import dev.jordond.compass.geolocation.GeolocatorResult
@@ -45,6 +41,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -57,21 +54,12 @@ class HomeScreenViewModel(
     private val userViewModel: UserViewModel,
     private val authRepository: AuthRepository,
     private val scaffoldVM: ScaffoldViewModel,
+    private val permissionsController: com.iyr.ultrachango.utils.permissions.PermissionsController,
 ) : ViewModel(), KoinComponent {
 
-    /*
-        var state by mutableStateOf(UiState())
-            private set
-
-     */
-
-    val permissionsController = mutableStateOf<PermissionsController?>(null)
 
     private val _state = MutableStateFlow(UiState())
     val state: StateFlow<UiState> = _state.asStateFlow()
-
-    private val _fetchingLocations = MutableStateFlow(false)
-    val fetchingLocations: StateFlow<Boolean> = _fetchingLocations.asStateFlow()
 
 
     // - Busqueda de Productos
@@ -98,11 +86,12 @@ class HomeScreenViewModel(
 
     init {
 
+        //scaffoldVM.showLoader(true)
 
-        scaffoldVM.showLoader(true)
+        viewModelScope.launch(Dispatchers.IO) {
+            fetchLocation()
+        }
 
-
-        //     fetchLocation()
     }
 
 
@@ -110,46 +99,50 @@ class HomeScreenViewModel(
 
         permissionsController.let { _controller ->
             viewModelScope.launch {
-
                 //      try {
-                val permissionsController = _controller.value!!
+                //   val permissionsController = _controller.value!!
                 val granted =
-                    permissionsController.isPermissionGranted(Permission.LOCATION)
+                    permissionsController.isPermissionGranted(com.iyr.ultrachango.utils.permissions.Permission.LOCATION)
 
                 println("HomeScreenViewModel - fetchData - granted = $granted")
 
                 if (granted) {
                     executeMultipleRequests(true)
                 } else {
-
                     try {
 
-
-                        permissionsController.providePermission(Permission.LOCATION)
+                        //                permissionsController.providePermission(Permission.LOCATION)
+                        //  val result = permissionsController.getPermissionState(Permission.LOCATION)
                         val result =
-                            permissionsController.getPermissionState(Permission.LOCATION)
+                            permissionsController.getPermissionState(com.iyr.ultrachango.utils.permissions.Permission.LOCATION)
+
+
                         when (result) {
-                            PermissionState.NotDetermined -> {
+                            com.iyr.ultrachango.utils.permissions.PermissionState.NOT_DETERMINED -> {
                                 executeMultipleRequests(false)
                             }
 
-                            PermissionState.NotGranted -> {
-                                permissionsController.providePermission(Permission.LOCATION)
+                            com.iyr.ultrachango.utils.permissions.PermissionState.DENIED -> {
+                                permissionsController.requestPermission(com.iyr.ultrachango.utils.permissions.Permission.LOCATION)
                                 //                 executeMultipleRequests(false)
                             }
 
-                            PermissionState.Granted -> {
+                            com.iyr.ultrachango.utils.permissions.PermissionState.GRANTED -> {
                                 executeMultipleRequests(true)
                             }
 
-                            PermissionState.Denied -> {
+                            com.iyr.ultrachango.utils.permissions.PermissionState.DENIED_ALWAYS -> {
                                 //                   permissionsController.providePermission(Permission.LOCATION)
                                 executeMultipleRequests(false)
                             }
 
-                            PermissionState.DeniedAlways -> {
+                            com.iyr.ultrachango.utils.permissions.PermissionState.DENIED_ALWAYS -> {
                                 executeMultipleRequests(false)
                             }
+
+                            com.iyr.ultrachango.utils.permissions.PermissionState.RESTRICTED -> executeMultipleRequests(
+                                false
+                            )
                         }
 
                     } catch (e: Exception) {
@@ -470,7 +463,8 @@ class HomeScreenViewModel(
 
 
             //  return geoCode(it)
-            getPlaceFromCoordinates(viewModelScope,
+            getPlaceFromCoordinates(
+                viewModelScope,
                 lat,
                 lng,
                 onResult = { place ->
@@ -501,7 +495,7 @@ class HomeScreenViewModel(
 
     private suspend fun fetchLocations(requestRealLocation: Boolean) {
 
-        println("fetchLocations = " )
+        println("fetchLocations = ")
         val userKey = authRepository.getUserKey()
         var deferredResults: List<Deferred<Any>> = emptyList()
 
@@ -512,16 +506,28 @@ class HomeScreenViewModel(
                     getUserLocations(userKey!!)
                 },
                 viewModelScope.async {
-                    _fetchingLocations.value = true
+                    _state.update {
+                        _state.value.copy(
+                            fetchingDeviceLocation = true
+                        )
+                    }
                     val result = fetchLocation()
                     val location = geoCode(result.getOrNull())
-                    _fetchingLocations.value = false
+//                    _fetchingLocations.value = false
+                    _state.update {
+                        _state.value.copy(
+                            fetchingDeviceLocation = false
+                        )
+                    }
 
-                    var toReturn = List<Location>(1) {
-                        location!!.apply {
-                            title = location.province.toString()
-                            locationType = Locations.CURRENT_LOCATION
-                        }
+                    var toReturn : ArrayList<Location> = ArrayList<Location>()
+
+                    if (location != null) {
+                        toReturn.add(Location(title = location.province.toString(),locationType = Locations.CURRENT_LOCATION ))
+                    }
+                    else
+                    {
+                        toReturn.add(Location(title = "Error de Ubicacion",locationType = Locations.LOCATION_ERROR ))
                     }
                     toReturn
                 }
@@ -544,7 +550,7 @@ class HomeScreenViewModel(
             val currentLocation = results[1].get(0)
             responseConbined.add(currentLocation)
         } else {
-            if (permissionsController.value?.isPermissionGranted(Permission.LOCATION) == true == false) {
+            if (permissionsController.isPermissionGranted(com.iyr.ultrachango.utils.permissions.Permission.LOCATION) == true == false) {
                 val enableLocationsServiceOption = Location(
                     title = "Habilitar Servicio de Ubicación",
                     locationType = Locations.ENABLE_LOCATION
@@ -559,7 +565,7 @@ class HomeScreenViewModel(
 
 
     private suspend fun getCurrentLocation(
-        permissionsController: PermissionsController,
+        permissionsController: com.iyr.ultrachango.utils.permissions.PermissionsController,
     ): GeolocatorResult {
         val geolocator: Geolocator = Geolocator.mobile()
         val result: GeolocatorResult = geolocator.current()
@@ -596,7 +602,7 @@ class HomeScreenViewModel(
         //     viewModelScope.launch {
         //   val currentLocation = getCurrentLocation(permissionsController?.value!!)
 
-        return getCurrentLocation(permissionsController.value!!)
+        return getCurrentLocation(permissionsController)
         //      }
     }
 
@@ -647,9 +653,14 @@ class HomeScreenViewModel(
                 _knownLocations.value = locations as ArrayList<Location>
 
             }
-
-            _fetchingLocations.value = false
+            _state.update {
+                _state.value.copy(
+                    fetchingDeviceLocation = false
+                )
+            }
         }
+
+
     }
 
 
@@ -661,13 +672,13 @@ class HomeScreenViewModel(
         } else {
 
 
-            //viewModelScope.launch(Dispatchers.Main) {
-            //sss
-            //   fetchLocations(true)
+            viewModelScope.launch(Dispatchers.Main) {
+                //sss
+                //   fetchLocations(true)
 
-            permissionsController.value?.openAppSettings()
+                permissionsController.openAppSettings()
 //               permissionsController.value?.providePermission(Permission.LOCATION)
-            //  }
+            }
         }
     }
 
@@ -709,16 +720,17 @@ class HomeScreenViewModel(
         // TODO("Not yet implemented")
     }
 
-    fun setPermissionsController(permissionsController: PermissionsController) {
-        this.permissionsController.value = permissionsController
+    /*
+        fun setPermissionsController(permissionsController: PermissionsController) {
+            this.permissionsController.value = permissionsController
 
 
-        println("HomeScreenViewModel - setPermissionsController - permissionsController = $permissionsController")
-        fetchData(false)
+            println("HomeScreenViewModel - setPermissionsController - permissionsController = $permissionsController")
+            //    fetchData(false)
 
 
-    }
-
+        }
+    */
     suspend fun getPrices(
         ean: String,
         userId: String,
@@ -746,13 +758,11 @@ class HomeScreenViewModel(
 
     data class UiState(
         val showKeyboard: Boolean = false,
-        //      val searchResults: List<Product> = emptyList(),
         val productToShow: ProductOnSearch? = null,
         val productShoppingLists: List<Long> = emptyList(), // Lista de IDs de listas de compras en las que está el producto
         val showPulldownIcon: Boolean = true,
-        //       val searchResultsExpanded: Boolean = true,
         val shoppingLists: List<ShoppingList>? = null,
-        // val locations: List<Location>? = null,
+        val fetchingDeviceLocation: Boolean = false,
         val locationSelected: Location? = null,
         val showErrorMessage: Boolean = false,
         val errorMessage: String? = null,

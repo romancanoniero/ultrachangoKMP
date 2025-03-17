@@ -195,7 +195,7 @@ class ShoppingListRepository(
 
     fun getMembers(listId: Long, userId: String): Flow<List<ShoppingListMember>> = flow {
         val sorted = shoppingListCloudService.getMembers(listId, userId)
-            .sortedWith(compareByDescending<ShoppingListMember> { it.isAdmin }.thenBy { it.user?.nick })
+            .sortedWith(compareByDescending<ShoppingListMember> { it.isAdmin }.thenBy { it.user?.displayName })
 
         emit(sorted)
     }

@@ -37,6 +37,7 @@ import com.iyr.ultrachango.ui.dialogs.ErrorDialog
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.shoppinglist.dialogs.RenameDialog
 import com.iyr.ultrachango.ui.screens.shoppinglist.edition.RoundMemberItem
+import com.iyr.ultrachango.utils.ui.LoadingIndicator
 import com.iyr.ultrachango.utils.ui.elements.ItemListContainer
 import com.iyr.ultrachango.utils.ui.elements.ItemListTextHeader
 import com.iyr.ultrachango.utils.ui.elements.ItemListTextRegular
@@ -181,6 +182,13 @@ fun ShoppingListScreen(
         modifier = Modifier.fillMaxWidth(),
         state = pullRefreshState
     ) {
+
+        if (state.value.loading) {
+            LoadingIndicator(
+                enabled = true,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
         Column(
             modifier = Modifier

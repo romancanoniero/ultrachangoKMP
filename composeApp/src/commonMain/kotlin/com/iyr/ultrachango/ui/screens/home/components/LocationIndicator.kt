@@ -81,19 +81,11 @@ fun LocationIndicator(
                     modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.primary
                 )
             } else {
-
                 if (selectedLocation?.locationType == Locations.CUSTOM)
                     Icon(imageVector = Icons.Filled.Home, contentDescription = null)
                 else
                     Icon(imageVector = Icons.Filled.GpsFixed, contentDescription = null)
 
-/*
-                Icon(
-                    imageVector = Icons.Filled.LocationOn,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-                */
             }
             Spacer(modifier = Modifier.width(5.dp))
             Text(

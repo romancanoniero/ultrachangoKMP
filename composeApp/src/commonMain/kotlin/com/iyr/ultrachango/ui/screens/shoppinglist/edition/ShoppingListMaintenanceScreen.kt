@@ -63,6 +63,7 @@ import com.iyr.ultrachango.utils.helpers.getProfileImageURL
 import com.iyr.ultrachango.utils.sound.AudioPlayer
 import com.iyr.ultrachango.utils.ui.ShowKeyboard
 import com.iyr.ultrachango.utils.ui.UserImage
+import com.iyr.ultrachango.utils.ui.capitalizeFirstLetter
 import com.iyr.ultrachango.utils.ui.elements.ReusableSearchTextField
 import com.iyr.ultrachango.utils.ui.elements.StyleLight
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.ALREADY_EXISTS
@@ -361,7 +362,7 @@ fun RoundMemberItem(
 ) {
     Column {
 
-        val imageUrl = getProfileImageURL(member.userId, member.user?.fileName)
+        val imageUrl = getProfileImageURL(member.userId, member.user?.profilePicturePath)
 
         UserImage(
             modifier = Modifier.size(avatarSize!!),
@@ -370,7 +371,7 @@ fun RoundMemberItem(
         )
 
         Text(
-            text = member.user?.nick?.uppercase() ?: "XXXXXX", style = StyleLight()
+            text = member.user?.displayName?.capitalizeFirstLetter() ?: member.user?.firstName?:"".capitalizeFirstLetter(), style = StyleLight()
         )
     }
 

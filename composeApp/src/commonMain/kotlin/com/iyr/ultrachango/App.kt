@@ -39,9 +39,6 @@ import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
-import com.iyr.ultrachango.data.models.enums.Genders
-import com.iyr.ultrachango.preferences.managers.Persistence.Companion.KEY_USER_ID
-import com.iyr.ultrachango.preferences.managers.Persistence.Companion.KEY_USER_NAME
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.rootnavigation.RootNavGraph
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
@@ -75,7 +72,6 @@ import dev.jordond.compass.geolocation.Geolocator
 import dev.jordond.compass.geolocation.GeolocatorResult
 import dev.jordond.compass.geolocation.mobile
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource
@@ -88,17 +84,11 @@ import ultrachango2.composeapp.generated.resources.invite
 fun App(
     authRepository: AuthRepository = koinInject(),
     authViewModel: AuthViewModel = koinInject(),
-    firebaseRepository: FirebaseAuthRepository = FirebaseAuthRepository()
-    // database: UltraChangoDatabase? = null
 ) {
     // MaterialTheme {
-
     FirebaseInit().initialize()
     val navController = rememberNavController()
     val settings = Settings()
-
-//    settings[KEY_USER_NAME] = "USERNAME"
-//    settings[KEY_USER_ID] = "XXXX"
 
     ImageLoader.Builder(LocalPlatformContext.current).memoryCachePolicy(CachePolicy.ENABLED)
 
@@ -134,11 +124,22 @@ fun App(
     var user: AppUser? = null
     LaunchedEffect(Unit) {
 
+/*
+        permissionsController.checkAndRequestLocationPermission(
+            permissionsController = permissionsController,
+            onGranted = {
+                println("Permiso concedido")
+            },
+            onDenied = {
+                println("Permiso concedido")
+            },
+            onShowRationale = { }
+        )
+*/
         println("Reviso el Login")
         if (authRepository.isUserSignedIn()) {
             val authToken = authRepository.getAuthToken(refresh = true)
             settings.setAuthToken(authToken!!)
-
             val it = authRepository.getCurrentUser(true)
             if (it == null) {
                 authViewModel.signOut()
@@ -147,19 +148,6 @@ fun App(
                 user = it
             }
             loginStatusChecked = true
-
-            /*
-                       authRepository.fetchCurrentUser(forceRefresh = true) {
-                           if (it == null) {
-                               authViewModel.signOut()
-           //                    authRepository.logout()
-                           } else {
-                               user = it
-                           }
-                           loginStatusChecked = true
-                       }
-
-             */
         } else {
             loginStatusChecked = true
         }
@@ -179,9 +167,6 @@ fun App(
             )
         }
     } ?: run {
-
-        println("Putazo muestro")
-
         LoadingDialog()
     }
 }
@@ -191,7 +176,6 @@ fun NavHostMain(
     darkTheme: Boolean = isSystemInDarkTheme(), // Detecta el tema del sistema
     authRepository: AuthRepository = koinInject(),
     authViewModel: AuthViewModel = koinInject(),
-
     userViewModel: UserViewModel = koinInject(),
     navController: NavHostController = rememberNavController(),
     onNavigate: (rootName: String) -> Unit,
@@ -321,7 +305,7 @@ fun DynamicTopBar(
             var me: AppUser? = null
             var name: String? = null
             me = authRepository.getCurrentUser()
-            name = (me?.displayName?.capitalizeFirstLetter() ?: " ????? ").split(" ")[0]
+            name = (me?.displayName?.capitalizeFirstLetter() ?: me?.firstName.toString()).capitalizeFirstLetter()
             HomeTopAppBar(me?.uid!!, name ?: "??????", me?.profilePicturePath, shareButton)
 
         }
@@ -454,7 +438,7 @@ fun validateForm(
     gender: String?,
     birthDate: String?
 ): Boolean {
-    return (!validateImage || imageProfile != null) && !firstName.isNullOrBlank() && !lastName.isNullOrBlank() && gender != null && !birthDate.isNullOrEmpty()
+    return (!validateImage || !imageProfile.isNullOrBlank()) && !firstName.isNullOrBlank() && !lastName.isNullOrBlank() && gender != null && !birthDate.isNullOrEmpty()
 }
 
 @Composable

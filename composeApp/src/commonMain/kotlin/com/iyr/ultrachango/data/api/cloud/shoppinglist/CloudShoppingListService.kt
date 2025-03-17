@@ -83,6 +83,7 @@ class CloudShoppingListService(
             }
 
         } catch (e: Exception) {
+          var pp = e
            // throw e
             return emptyList()
         }

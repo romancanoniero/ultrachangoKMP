@@ -18,7 +18,7 @@ enum class Genders(val descriptionResId: StringResource) {
 
     companion object {
         fun fromString(value: String?): Genders {
-            return entries.find { it.toString() == value?.lowercase() } ?: UNKNOWN
+            return entries.find { it.toString().lowercase() == value?.lowercase() } ?: UNKNOWN
         }
 
 

@@ -237,7 +237,7 @@ fun UserWithHand(
         , contentAlignment = Alignment.BottomStart
     ) {
 
-        val imageUrl = getProfileImageURL(qtyRecord.userId.toString(), qtyRecord.user?.fileName)
+        val imageUrl = getProfileImageURL(qtyRecord.userId.toString(), qtyRecord.user?.profilePicturePath)
 
 
 

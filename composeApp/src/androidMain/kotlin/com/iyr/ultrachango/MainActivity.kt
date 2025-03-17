@@ -31,6 +31,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.iyr.ultrachango.data.models.User
+import com.iyr.ultrachango.data.models.enums.Genders
 import com.iyr.ultrachango.utils.firebase.GoogleAuth
 import com.iyr.ultrachango.utils.firebase.provideGoogleAuth
 import com.iyr.ultrachango.voice.handleVoiceCommand
@@ -261,15 +262,15 @@ fun AppAndroidPreview() {
     */
     val user = User(
         uid = "3TydQxH8kSXSSjjbKhvWBtYtvhj2",
-        nick = "1",
+        displayName = "1",
         firstName = "1",
         lastName = "1",
-        fileName = "IMG_1739231148.jpg",
+        profilePicturePath = "IMG_1739231148.jpg",
         email = "romuriopatigno@gmail.com",
         phoneNumber = "1",
         isAnonymous = true,
         birthDate = "1",
-        gender = 1
+        gender = Genders.UNKNOWN.name
 
     )
     /*

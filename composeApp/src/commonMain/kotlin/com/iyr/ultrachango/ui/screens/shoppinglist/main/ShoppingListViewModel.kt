@@ -14,6 +14,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 
@@ -29,7 +30,6 @@ class ShoppingListViewModel(
     ) : ViewModel(), KoinComponent {
 
 
-
     private val _state = MutableStateFlow(UiState())
     val state: StateFlow<UiState> = _state.asStateFlow()
 
@@ -43,22 +43,30 @@ class ShoppingListViewModel(
     }
 
     suspend fun fetchLists() {
-        scaffoldVM.showLoader(true)
-
+        _state.update {
+            it.copy(loading = true)
+        }
         try {
             shoppingListRepository.fetchLists().collect {
-
-                _state.value = _state.value.copy(list = it)
-                scaffoldVM.showLoader(false)
+                val newList = it.toList()
+//                _state.value = _state.value.copy(list = it)
+//                scaffoldVM.showLoader(false)
+                _state.update {
+                    it.copy(
+                        loading = false,
+                        list = newList
+                    )
+                }
             }
-        } catch (e: Exception) {
-            scaffoldVM.showLoader(false)
-
-            _state.value = _state.value.copy(
-                loading = false,
-                errorMessage = e.message,
-                showErrorMessage = true
-            )
+        } catch (ex: Exception) {
+            _state.update {
+                it.copy(
+                    loading = false,
+                    list = emptyList(),
+                    errorMessage = ex.message,
+                    showErrorMessage = true
+                )
+            }
         }
     }
 

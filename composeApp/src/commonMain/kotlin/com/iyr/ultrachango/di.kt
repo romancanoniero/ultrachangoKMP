@@ -1,6 +1,7 @@
 package com.iyr.ultrachango
 
 
+import coil3.compose.LocalPlatformContext
 import com.iyr.ultrachango.data.api.cloud.auth.CloudAuthService
 import com.iyr.ultrachango.data.api.cloud.familymembers.CloudFamilyMembersService
 import com.iyr.ultrachango.data.api.cloud.images.CloudImagesService
@@ -16,6 +17,7 @@ import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
 import com.iyr.ultrachango.data.database.repositories.StoresRepository
 import com.iyr.ultrachango.data.database.repositories.UserLocationsRepository
 import com.iyr.ultrachango.data.database.repositories.UserRepositoryImpl
+import com.iyr.ultrachango.di.permissions.permissionsModule
 import com.iyr.ultrachango.di.platformAuthModule
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.auth.config.profile.RegistrationProfileViewModel
@@ -47,6 +49,8 @@ import com.iyr.ultrachango.utils.ui.places.borrar.PlacesSearchService
 import com.iyr.ultrachango.utils.ui.places.borrar.PlacesSearchViewModel
 import com.iyr.ultrachango.viewmodels.UserViewModel
 import com.russhwolf.settings.Settings
+import dev.icerock.moko.permissions.PermissionsController
+import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
@@ -78,7 +82,11 @@ val baseModule = module {
             }
         }
     }
+
 }
+
+
+
 
 val configModule: Module = module {
     // Configuración de versiones
@@ -224,46 +232,46 @@ val dataModule = module {
     }
 
 
-factoryOf(::InviteViewModel)
+    factoryOf(::InviteViewModel)
 
-factory {
-    PlacesSearchViewModel(
-        placesSearchService = get()
-    )
-}
+    factory {
+        PlacesSearchViewModel(
+            placesSearchService = get()
+        )
+    }
 
-factory {
-    LocationsViewModel(
-        scaffoldVM = get(),
-        userViewModel = get(),
-        placesSearchService = get(),
-        locationRepository = get(),
-        authRepository = get(),
-    )
-}
-
-
+    factory {
+        LocationsViewModel(
+            scaffoldVM = get(),
+            userViewModel = get(),
+            placesSearchService = get(),
+            locationRepository = get(),
+            authRepository = get(),
+        )
+    }
 
 
-factoryOf(::PlacesSearchService)
-factoryOf(::CloudProductsService)
-factoryOf(::CloudLocationsService)
-factoryOf(::CloudFamilyMembersService)
-factoryOf(::CloudShoppingListService)
+
+
+    factoryOf(::PlacesSearchService)
+    factoryOf(::CloudProductsService)
+    factoryOf(::CloudLocationsService)
+    factoryOf(::CloudFamilyMembersService)
+    factoryOf(::CloudShoppingListService)
 // factoryOf(::CloudUsersService)
 
-factoryOf(::SearchWithScannerViewModel)
+    factoryOf(::SearchWithScannerViewModel)
 
 
 
-factory {
-    ProfileViewModel(
-        authService = get(),
-        scaffoldVM = get(),
-        usersRepository = get(),
-        imagesRepository = get()
-    )
-}
+    factory {
+        ProfileViewModel(
+            authService = get(),
+            scaffoldVM = get(),
+            usersRepository = get(),
+            imagesRepository = get()
+        )
+    }
 
 }
 
@@ -299,7 +307,8 @@ val viewModelsModule = module {
             userLocationsRepository = get(),
             userViewModel = get(),
             authRepository = get(),
-            scaffoldVM = get()
+            scaffoldVM = get(),
+            permissionsController = get()
         )
     }
 
@@ -375,6 +384,7 @@ fun initKoin(config: KoinAppDeclaration? = null) {
         config?.invoke(this)
         modules(
             baseModule,
+            permissionsModule,
             appModule,
             configModule,
             authModule,

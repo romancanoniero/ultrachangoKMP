@@ -207,7 +207,7 @@ fun MemberItem(
             modifier = Modifier.fillMaxWidth().weight(1f)
         ) {
 
-            ItemListTextHeader(text = member.user?.nick.toString())
+            ItemListTextHeader(text = member.user?.displayName.toString())
             //   Text(text = member.connectionStatus.toString(), style = Style)
             if (member.isAdmin) {
                 //Text("Admin")

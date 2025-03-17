@@ -50,9 +50,10 @@ fun HomeTopAppBar(userKey: String,
 
             Spacer(modifier = Modifier.size(10.dp))
 
+
             UserImage(
                 modifier = Modifier.size(40.dp),
-                getProfileImageURL(userKey, urlImage) )
+                getProfileImageURL(userKey, "${userKey}.jpg") )
         },
         modifier = Modifier.fillMaxWidth(),
         colors = TopAppBarDefaults.topAppBarColors(

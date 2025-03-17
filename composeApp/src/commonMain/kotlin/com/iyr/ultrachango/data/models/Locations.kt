@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 enum class Locations {
     CUSTOM,
     CURRENT_LOCATION,
-    ENABLE_LOCATION
+    ENABLE_LOCATION,
+    LOCATION_ERROR
 }
 
 @Serializable

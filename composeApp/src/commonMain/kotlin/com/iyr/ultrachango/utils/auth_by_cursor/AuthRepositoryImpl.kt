@@ -405,12 +405,15 @@ class AuthRepositoryImpl(
             return settings.getUserLocally()
         else {
             val userKey = firebaseAuth.getCurrentUser()?.uid
-            userApp = runBlocking {
-                return@runBlocking getUser(userKey!!, true).getOrNull()
+            userKey?.let { it ->
+                userApp = runBlocking {
+                    return@runBlocking getUser(it, true).getOrNull()
+                }
             }
+
         }
-        if (userApp != null) {
-            settings.storeUserLocally(userApp)
+        userApp?.let { it ->
+            settings.storeUserLocally(it)
         }
         return userApp
     }

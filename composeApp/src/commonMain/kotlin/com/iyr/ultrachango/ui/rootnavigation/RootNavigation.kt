@@ -75,7 +75,7 @@ fun RootNavGraph(
 
     val me = authRepository.getCurrentUser()
     val checkLoggedIn = isLoggedIn && validateForm(
-        validateImage = false,
+        validateImage = true,
         firstName = me?.firstName,
         lastName = me?.lastName,
         imageProfile = me?.profilePicturePath,
@@ -97,7 +97,7 @@ fun RootNavGraph(
 
 
     NavHost(
-        modifier = modifier.padding(0.dp).fillMaxSize().background(Color.Transparent),
+        modifier = modifier.padding(innerPadding).fillMaxSize().background(Color.Transparent),
         navController = rootNavController,
         startDestination = start
 

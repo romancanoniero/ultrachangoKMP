@@ -159,7 +159,7 @@ class RegistrationProfileViewModel<T>(
         when (field) {
             Fields.FIRST_NAME -> modifiedData.firstName = value as String
             Fields.LAST_NAME -> modifiedData.lastName = value as String
-            Fields.GENDER -> modifiedData.gender = value as String
+            Fields.GENDER -> modifiedData.gender = (value as Genders).name
             Fields.BIRTH_DATE -> modifiedData.birthDate = value as String?
             Fields.PROFILE_IMAGE_PATH -> modifiedData.profilePicturePath as String
         }
