@@ -43,7 +43,6 @@ import coil3.request.CachePolicy
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.rootnavigation.RootNavGraph
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
-import com.iyr.ultrachango.ui.screens.animations.ShoppingBasketScreen
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
 import com.iyr.ultrachango.ui.screens.navigation.bottombar.BottomNavigationBar
 import com.iyr.ultrachango.ui.screens.navigation.bottombar.NavigationItem
