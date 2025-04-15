@@ -56,4 +56,6 @@ data class Sucursale(
             differenceWithOthers = 0
         )
     }
+
+    fun getUniqueKey() = "${comercioId}-${banderaId}-${id}"
 }

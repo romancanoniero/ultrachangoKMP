@@ -3,7 +3,13 @@ package com.iyr.ultrachango.utils.ui.elements
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import com.iyr.ultrachango.ui.theme.Typography
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -30,13 +36,24 @@ fun H2Text(text: String) {
 @Composable
 fun H3Text(
     modifier: Modifier = Modifier,
-    text: String
+    text: String,
+    fontWeight: FontWeight = FontWeight.Normal,
+    textDecoration : TextDecoration = TextDecoration.None,
+    color : Color = Color.Unspecified,
+    shadow: Boolean = false,
+    shadowColor : Color = Color.Unspecified,
 ) {
 
     Text(
         modifier = modifier,
         text = text,
-        style = Typography.h3,
+        style = Typography.h3.copy(
+            fontWeight = fontWeight,
+            textDecoration = textDecoration,
+            shadow = if (shadow) Shadow(color = shadowColor, blurRadius = 7.5f) else Shadow.None
+        ),
+        color = color,
+
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
     )
@@ -45,12 +62,17 @@ fun H3Text(
 @Composable
 fun Body1Text(
     modifier: Modifier = Modifier,
-    text: String
+    text: String,
+    fontWeight: FontWeight = FontWeight.Normal,
+    textDecoration : TextDecoration = TextDecoration.None
 ) {
     Text(
         modifier = modifier,
         text = text,
-        style = StyleTextRegular(),
+        style = Typography.body1.copy(
+            fontWeight = fontWeight,
+            textDecoration = textDecoration
+        ),
         overflow = TextOverflow.Ellipsis
     )
 }

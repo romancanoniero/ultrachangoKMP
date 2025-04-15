@@ -16,6 +16,7 @@ import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.coroutines.Resource
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.ALREADY_EXISTS
+import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.GENERIC_PRODUCT
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.NON_EXISTING
 import com.iyr.ultrachango.viewmodels.UserViewModel
 import dev.icerock.moko.permissions.DeniedAlwaysException
@@ -43,7 +44,6 @@ class ShoppingListAddEditViewModel(
     private val userViewModel: UserViewModel,
     private val scaffoldVM: ScaffoldViewModel,
 ) : ViewModel(), KoinComponent {
-
 
 
     var permissionsController: PermissionsController? = null
@@ -118,7 +118,7 @@ class ShoppingListAddEditViewModel(
         val ean = product.ean
         viewModelScope.launch(Dispatchers.IO) {
             closeDialogsRequested()
-            shoppingListRepository.addProductToList(listId, ean, 1)
+            shoppingListRepository.addProductToList(listId, ean!!, 1)
             fetchData()
         }
     }
@@ -173,12 +173,16 @@ class ShoppingListAddEditViewModel(
      * @param text
      *
      */
-    fun onProductTextInput(text: String, lat: Double = -34.586050, lng: Double = -58.504600) {
+    fun onProductTextInput(
+        text: String,
+        lat: Double = -34.586050,
+        lng: Double = -58.504600,
+        includeFreeText: Boolean = false
+    ) {
         scaffoldVM.showLoader(true)
         _state.value = _state.value.copy(
             showKeyboard = false,
             loadingProducts = true,
-
         )
         searchJob?.let {
             it.cancel()
@@ -193,20 +197,27 @@ class ShoppingListAddEditViewModel(
                 scaffoldVM.showLoader(false)
             }.collect { resource ->
                 // Actualizar el estado con los resultados de búsqueda
-
                 when (resource) {
                     is Resource.Success -> {
 
                         scaffoldVM.showLoader(false)
 
-                        val records = resource.data?.map { it -> it.toProductOnSearch() }
+                        var records = resource.data?.map { it -> it.toProductOnSearch() }
 
+                        if (includeFreeText) {
+
+                            records = listOf(ProductOnSearch(ean = text, name = text, brand = "", status = GENERIC_PRODUCT)) + (records ?: emptyList<ProductOnSearch>() )
+
+                        }
 
                         val mappedList = records?.map { product ->
                             product.status =
                                 if (shoppingList?.items?.any { it.product?.ean == product.ean } == true) ALREADY_EXISTS else NON_EXISTING
                             product
                         } ?: emptyList()
+
+
+
 
                         _state.value = _state.value.copy(
                             showPulldownIcon = true,
@@ -282,8 +293,8 @@ class ShoppingListAddEditViewModel(
 // TODO
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = productsRepository.searchByBarCodeByLatLngCloud(
-                    barcode, -34.586050, -58.504600
+                val response = productsRepository.searchByBarCodeCloud(
+                    barcode
                 )
                 val productToShow = response.get("product") as Product
                 val listWhereProductIs = response.get("shoppingLists") as List<Long>
@@ -353,18 +364,18 @@ fun completeMembers(
     myUserId: String, shoppingList: ShoppingListComplete
 ): List<ShoppingListProductComplete> {
     val members = shoppingList.members
-    val creatorId = shoppingList.userId
+    val creatorId = shoppingList.userKey
     shoppingList.items?.forEach { item ->
         val quantities = item.quantities?.toMutableList()
 
         // Añadir registros faltantes en quantities para cada miembro
         members?.forEach { member ->
-            if (quantities?.none { it.userId == member.userId } == true) {
+            if (quantities?.none { it.userKey == member.userKey } == true) {
                 quantities.add(
                     ShoppingListQuantities(
                         listId = shoppingList.listId ?: 0,
                         ean = item.product?.ean ?: "",
-                        userId = member.userId,
+                        userKey = member.userKey,
                         qty = 0.0
                     )
                 )
@@ -373,9 +384,10 @@ fun completeMembers(
 
         // Ordenar quantities: primero el creador de la lista, luego los demás
         item.quantities = quantities?.sortedWith(
-            compareBy({ it.userId != creatorId },
-                { it.userId != myUserId },
-                { it.userId })
+            compareBy(
+                { it.userKey != creatorId },
+                { it.userKey != myUserId },
+                { it.userKey })
         )
     }
 

@@ -63,6 +63,7 @@ val sections = listOf<Section>(
         route = AppRoutes.ProvidersList.route,
         params = arrayListOf("Dia%")
     )
+    /*
     , Section(
         sectionKey = "rewards_list",
         title = "Modo",
@@ -77,7 +78,7 @@ val sections = listOf<Section>(
         route = AppRoutes.ProvidersList.route,
         params = arrayListOf("Dia%")
     )
-
+*/
 
 
 )

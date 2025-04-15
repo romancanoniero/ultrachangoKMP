@@ -3,9 +3,14 @@ package com.iyr.ultrachango.utils.helpers
 import com.iyr.ultrachango.config.Config
 import com.iyr.ultrachango.config.Config.BASE_URL_CLOUD_SERVER
 
+
+fun getProfileImageURL(userKey: String): String? {
+    return "$BASE_URL_CLOUD_SERVER/api/client/${userKey}/image/${userKey}.jpg"
+}
+
+
 fun getProfileImageURL(userKey: String, fileName: String?): String? {
     if (fileName == null) return null
-
     return "$BASE_URL_CLOUD_SERVER/api/client/${userKey}/image/${fileName}"
 }
 

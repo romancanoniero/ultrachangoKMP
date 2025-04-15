@@ -1,6 +1,5 @@
 package com.iyr.ultrachango.ui.screens.shoppinglist.edition
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FrontHand
 import androidx.compose.material.icons.outlined.FrontHand
 import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -40,7 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.iyr.ultrachango.data.models.ShoppingListProductComplete
 import com.iyr.ultrachango.data.models.ShoppingListQuantities
@@ -49,15 +48,11 @@ import com.iyr.ultrachango.ui.theme.cardViewElevation
 import com.iyr.ultrachango.utils.helpers.getProductImageUrl
 import com.iyr.ultrachango.utils.helpers.getProfileImageURL
 import com.iyr.ultrachango.utils.ui.UserImage
-import com.iyr.ultrachango.utils.ui.elements.ItemListImageBox
+import com.iyr.ultrachango.utils.ui.elements.ImageBox
 import com.iyr.ultrachango.utils.ui.elements.ItemListTextRegular
 import com.iyr.ultrachango.utils.ui.elements.ItemListTextSubHeader
 import com.iyr.ultrachango.utils.ui.elements.UserPictureRegular
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
-import org.jetbrains.compose.resources.painterResource
-import ultrachango2.composeapp.generated.resources.Res
-import ultrachango2.composeapp.generated.resources.profile_pic
-import ultrachango2.composeapp.generated.resources.sin_imagen
 
 private val Color.Companion.Orange: Color
     get() {
@@ -155,6 +150,7 @@ fun UsersWhoWantIt(
                             triggerHapticFeedback()
                             onClick()
                         }),
+                    userkey = qtyRecord.userKey,
                     qtyRecord = qtyRecord,
                     onClick =
                     {
@@ -186,7 +182,7 @@ fun UserQuantityWithBadge(
                 onClick()
             }
     ) {
-        getProfileImageURL(qtyRecord.userId.toString(), "").let {
+        getProfileImageURL(qtyRecord.userKey.toString(), "").let {
             UserPictureRegular(
                 modifier = Modifier.size(60.dp),
                 imageModel = it!!,
@@ -222,8 +218,9 @@ fun UserQuantityWithBadge(
 @Composable
 fun UserWithHand(
     modifier: Modifier = Modifier,
-    qtyRecord: ShoppingListQuantities,
-    onClick: () -> Unit?,
+    userkey: String,
+    qtyRecord: ShoppingListQuantities? = null,
+    onClick: () -> Unit? = {},
 ) {
 
 
@@ -237,48 +234,55 @@ fun UserWithHand(
         , contentAlignment = Alignment.BottomStart
     ) {
 
-        val imageUrl = getProfileImageURL(qtyRecord.userId.toString(), qtyRecord.user?.profilePicturePath)
+        val imageUrl = getProfileImageURL(userkey)
 
 
+        BadgedBox(
+            badge = {
+                Badge(
+                    modifier = Modifier
+                        .offset(-2.dp, 2.dp)
+                        .fillMaxHeight(.4f)
+                        .aspectRatio(1f)
+                        .border(1.dp, color = Color.LightGray, shape = CircleShape)
+                        .align(Alignment.TopEnd)
+                        .clip(CircleShape),
+                    containerColor = Color.White
+                ) {
+                    if (qtyRecord?.qty == 0.0) {
+                        Icon(
+                            imageVector = Icons.Outlined.FrontHand,
+                            contentDescription = "solicitado",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.FrontHand,
+                            contentDescription = "solicitado",
+                            modifier = Modifier.size(24.dp),
+                            tint = Color.Orange
+
+                        )
+                    }
+                }
 
 
-        UserImage(
-            modifier = Modifier.fillMaxHeight(.80f)
-                .aspectRatio(1f),
-            urlImage = imageUrl,
-            onClick = {
-                triggerHapticFeedback()
-                onClick()
-            },
-        )
-
-
-        Badge(
-            modifier = Modifier
-                .offset(-2.dp, 2.dp)
-                .fillMaxHeight(.4f)
-                .aspectRatio(1f)
-                .border(1.dp, color = Color.LightGray, shape = CircleShape)
-                .align(Alignment.TopEnd)
-                .clip(CircleShape),
-            containerColor = Color.White
-        ) {
-            if (qtyRecord.qty == 0.0) {
-                Icon(
-                    imageVector = Icons.Outlined.FrontHand,
-                    contentDescription = "solicitado",
-                    modifier = Modifier.size(24.dp)
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Filled.FrontHand,
-                    contentDescription = "solicitado",
-                    modifier = Modifier.size(24.dp),
-                    tint = Color.Orange
-
-                )
             }
+        ) {
+
+            UserImage(
+                modifier = Modifier.fillMaxHeight(1f)
+                    .aspectRatio(1f),
+                urlImage = imageUrl,
+                onClick = {
+                    triggerHapticFeedback()
+                    onClick()
+                },
+            )
+
         }
+
+
     }
 
 
@@ -312,10 +316,7 @@ fun ProductInfoItem(
     onIncrement: (Int, String, String, Double) -> Unit,
     onDecrement: (Int, String, String, Double) -> Unit
 ) {
-//    var urlProduct = "https://imagenes.preciosclaros.gob.ar/productos/${product.product?.ean}.jpg"
     var urlProduct = getProductImageUrl(product.product?.ean.toString())
-    //    "https://imagenes.preciosclaros.gob.ar/productos/${product.product?.ean}.jpg"
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -339,12 +340,14 @@ fun ProductInfoItem(
            {
                Box(modifier = Modifier.size(80.dp))
                {
-                   if (product.product?.haveImage == true) {
-                       ItemListImageBox(
+           //        if (product.product?.haveImage == true) {
+                       ImageBox(
                            modifier = Modifier.fillMaxSize(),
                            imageModel = urlProduct,
-                           contentDesription = product.product?.name ?: ""
+                           contentDesription = product.product?.name ?: "",
+                           showImage = product.product?.haveImage!!
                        )
+/*
                    }
                    else
                    {
@@ -353,13 +356,15 @@ fun ProductInfoItem(
                            contentDescription = "No image",
                            contentScale = ContentScale.Crop)
                    }
+
+ */
                }
 
            }
 
 
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    ItemListTextRegular(text = product.product?.ean ?: "")
+                     ItemListTextRegular(text = product.product?.ean ?: "")
                     ItemListTextSubHeader(text = product.product?.name ?: "")
 
                     Row(modifier = Modifier.fillMaxWidth())
@@ -440,7 +445,7 @@ fun QuantitySelectorItem(
     var prevValue = rememberSaveable { mutableStateOf(qtyRecord.qty) }
 
     Row {
-        getProfileImageURL(qtyRecord.userId, "").let {
+        getProfileImageURL(qtyRecord.userKey, "").let {
 
             UserPictureRegular(
                 modifier = Modifier.size(60.dp),
@@ -465,7 +470,7 @@ fun QuantitySelectorItem(
                         }
                         try {
                             onDecrement(
-                                qtyRecord.listId, qtyRecord.ean, qtyRecord.userId, counter.value
+                                qtyRecord.listId, qtyRecord.ean, qtyRecord.userKey, counter.value
                             )
                             prevValue.value = counter.value
                         } catch (e: Exception) {
@@ -497,7 +502,7 @@ fun QuantitySelectorItem(
 
                         try {
                             onIncrement(
-                                qtyRecord.listId, qtyRecord.ean, qtyRecord.userId, counter.value
+                                qtyRecord.listId, qtyRecord.ean, qtyRecord.userKey, counter.value
                             )
                             prevValue.value = counter.value
                         } catch (e: Exception) {

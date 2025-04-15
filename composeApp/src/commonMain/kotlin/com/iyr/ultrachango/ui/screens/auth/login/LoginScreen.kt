@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
@@ -52,7 +53,6 @@ import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.auth.registration.MethodDivider
 import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
-import com.iyr.ultrachango.utils.auth_by_cursor.di.BuildConfig
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.statemanagers.AuthStates
 import com.iyr.ultrachango.utils.auth_by_cursor.ui.AuthState
@@ -475,7 +475,8 @@ private fun InputSection(
             Column {
                 Body1Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(Res.string.enter_otp_code)
+                    text = stringResource(Res.string.enter_otp_code),
+                    fontWeight = FontWeight.ExtraBold
                 )
 
                 OtpInputField(

@@ -67,6 +67,7 @@ import com.iyr.ultrachango.utils.ui.capitalizeFirstLetter
 import com.iyr.ultrachango.utils.ui.elements.ReusableSearchTextField
 import com.iyr.ultrachango.utils.ui.elements.StyleLight
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.ALREADY_EXISTS
+import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.GENERIC_PRODUCT
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.NON_EXISTING
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 import com.iyr.ultrachango.viewmodels.UserViewModel
@@ -216,7 +217,8 @@ fun ShoppingListAddEditScreen(
                         if (text.length >= 4 && text.isDigitsOnly())
                             vm.onBarcodeScanned(text)
                         else
-                            vm.onProductTextInput(text)
+                            vm.onProductTextInput(text = text,
+                                includeFreeText = true)
                     }
                 }
         }
@@ -236,7 +238,7 @@ fun ShoppingListAddEditScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             SearchTextFieldWithScanner(
-                userKey = userViewModel.user.value?.uid,
+                userKey = userViewModel.user.value?.userKey,
                 text = searchText,
                 loadingProducts = state.loadingProducts,
                 onTextChange = {
@@ -281,21 +283,21 @@ fun ShoppingListAddEditScreen(
                             //        vm.onProductDeleted(it)
                         },
                         onToggle = {
-                            val myUserItem = item.quantities?.first { it.userId == userKey }
+                            val myUserItem = item.quantities?.first { it.userKey == userKey }
                             myUserItem?.let {
                                 val isSelected = it.qty > 0
                                 if (isSelected)
                                     onDecButtonPressed(
                                         listId = myUserItem.listId,
                                         ean = myUserItem.ean,
-                                        userId = myUserItem.userId,
+                                        userId = myUserItem.userKey,
                                         value = 0.0
                                     )
                                 else
                                     onIncButtonPressed(
                                         listId = myUserItem.listId,
                                         ean = myUserItem.ean,
-                                        userId = myUserItem.userId,
+                                        userId = myUserItem.userKey,
                                         value = 1.0
                                     )
                             }
@@ -361,8 +363,7 @@ fun RoundMemberItem(
     onClick: () -> Unit = {},
 ) {
     Column {
-
-        val imageUrl = getProfileImageURL(member.userId, member.user?.profilePicturePath)
+        val imageUrl = getProfileImageURL(member.userKey, member.user?.profilePicturePath)
 
         UserImage(
             modifier = Modifier.size(avatarSize!!),
@@ -502,6 +503,11 @@ fun DropdownItemProductSearch(
 
         //if (showAddButton) {
         when (product.status) {
+            GENERIC_PRODUCT -> {
+                onExistingIcon?.let {
+
+                }
+            }
             ALREADY_EXISTS -> {
                 onExistingIcon?.let {
                     Icon(
@@ -514,13 +520,6 @@ fun DropdownItemProductSearch(
 
             NON_EXISTING -> {
                 onNonExistingIcon?.let {
-                    /*
-                                           Icon(
-                                               imageVector = it,
-                                               contentDescription = "No existe",
-                                               tint = Color.Green
-                                           )
-                   */
                     IconButton(
                         modifier = Modifier,
                         onClick = {

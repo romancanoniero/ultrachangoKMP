@@ -16,6 +16,11 @@ interface ICloudProductsService {
 
     suspend fun getProductByEANWithShoppingList(ean: String, userId: String): HashMap<String, Any>
 
+    suspend fun getProductByEANLatLng(ean: String,
+                                      latitude: Double,
+                                      longitude: Double,
+                                      radius: Int): HashMap<String, Any>
+
     suspend fun createProduct(product: Product): Product
 
     suspend fun updateProduct(product: Product): Product

@@ -34,9 +34,8 @@ import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.Genders
 import com.iyr.ultrachango.utils.firebase.GoogleAuth
 import com.iyr.ultrachango.utils.firebase.provideGoogleAuth
+import com.iyr.ultrachango.utils.ui.elements.IncDecSelectorPreview
 import com.iyr.ultrachango.voice.handleVoiceCommand
-import org.koin.core.context.startKoin
-import org.koin.dsl.module
 
 class MainActivity : ComponentActivity() {
 
@@ -260,19 +259,7 @@ fun AppAndroidPreview() {
             onDismiss = {}
         )
     */
-    val user = User(
-        uid = "3TydQxH8kSXSSjjbKhvWBtYtvhj2",
-        displayName = "1",
-        firstName = "1",
-        lastName = "1",
-        profilePicturePath = "IMG_1739231148.jpg",
-        email = "romuriopatigno@gmail.com",
-        phoneNumber = "1",
-        isAnonymous = true,
-        birthDate = "1",
-        gender = Genders.UNKNOWN.name
 
-    )
     /*
         UserWithHand(
             modifier = Modifier.size(100.dp),
@@ -292,4 +279,5 @@ fun AppAndroidPreview() {
     // InviteScreen(InviteViewModel())
 
     //  LoginScreen()
+  IncDecSelectorPreview()
 }

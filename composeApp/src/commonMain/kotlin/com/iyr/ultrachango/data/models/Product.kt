@@ -8,10 +8,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 //@Entity("products")
-data class Product
+open class Product
     (
    // @PrimaryKey
-    var ean: String,
+    var ean: String? = null,
     var name: String? = null,
     var brand: String? = null,
     var description: String? = null,
@@ -48,7 +48,7 @@ data class Product
 
 data class ProductOnSearch
     (
-    var ean: String,
+    var ean: String? = null,
     var name: String? = null,
     var brand: String? = null,
     var presentation: String? = null,

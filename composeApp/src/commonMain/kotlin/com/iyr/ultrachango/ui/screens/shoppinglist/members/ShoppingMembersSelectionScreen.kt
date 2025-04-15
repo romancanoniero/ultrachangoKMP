@@ -189,7 +189,7 @@ fun MemberItem(
              }
         */
 
-        getProfileImageURL(member.userId,"").let {
+        getProfileImageURL(member.userKey,"").let {
 
             UserPictureRegular(
                 modifier = Modifier.size(60.dp),
@@ -221,7 +221,7 @@ fun MemberItem(
             CustomSwitch(
                 checked = included, enabled = true, onCheckedChange = { status ->
                     included = status
-                    onStatusChange?.invoke(member.userId,status)
+                    onStatusChange?.invoke(member.userKey,status)
 
                 }, modifier = Modifier.padding(8.dp)
             )

@@ -7,10 +7,12 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.ShoppingCartCheckout
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LocationCity
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.ShoppingCartCheckout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -24,6 +26,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.iyr.ultrachango.data.models.sampleLocations
 import com.iyr.ultrachango.ui.ScaffoldViewModel
+import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.fidelization.FidelizationScreen
 import com.iyr.ultrachango.ui.screens.home.HomeScreen
 import com.iyr.ultrachango.ui.screens.locations.dialogs.LocationDialog
@@ -69,14 +72,20 @@ val navigationItemsLists = listOf(
     NavigationItem(
         unSelectedIcon = Icons.Outlined.ShoppingCart,
         selectedIcon = Icons.Filled.ShoppingCart,
-        title = "Preparar",
-        route = AppRoutes.SettingRoute.route,
+        title = "Carrito",
+        route = RootRoutes.PreparationDetailRoute.route,
+    ),
+    NavigationItem(
+        unSelectedIcon = Icons.Outlined.ShoppingCartCheckout,
+        selectedIcon = Icons.Default.ShoppingCartCheckout,
+        title = "Armar",
+        route = RootRoutes.BuyRoute.route,
     ),
     NavigationItem(
         unSelectedIcon = Icons.Outlined.LocationCity,
         selectedIcon = Icons.Filled.LocationCity,
         title = "Ubicaciones",
-        route = AppRoutes.LocationRoute.route,
+        route = RootRoutes.PreparationRoute.route,
     ),
 
     NavigationItem(

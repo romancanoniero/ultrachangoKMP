@@ -3,10 +3,12 @@ package com.iyr.ultrachango.data.api.cloud.shoppinglist
 
 import com.iyr.ultrachango.config.Config.BASE_URL_CLOUD_SERVER
 import com.iyr.ultrachango.data.api.cloud.Response
+import com.iyr.ultrachango.data.models.Product
 import com.iyr.ultrachango.data.models.ShoppingListProduct
 import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.ShoppingListComplete
 import com.iyr.ultrachango.data.models.ShoppingListMember
+import com.iyr.ultrachango.utils.extensions.isDigitsOnly
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -55,6 +57,28 @@ class CloudShoppingListService(
         val call = client.get(url)
 
         val response = call.body<Response<ShoppingListComplete>>()
+
+        // -- si el ean es un texto generico , le creo el producto.
+        response.let { it ->
+            it.payload?.items?.forEach { item ->
+                if (!item.ean.isDigitsOnly())
+                {
+                    var newProduct = Product(ean = item.ean,
+                        name = item.ean,
+                        brand = "",
+                        description = "",
+                        presentationUnit = "",
+                        presentationQty = 0.0,
+                        nombre_lower = item.ean.lowercase(),
+                        haveImage = false
+                        )
+
+                    item.product = newProduct
+                }
+
+            }
+        }
+
         when (call.status.value) {
             200 -> {
                 return response.payload!!

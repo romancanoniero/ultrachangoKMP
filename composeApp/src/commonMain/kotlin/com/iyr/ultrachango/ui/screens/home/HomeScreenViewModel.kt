@@ -177,6 +177,12 @@ class HomeScreenViewModel(
             deferredResults.awaitAll()
             val shoppingListSimple = shoppingLists?.map { it.toShoppingList() }
 
+            _state.update {
+                it.copy(
+                    shoppingLists = shoppingListSimple,
+                )
+            }
+
             scaffoldVM.showLoader(false)
             //       _knownLocations.value = locations ?: emptyList()
 
@@ -333,11 +339,11 @@ class HomeScreenViewModel(
 
     fun onFavButtonPressed(product: Product, favorite: Boolean) {
         viewModelScope.launch {
-            val userKey = userViewModel.user.value?.uid.toString()
+            val userKey = userViewModel.user.value?.userKey.toString()
             val ean = product.ean
 
             productsRepository.favoritesTogle(
-                ean = ean, favorite = favorite
+                ean = ean!!, favorite = favorite
             )
         }
     }
@@ -374,12 +380,12 @@ class HomeScreenViewModel(
     }
 
     fun onBarcodeScanned(barcode: String) {
-        val userId = userViewModel.user.value?.uid.toString()
+        val userId = userViewModel.user.value?.userKey.toString()
 
         viewModelScope.launch {
             try {
-                val response = productsRepository.searchByBarCodeByLatLngCloud(
-                    barcode, -34.586050, -58.504600
+                val response = productsRepository.searchByBarCodeCloud(
+                    barcode
                 )
                 val productToShow = response.get("product") as Product
                 val listWhereProductIs = response.get("shoppingLists") as List<Long>
@@ -409,9 +415,9 @@ class HomeScreenViewModel(
     //------------------------------------
 
 
-    fun onCreateRoutToShoppingListRequested(listId: Int): String {
+    fun onCreateRoutToShoppingListRequested(listId: Int, listName : String): String {
         val userKey = userViewModel.getUserKey()
-        return AppRoutes.ShoppingListEditRoute.createRoute(userKey, listId)
+        return AppRoutes.ShoppingListEditRoute.createRoute(userKey, listId, listName)
     }
 
     fun closeDropDown() {
@@ -741,7 +747,7 @@ class HomeScreenViewModel(
     ) {
         try {
             val userKey = userViewModel.getUserKey()
-            val response = productsRepository.searchByBarCodeByLatLngCloud(
+            val response = productsRepository.searchByBarCodeCloud(
                 ean = ean,
                 latitude = -34.586050,
                 longitude = -58.504600,

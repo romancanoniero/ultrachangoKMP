@@ -116,7 +116,7 @@ class ShoppingListViewModel(
 
     fun onRenameRequested(shoppingList: ShoppingList, newName: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val userKey = userViewModel.user.value?.uid.toString()
+            val userKey = userViewModel.user.value?.userKey.toString()
             shoppingListRepository.renameList(shoppingList.id, newName)
         }
     }
@@ -155,7 +155,7 @@ class ShoppingListViewModel(
     }
 
     fun onRefreshRequested() {
-        val userId = userViewModel.user.value?.uid.toString()
+        val userId = userViewModel.user.value?.userKey.toString()
         try {
             viewModelScope.launch(Dispatchers.IO) {
                 fetchLists()

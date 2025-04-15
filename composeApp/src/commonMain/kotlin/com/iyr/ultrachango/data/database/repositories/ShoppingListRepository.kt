@@ -43,7 +43,7 @@ class ShoppingListRepository(
         shoppingListComplete.forEach {
             val shoppingList = ShoppingList(
                 listId = it.listId,
-                userId = it.userId,
+                userId = it.userKey,
                 listName = it.listName,
                 imageUrl = it.imageUrl,
                 items = it.items?.map { productComplete ->

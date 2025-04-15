@@ -58,6 +58,8 @@ qr = "3.0.6"
 firebaseAuthKtx = "23.2.0"
 cocoapods = "2.0.0"
 uiTextAndroid = "1.7.8"
+locale_icu_version = "69.1"
+
 
 [libraries]
 
@@ -85,6 +87,9 @@ firebase-crashlyticsKtx = { module = "com.google.firebase:firebase-crashlytics-k
 
 
 qr = { group = "network.chaintech", name = "qr-kit", version.ref = "qr" }
+
+locale_icu ={ group = "com.ibm.icu", name = "icu4j", version.ref = "locale_icu_version" }
+
 
 
 

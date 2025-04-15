@@ -1,8 +1,8 @@
 package com.iyr.ultrachango.data.models
 
 
+import com.iyr.ultrachango.utils.extensions.isDigitsOnly
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 
 
 @Serializable
@@ -15,7 +15,7 @@ data class ShoppingListComplete(
 
     var listId: Int? = null,
 
-    var userId: String? = null,
+    var userKey: String? = null,
 
     var listName: String? = null,
 
@@ -76,13 +76,10 @@ data class ShoppingListComplete(
     fun toShoppingList(): ShoppingList {
         return ShoppingList(
             listId = listId,
-            userId = userId,
+            userId = userKey,
             listName = listName,
             imageUrl = imageUrl,
             members = members,
-            //           members = members?.map { memberComplete ->
-            //               ShoppingListMember(listId = listId!!, userId = memberComplete.userId)
-            //           } ?: emptyList(),
             items = items?.map { productComplete ->
                 ShoppingListProduct(
                     listId = listId!!,
@@ -104,7 +101,7 @@ data class ShoppingListMemberComplete(
     var listId: Int,
 
     //@ColumnInfo(name = "user_id")
-    var userId: String,
+    var userKey: String,
     /*
         @Relation(
             entity = User::class, /* The class of the related table(entity) (the children)*/
@@ -121,7 +118,7 @@ data class ShoppingListMemberComplete(
     fun toShoppingListMember(): ShoppingListMember {
         return ShoppingListMember(
             listId = listId,
-            userId = userId,
+            userKey = userKey,
             user = user
         )
     }
@@ -149,7 +146,9 @@ data class ShoppingListProductComplete(
            /* For the mapping table */
        )
      */
-    val product: Product? = null,
+
+    val ean: String,
+    var product: Product? = null,
 
 
     /*
@@ -163,7 +162,38 @@ data class ShoppingListProductComplete(
      */
     var quantities: List<ShoppingListQuantities>? = null,
 
-    )
+    ) {
+    fun toShoppingCartProduct(): ShoppingCartProduct {
+        // this.quantities?.get(0)?.user?.toUserMinimum()
+        var shoppingCartProduct: ShoppingCartProduct? = null
+
+        if (this.ean.toString().isDigitsOnly()) {
+            shoppingCartProduct = ShoppingCartProduct(
+                ean = ean,
+                name = this.product?.name,
+                brand = this.product?.brand,
+                presentation = this.product?.presentation,
+                haveImage = this.product?.haveImage ?: false,
+                requirers = this.quantities?.map { quantity ->
+                    quantity.user?.toUserMinimum()!!
+                }?.toCollection(ArrayList()) ?: ArrayList<UserMinimum>(),
+            )
+
+        } else {
+            shoppingCartProduct = ShoppingCartProduct(
+                ean = ean,
+                name = ean,
+                brand = "",
+                presentation = "",
+                haveImage = false,
+                requirers = this.quantities?.map { quantity ->
+                    quantity.user?.toUserMinimum()!!
+                }?.toCollection(ArrayList()) ?: ArrayList<UserMinimum>(),
+            )
+        }
+        return shoppingCartProduct
+    }
+}
 
 
 //-------------
@@ -247,7 +277,7 @@ data class ShoppingListQuantities(
     var ean: String,
 
     //@ColumnInfo(name = "user_id")
-    var userId: String,
+    var userKey: String,
 
     //@ColumnInfo(name = "qty")
     var qty: Double,
@@ -271,7 +301,7 @@ data class ShoppingListMember(
     var listId: Int,
 
     //@ColumnInfo(name = "user_id")
-    var userId: String,
+    var userKey: String,
 
     //@Ignore
     var user: User? = null,
@@ -284,7 +314,7 @@ data class ShoppingListMember(
     fun toShoppingListMemberComplete(): ShoppingListMemberComplete {
         return ShoppingListMemberComplete(
             listId = listId,
-            userId = userId,
+            userKey = userKey,
             user = user
         )
 

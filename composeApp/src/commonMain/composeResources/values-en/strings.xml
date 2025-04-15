@@ -1,4 +1,10 @@
 <resources>
+    <string name="shopping_cart">Shopping Cart</string>
+    <string name="shopping">Prepare Shopping</string>
+    <string name="empty_cart">Empty Cart</string>
+    <string name="empty_cart_message">Are you sure you want to remove all items?</string>
+
+    <string name="parameters">Parameters</string>
     <string name="continuar">Continue</string>
     <string name="correo_electronico">email</string>
     <string name="back_to_login">Back to Login</string>

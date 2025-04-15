@@ -128,6 +128,7 @@ fun SearchWithScanner(
 
 const val ALREADY_EXISTS = "ALREADY_EXISTS"
 const val NON_EXISTING = "NON_EXISTING"
+const val GENERIC_PRODUCT = "GENERIC_PRODUCT"
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -158,17 +159,16 @@ fun SearchTextFieldWithScanner(
     val state by vm.state.collectAsState()
 
 
+    //  val searchResults by  remember {  mutableStateOf(arrayListOf<Product>()) }
+    /*
+        lifeCycleScope.launch {
+            vm.searchResults.collect{ results ->
 
-  //  val searchResults by  remember {  mutableStateOf(arrayListOf<Product>()) }
-/*
-    lifeCycleScope.launch {
-        vm.searchResults.collect{ results ->
-
-            if (results.isNotEmpty())
-                searchResults.addAll(results)
+                if (results.isNotEmpty())
+                    searchResults.addAll(results)
+            }
         }
-    }
-*/
+    */
 
 
 
@@ -260,8 +260,10 @@ fun SearchTextFieldWithScanner(
 
             val mappedList = state.searchResults.map { product -> product.toProductOnSearch() }
             mappedList.forEach { product ->
-                product.status =
-                    if (existingEANs?.contains(product.ean) == true) ALREADY_EXISTS else NON_EXISTING
+                if (product.status != NON_EXISTING) {
+                    product.status =
+                        if (existingEANs?.contains(product.ean) == true) ALREADY_EXISTS else NON_EXISTING
+                }
             }
 
             mappedList.forEach { product ->

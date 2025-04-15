@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.iyr.ultrachango.ui.screens.qrscanner.QRTypes
@@ -147,7 +148,8 @@ fun SharedButtonsSection(inputText: String) {
 
             Body1Text(
                 modifier = Modifier.padding(horizontal = 10.dp),
-                "O invita mediante "
+                "O invita mediante ",
+                fontWeight = FontWeight.ExtraBold
             )
 
             androidx.compose.material.Divider(

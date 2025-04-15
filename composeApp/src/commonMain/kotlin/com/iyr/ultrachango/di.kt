@@ -1,8 +1,8 @@
 package com.iyr.ultrachango
 
 
-import coil3.compose.LocalPlatformContext
 import com.iyr.ultrachango.data.api.cloud.auth.CloudAuthService
+import com.iyr.ultrachango.data.api.cloud.buy.prepare.CloudShoppingCartService
 import com.iyr.ultrachango.data.api.cloud.familymembers.CloudFamilyMembersService
 import com.iyr.ultrachango.data.api.cloud.images.CloudImagesService
 import com.iyr.ultrachango.data.api.cloud.location.CloudLocationsService
@@ -13,12 +13,12 @@ import com.iyr.ultrachango.data.api.preciosclaros.PreciosClarosService
 import com.iyr.ultrachango.data.database.repositories.FamilyMembersRepository
 import com.iyr.ultrachango.data.database.repositories.ImagesRepository
 import com.iyr.ultrachango.data.database.repositories.ProductsRepository
+import com.iyr.ultrachango.data.database.repositories.ShoppingCartRepository
 import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
 import com.iyr.ultrachango.data.database.repositories.StoresRepository
 import com.iyr.ultrachango.data.database.repositories.UserLocationsRepository
 import com.iyr.ultrachango.data.database.repositories.UserRepositoryImpl
 import com.iyr.ultrachango.di.permissions.permissionsModule
-import com.iyr.ultrachango.di.platformAuthModule
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.auth.config.profile.RegistrationProfileViewModel
 import com.iyr.ultrachango.ui.screens.auth.login.LoginViewModel
@@ -30,15 +30,16 @@ import com.iyr.ultrachango.ui.screens.locations.main.LocationsViewModel
 import com.iyr.ultrachango.ui.screens.member.MembersScreenViewModel
 import com.iyr.ultrachango.ui.screens.setting.SettingScreen.SettingsScreenViewModel
 import com.iyr.ultrachango.ui.screens.setting.profile.ProfileViewModel
+import com.iyr.ultrachango.ui.screens.shopping.ProductPriceDisplayViewModel
+import com.iyr.ultrachango.ui.screens.shoppingcart.ShoppingCartMaintenanceViewModel
+import com.iyr.ultrachango.ui.screens.shoppingcart.ShoppingCartViewModel
 import com.iyr.ultrachango.ui.screens.shoppinglist.edition.ShoppingListAddEditViewModel
-import com.iyr.ultrachango.viewmodels.InviteViewModel
 import com.iyr.ultrachango.ui.screens.shoppinglist.main.ShoppingListViewModel
 import com.iyr.ultrachango.ui.screens.shoppinglist.members.ShoppingMembersSelectionViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.AuthRepositoryImpl
 import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.auth.FirebaseAuth
 import com.iyr.ultrachango.utils.auth_by_cursor.auth.FirebaseInit
-import com.iyr.ultrachango.utils.auth_by_cursor.auth.GoogleSignInAuth
 import com.iyr.ultrachango.utils.auth_by_cursor.di.BuildConfig
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
@@ -47,19 +48,16 @@ import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.SearchWithScannerViewModel
 import com.iyr.ultrachango.utils.ui.places.borrar.PlacesSearchService
 import com.iyr.ultrachango.utils.ui.places.borrar.PlacesSearchViewModel
+import com.iyr.ultrachango.viewmodels.InviteViewModel
 import com.iyr.ultrachango.viewmodels.UserViewModel
 import com.russhwolf.settings.Settings
-import dev.icerock.moko.permissions.PermissionsController
-import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.util.Platform
 import kotlinx.serialization.json.Json
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
-import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.KoinAppDeclaration
@@ -84,8 +82,6 @@ val baseModule = module {
     }
 
 }
-
-
 
 
 val configModule: Module = module {
@@ -252,13 +248,22 @@ val dataModule = module {
 
 
 
-
+    factory {
+        CloudShoppingCartService(
+            client = get(),
+        )
+    }
     factoryOf(::PlacesSearchService)
     factoryOf(::CloudProductsService)
     factoryOf(::CloudLocationsService)
     factoryOf(::CloudFamilyMembersService)
     factoryOf(::CloudShoppingListService)
-// factoryOf(::CloudUsersService)
+    factory {
+        ShoppingCartRepository(
+            authRepository = get(),
+            shoppingCartCloudService = get(),
+        )
+    }
 
     factoryOf(::SearchWithScannerViewModel)
 
@@ -281,6 +286,15 @@ val viewModelsModule = module {
 
     //  viewModelOf(::HomeScreenViewModel)
 
+    single {
+        ProductPriceDisplayViewModel(
+            authRepository = get(),
+            shoppingListRepository = get(),
+            shoppingCartRepository = get(),
+            productsRepository = get()
+
+        )
+    }
 
     viewModel { OtpViewModel(get()) }
 
@@ -324,6 +338,30 @@ val viewModelsModule = module {
         )
     }
 
+
+    viewModel {
+        ShoppingCartViewModel(
+            authRepository = get(),
+            shoppingListRepository = get(),
+            shoppingCartRepository = get(),
+            tiendasRepository = get(),
+            userViewModel = get(),
+            scaffoldVM = get()
+        )
+    }
+
+
+
+    single {
+        ShoppingCartMaintenanceViewModel(
+            authRepository = get(),
+            productsRepository = get(),
+            shoppingListRepository = get(),
+            shoppingCartRepository = get(),
+            //  userViewModel = get(),
+            scaffoldVM = get()
+        )
+    }
 
     viewModel {
         ShoppingMembersSelectionViewModel(

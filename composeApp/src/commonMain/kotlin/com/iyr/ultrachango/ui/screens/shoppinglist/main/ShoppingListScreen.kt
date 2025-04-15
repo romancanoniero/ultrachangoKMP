@@ -153,14 +153,17 @@ fun ShoppingListScreen(
     val showDeleteConfirmationDialog by remember { mutableStateOf(null) }
 
 
-  //  val nav by remember { mutableStateOf(navController) }
+    //  val nav by remember { mutableStateOf(navController) }
     val scope = rememberCoroutineScope()
 
 
     fun onItemClicked(shoppingList: ShoppingList): Unit {
         val route =
-            RootRoutes.ShoppingListEditRoute.createRoute(shoppingList.userId, shoppingList.listId, shoppingList.listName)
-//            AppRoutes.ShoppingListEditRoute.createRoute(shoppingList.userId, shoppingList.listId)
+            RootRoutes.ShoppingListEditRoute.createRoute(
+                shoppingList.userId,
+                shoppingList.listId,
+                shoppingList.listName
+            )
         navController?.navigate(route)
     }
 
@@ -239,10 +242,11 @@ fun ShoppingListScreen(
                 }
             }
 
-            Button(modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Black, buttonShapeSmall)
-                .padding(2.dp),
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black, buttonShapeSmall)
+                    .padding(2.dp),
                 colors = androidx.compose.material.ButtonDefaults.textButtonColors(
                     backgroundColor = Color.Black, contentColor = Color.White
                 ),

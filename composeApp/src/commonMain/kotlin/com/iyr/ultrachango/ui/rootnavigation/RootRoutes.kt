@@ -62,11 +62,36 @@ sealed class RootRoutes(val route: String) {
     object SettingRoute : RootRoutes("settings")
 
 
+    object PreparationRoute : RootRoutes("preparation")
+
+    object BuyRoute : RootRoutes("buy")
+
+
+
+    object PreparationDetailRoute : RootRoutes("preparationdetail")
+   /*
+    {
+        fun createRoute(
+            userKey: String? = null,
+            preparationListId: Int? = null,
+            preparationListName: String? = null
+        ): String {
+            val preparationName = '"'+preparationListName.toString()+'"'
+
+            return "preparationdetail/$userKey/$preparationListId/$preparationName"
+        }
+    }
+
+    */
+
+
+    object IntroAnimationRoute : RootRoutes("introanimation")
+
     object ShoppingListRoute : RootRoutes("shoppinglist")
 
     object ShoppingListAddRoute : RootRoutes("shoppinglistadd")
 
-    object ShoppingListEditRoute : RootRoutes("shoppinglistedit/{userKey?}/{listId?}") {
+    object ShoppingListEditRoute : RootRoutes("shoppinglistedit/{userKey?}/{listId?}/{listName?}") {
         fun createRoute(
             userKey: String? = null,
             shoppingListId: Int? = null,
@@ -75,6 +100,20 @@ sealed class RootRoutes(val route: String) {
             return "shoppinglistedit/$userKey/$shoppingListId/$listName"
         }
     }
+
+
+    object ProductPricesDetailRoute : RootRoutes("productpricesdetail/{userKey?}/{ean?}/{name?}/{productAsJson?}") {
+        fun createRoute(
+            entityId:Int? = null,
+            userKey: String,
+            ean: String,
+            name: String,
+            productAsJson: String
+        ): String {
+            return "productpricesdetail/$entityId/$userKey/$ean/$name/$productAsJson"
+        }
+    }
+
 
     object ShoppingListDetailRoute : RootRoutes("shoppinglistdetail/{listId?}") {
         fun createRoute(shoppingList: ShoppingList? = null): String {

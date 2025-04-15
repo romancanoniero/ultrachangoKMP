@@ -3,6 +3,7 @@ package com.iyr.ultrachango.utils.ui.elements
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,12 +28,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.iyr.ultrachango.ui.theme.SFProMediumFontFamily
-import com.iyr.ultrachango.ui.theme.cardViewColors
 import com.iyr.ultrachango.ui.theme.textIntense
+import com.iyr.ultrachango.utils.ui.toGrayscale
 import org.jetbrains.compose.resources.painterResource
 import ultrachango2.composeapp.generated.resources.Res
+import ultrachango2.composeapp.generated.resources.app_logo
 import ultrachango2.composeapp.generated.resources.sin_imagen
-
 
 
 @Composable
@@ -44,16 +45,16 @@ fun ItemListContainer(
     Box(
         modifier = modifier
             .height(IntrinsicSize.Min)
-            .background(Color.White)
-        ,
+            .background(Color.White),
         contentAlignment
     ) {
-       Box(modifier = Modifier
-           .padding(vertical = 14.dp, horizontal = 10.dp)
-           )
-       {
-           content()
-       }
+        Box(
+            modifier = Modifier
+                .padding(vertical = 14.dp, horizontal = 10.dp)
+        )
+        {
+            content()
+        }
     }
 }
 
@@ -102,39 +103,48 @@ fun ItemListTextRegular(
 
 
 @Composable
-fun ItemListImageBox(
+fun ImageBox(
     modifier: Modifier = Modifier,
     imageModel: String,
-    contentDesription: String
+    contentDesription: String,
+    showImage: Boolean = true,
+
 ) {
 
     Card(
         modifier =
-        modifier
-            .padding(vertical = 6.dp, horizontal = 8.dp)
-            .width(80.dp)
-            .height(80.dp),
+            modifier
+                .padding(vertical = 6.dp, horizontal = 8.dp)
+                .width(80.dp)
+                .height(80.dp),
 //        colors = cardViewColors
     )
     {
-        AsyncImage(
-            model = imageModel,
-            placeholder = painterResource(Res.drawable.sin_imagen),
-            contentDescription = contentDesription,
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .clip(RoundedCornerShape(10.dp))
-                .clickable {
-                    //    onImageClicked(product)
+        if (showImage) {
+            AsyncImage(
+                model = imageModel,
+                placeholder = painterResource(Res.drawable.sin_imagen),
+                contentDescription = contentDesription,
+                modifier = modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .clip(RoundedCornerShape(10.dp))
 
-                }
-        )
+            )
+        } else {
+            Image(
+                modifier = Modifier.fillMaxSize()
+                    .focusable(false),
+         //       painter = painterResource(Res.drawable.sin_imagen),
+                painter = painterResource(Res.drawable.app_logo).toGrayscale(),
+                contentDescription = "No image",
+                contentScale = ContentScale.Crop
+            )
+        }
     }
 }
 
-enum class UserPictureInfoMode
-{
+enum class UserPictureInfoMode {
     PLAIN,
     BADGE_QTY,
     BADGE_HAND
@@ -147,7 +157,7 @@ fun UserPictureRegular(
         .height(80.dp),
     imageModel: String,
     contentDesription: String,
-    mode : UserPictureInfoMode = UserPictureInfoMode.PLAIN,
+    mode: UserPictureInfoMode = UserPictureInfoMode.PLAIN,
     onClick: () -> Unit? = {},
 
     ) {
@@ -183,7 +193,7 @@ fun UserPictureRegular(
         .height(80.dp),
     imageVector: ImageVector,
     contentDesription: String,
-    innerPadding : PaddingValues = PaddingValues(0.dp),
+    innerPadding: PaddingValues = PaddingValues(0.dp),
 
     ) {
 

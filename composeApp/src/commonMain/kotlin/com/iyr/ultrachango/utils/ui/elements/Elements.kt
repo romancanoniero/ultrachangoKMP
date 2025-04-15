@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,12 +30,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.iyr.ultrachango.ui.theme.SFProMediumFontFamily
 import com.iyr.ultrachango.ui.theme.textIntense
 
 
@@ -75,6 +73,12 @@ var customCardColors = CardColors(
     disabledContentColor = Color.Gray
 )
 
+
+enum class CircleSize(val value: Dp) {
+    SMALL(30.dp),
+    MEDIUM(48.dp),
+    BIG(50.dp)
+}
 
 val itemListHeightStandard = 60.dp
 

@@ -7,9 +7,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 // @Entity("users")
 data class User(
+
  //   @PrimaryKey
  //   @ColumnInfo(name = "user_id")
-    var uid: String,
+    var userKey: String,
    // @ColumnInfo(name = "nick")
 
 
@@ -33,14 +34,27 @@ data class User(
     var birthDate: String? = null,
  //   @ColumnInfo(name = "gender")
    // var gender: Int? = null,
-    var gender: String = Genders.UNKNOWN.name
+    var gender: String? = Genders.UNKNOWN.name
 
 
 
 ) {
+    fun toUserMinimum(): UserMinimum {
+        return UserMinimum(
+            userKey = this.userKey,
+            displayName = this.displayName,
+            profilePicturePath = this.profilePicturePath)
+    }
 
     constructor() : this("", "", "", "", "", "", "", true, "", Genders.UNKNOWN.name)
 
-    constructor(id : String) : this(uid = id, displayName = "", firstName = "", lastName = "", profilePicturePath = "",  email = "", phoneNumber = "", isAnonymous = true, birthDate = "",)
+    constructor(userKey : String) :this(userKey = userKey,
+        displayName = "",
+        firstName = "",
+        lastName = "",
+        profilePicturePath = "",
+        email = "",
+        )
+            //this(userkey = userKey, displayName = "", firstName = "", lastName = "", profilePicturePath = "",  email = "", phoneNumber = "", isAnonymous = true, birthDate = "",)
 
 }

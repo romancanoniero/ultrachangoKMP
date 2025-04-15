@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -42,18 +43,19 @@ import coil3.request.CachePolicy
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.rootnavigation.RootNavGraph
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
+import com.iyr.ultrachango.ui.screens.animations.ShoppingBasketScreen
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
 import com.iyr.ultrachango.ui.screens.navigation.bottombar.BottomNavigationBar
 import com.iyr.ultrachango.ui.screens.navigation.bottombar.NavigationItem
 import com.iyr.ultrachango.ui.screens.navigation.navigationItemsLists
 import com.iyr.ultrachango.ui.screens.qrscanner.QRTypes
+import com.iyr.ultrachango.ui.screens.shoppingcart.ShoppingCartMaintenanceViewModel
 import com.iyr.ultrachango.ui.screens.topbars.HomeTopAppBar
 import com.iyr.ultrachango.ui.screens.topbars.ScreenTopAppBar
 import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.auth.FirebaseInit
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
-import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
 import com.iyr.ultrachango.utils.sound.AudioPlayer
 import com.iyr.ultrachango.utils.ui.LoadingDialog
 import com.iyr.ultrachango.utils.ui.capitalizeFirstLetter
@@ -78,7 +80,8 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
 import ultrachango2.composeapp.generated.resources.Res
-import ultrachango2.composeapp.generated.resources.invite
+import ultrachango2.composeapp.generated.resources.shopping
+import ultrachango2.composeapp.generated.resources.shopping_cart
 
 @Composable
 fun App(
@@ -116,6 +119,10 @@ fun App(
     var loginStatusChecked by remember { mutableStateOf<Boolean?>(null) }
 
 
+
+
+
+
     if (loginStatusChecked == null) {
         LoadingDialog()
     }
@@ -123,19 +130,6 @@ fun App(
 
     var user: AppUser? = null
     LaunchedEffect(Unit) {
-
-/*
-        permissionsController.checkAndRequestLocationPermission(
-            permissionsController = permissionsController,
-            onGranted = {
-                println("Permiso concedido")
-            },
-            onDenied = {
-                println("Permiso concedido")
-            },
-            onShowRationale = { }
-        )
-*/
         println("Reviso el Login")
         if (authRepository.isUserSignedIn()) {
             val authToken = authRepository.getAuthToken(refresh = true)
@@ -151,15 +145,14 @@ fun App(
         } else {
             loginStatusChecked = true
         }
-
     }
 
+//    loginStatusChecked = false
 
 
     loginStatusChecked?.let {
         if (it) {
             NavHostMain(
-
                 navController = navController,
                 onNavigate = { rootName ->
                     navController.navigate(rootName)
@@ -288,7 +281,8 @@ fun DynamicTopBar(
     authRepository: AuthRepository,
     authViewModel: AuthViewModel,
     currentRoute: String?,
-    navController: NavController
+    navController: NavController,
+
 ) {
     val shareButton = {
         navController.navigate(
@@ -298,6 +292,7 @@ fun DynamicTopBar(
             )
         )
     }
+
 
 
     when (currentRoute?.substringBefore("/")) {
@@ -312,23 +307,44 @@ fun DynamicTopBar(
 
         RootRoutes.MembersRoute.route,
         AppRoutes.SettingRoute.route,
-        RootRoutes.SharingRoute.route,
+        RootRoutes.ProductPricesDetailRoute.route.substringBefore("/"),
+        RootRoutes.SharingRoute.route.substringBefore("/"),
+        RootRoutes.BuyRoute.route,
         RootRoutes.ShoppingListRoute.route,
         RootRoutes.ShoppingListEditRoute.route.substringBefore("/"),
+        RootRoutes.PreparationRoute.route,
+        RootRoutes.PreparationDetailRoute.route.substringBefore("/"),
         RootRoutes.LocationRoute.route,
         RootRoutes.SettingDetail.route,
+        RootRoutes.FidelizationRoute.route,
         RootRoutes.QRScannerScreenRoute.route.substringBefore("/")
             -> {
 
             when (currentRoute?.substringBefore("/")) {
-                RootRoutes.ShoppingListRoute.route -> {
-                    ScreenTopAppBar(navController = navController, title = "🛒 Listas de Compras")
-                }
 
-                RootRoutes.SharingRoute.route -> {
+                RootRoutes.ShoppingListRoute.route -> {
                     ScreenTopAppBar(
                         navController = navController,
-                        title = stringResource(Res.string.invite)
+                        title = "🛒 Listas de Compras",
+
+                    )
+                }
+
+                RootRoutes.PreparationRoute.route -> {
+                    ScreenTopAppBar(
+                        navController = navController,
+                        title = "🛒 Preparacion",
+
+                    )
+                }
+
+
+
+                RootRoutes.SharingRoute.route.substringBefore("/")-> {
+                    ScreenTopAppBar(
+                        navController = navController,
+                        title = "🔊 Invitar amigos ",
+                         //stringResource(Res.string.invite)
                     )
                 }
 
@@ -338,20 +354,96 @@ fun DynamicTopBar(
                         navController.currentBackStackEntry?.arguments?.getString("listName")
                             ?: "Lista de Compras"
 
-                    ScreenTopAppBar(navController = navController, title = "🛒 " + listName)
+                    ScreenTopAppBar(
+                        navController = navController,
+                        title = "🛒 " + listName,
+
+                    )
                 }
+
+                RootRoutes.ProductPricesDetailRoute.route.substringBefore("/") -> {
+                    val userKey =
+                        navController.currentBackStackEntry?.arguments?.getString("user_key")
+                            ?: "Producto"
+
+                    val ean =
+                        navController.currentBackStackEntry?.arguments?.getString("ean")
+                            ?: "Producto"
+
+                    val name =
+                        navController.currentBackStackEntry?.arguments?.getString("name")
+                            ?: "Producto"
+
+                    ScreenTopAppBar(
+                        navController = navController,
+                        title = "🛍️ " + name,
+
+                    )
+                }
+
+
+
+                RootRoutes.PreparationDetailRoute.route.substringBefore("/") -> {
+                    // Lógica que se ejecuta cuando el icono es presionado
+                    val shoppingCartMaintenanceViewModel: ShoppingCartMaintenanceViewModel = koinInject()
+                    val actionEmptyTrash = Pair(
+                        Icons.Default.Delete
+                    ) {
+                        shoppingCartMaintenanceViewModel.deleteAllItems()
+                    }
+
+                    val actions = listOf(actionEmptyTrash)
+
+
+                    ScreenTopAppBar(navController = navController,
+                        title = "🛒 " + stringResource(Res.string.shopping_cart),
+                        actionIcons = actions,
+                      )
+                }
+
+
+                RootRoutes.BuyRoute.route -> {
+                    // Lógica que se ejecuta cuando el icono es presionado
+                    val shoppingCartMaintenanceViewModel: ShoppingCartMaintenanceViewModel = koinInject()
+                    val actionEmptyTrash = Pair(
+                        Icons.Default.Delete
+                    ) {
+                        shoppingCartMaintenanceViewModel.deleteAllItems()
+                    }
+
+                    val actions = listOf(actionEmptyTrash)
+
+
+                    ScreenTopAppBar(navController = navController,
+                        title = "🛒 " + stringResource(Res.string.shopping),
+                        actionIcons = actions,
+                    )
+                }
+
 
 
                 RootRoutes.LocationRoute.route -> {
-                    ScreenTopAppBar(navController = navController, title = "📍 Ubicación")
+                    ScreenTopAppBar(
+                        navController = navController,
+                        title = "📍 Ubicación",
+
+                    )
                 }
 
                 RootRoutes.SettingDetail.route -> {
-                    ScreenTopAppBar(navController = navController, title = "⚙️ Configuración")
+                    ScreenTopAppBar(
+                        navController = navController,
+                        title = "⚙️ Configuración",
+
+                    )
                 }
 
                 RootRoutes.SettingRoute.route -> {
-                    ScreenTopAppBar(navController = navController, title = "⚙️ Configuración")
+                    ScreenTopAppBar(
+                        navController = navController,
+                        title = "⚙️ Configuración",
+
+                    )
                 }
 
                 RootRoutes.MembersRoute.route -> {
@@ -364,10 +456,22 @@ fun DynamicTopBar(
                     val actions = listOf(actionScanQR)
 
                     ScreenTopAppBar(
-                        modifier = Modifier,
                         navController = navController,
                         title = "👥 Grupo Familiar",
-                        actions
+                        actionIcons = actions,
+
+                    )
+                }
+
+                RootRoutes.FidelizationRoute.route -> {
+
+
+
+
+                    ScreenTopAppBar(
+                        navController = navController,
+                        title = "🎁 Fidelizacion",
+
                     )
                 }
 
@@ -379,7 +483,11 @@ fun DynamicTopBar(
                 }
 
                 else -> {
-                    ScreenTopAppBar(navController = navController, title = "🏠 Inicio")
+                    ScreenTopAppBar(
+                        navController = navController,
+                        title = "🏠 Inicio",
+
+                    )
                 }
 
             }
@@ -398,18 +506,24 @@ fun DynamicTopBar(
     }
 }
 
+
+
 @Composable
 fun DynamicBottomBar(currentRoute: String?, navController: NavController) {
     val screensWithBottomBar = listOf(
-        RootRoutes.SharingRoute.route,
+        RootRoutes.SharingRoute.route.substringBefore("/"),
         RootRoutes.HomeRoute.route,
         RootRoutes.ShoppingListRoute.route,
+        RootRoutes.ShoppingListRoute.route,
+        RootRoutes.ProductPricesDetailRoute.route.substringBefore("/"),
         RootRoutes.ShoppingListEditRoute.route.substringBefore("/"),
+        RootRoutes.PreparationRoute.route.substringBefore("/"),
+        RootRoutes.PreparationDetailRoute.route.substringBefore("/"),
         RootRoutes.LocationRoute.route,
-        RootRoutes.SettingDetail.route
+        RootRoutes.SettingDetail.route,
+        RootRoutes.BuyRoute.route
     )
     if (currentRoute?.substringBefore("/") in screensWithBottomBar) {
-
 
         BottomNavigationBar(
             items = navigationItemsLists,

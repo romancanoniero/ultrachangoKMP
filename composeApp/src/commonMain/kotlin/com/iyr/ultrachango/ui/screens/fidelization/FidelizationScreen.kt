@@ -53,15 +53,11 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun FidelizationScreen(navController: NavController) {
 
-
     var currentItems by remember { mutableStateOf(listOf<CreditEntities>()) }
-
     var showInformationDialog by remember { mutableStateOf(true) }
     var showSelectionDialog by remember { mutableStateOf(false) }
 
-
     if (showInformationDialog) {
-
         InfoDialog(title = "Tarjetas de Fidelizacion",
             paragraoh1 = "A la hora de ahorrar todas las ayudas son buenas. Existen Bancos, Empresas de Tarjetas de Credito y otros instrumentos financieros que brindan descuentos a sus clientes los cuales pueden ayudarte mucho al momento de planificar tus compras",
             paragraoh2 = "Por eso, te sera util que selecciones las tarjetas o programas a los que estes subscripto para optimizar el proceso de analisis de compras",

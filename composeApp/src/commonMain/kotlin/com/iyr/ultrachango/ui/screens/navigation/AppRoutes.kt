@@ -21,9 +21,12 @@ sealed class AppRoutes(val route: String) {
 
     object ShoppingListAddRoute : AppRoutes("shoppinglistadd")
 
-    object ShoppingListEditRoute : AppRoutes("shoppinglistedit/{userKey?}/{listId?}") {
-        fun createRoute(userKey: String? = null, shoppingListId: Int? = null): String {
-            return "shoppinglistedit/$userKey/$shoppingListId"
+    object ShoppingListEditRoute : AppRoutes("shoppinglistedit/{userKey?}/{listId?}/{listName?}") {
+        fun createRoute(userKey: String? = null,
+                        shoppingListId: Int? = null,
+                        shoppingListName: String? = null
+                        ): String {
+            return "shoppinglistedit/$userKey/$shoppingListId/$shoppingListName"
         }
     }
 

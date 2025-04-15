@@ -1,10 +1,13 @@
 package com.iyr.ultrachango.utils.geo
 
+import androidx.compose.ui.text.intl.Locale
+import com.iyr.ultrachango.utils.extensions.formatDigits
 import dev.jordond.compass.Place
 import dev.jordond.compass.geocoder.Geocoder
 import dev.jordond.compass.geocoder.placeOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.StringFormat
 
 suspend fun getPlaceFromCoordinates(lat: Double, lng: Double): Place? {
     val geocoder = Geocoder()
@@ -24,4 +27,25 @@ fun getPlaceFromCoordinates(
         onResult(geocoder.placeOrNull(lat, lng))
     }
 
+}
+
+
+fun Float.toTextDistance(decimals: Int = 2, locale: Locale = Locale.current): String {
+    return if (this < 1000) {
+        if (this % 1 == 0f) {
+            "${this.toInt()} ${if (locale.language == "es") "metros" else "meters"}"
+        } else {
+            "${this.toInt()} ${if (locale.language == "es") "metros" else "meters"} "
+                //.format(this)
+        }
+    } else {
+        if ((this / 1000) % 1 == 0f) {
+            "${(this / 1000).toInt()} ${if (locale.language == "es") "kilómetros" else "kilometers"}"
+        } else {
+            "${(this / 1000).formatDigits( decimals)} ${if (locale.language == "es") "kilómetros" else "kilometers"}"
+                //.(this / 1000)
+
+
+        }
+    }
 }

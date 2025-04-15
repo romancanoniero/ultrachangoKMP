@@ -102,7 +102,6 @@ kotlin {
             implementation("com.google.firebase:firebase-auth-ktx:22.3.0")
             implementation("com.google.android.gms:play-services-auth:20.7.0")
 
-
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.android.playservices.auth)
@@ -131,6 +130,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
 
+            implementation("de.drick.compose:hotpreview:0.1.4")
 
             // QR
             implementation(libs.qr)

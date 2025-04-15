@@ -26,8 +26,18 @@ class ProductsRepository(
 
 
     suspend fun searchByBarCodeByLatLngRemote(
-        barCode: String, latitude: Double, longitude: Double
-    ) = preciosClarosService.searchByBarCodeByLatLngRemote(barCode, latitude, longitude)
+        ean: String,
+        latitude: Double,
+        longitude: Double
+    ) = preciosClarosService.searchByBarCodeByLatLngRemote(ean, latitude, longitude)
+
+
+    suspend fun searchByBarCodeByLatLngRadius(
+        ean: String, latitude: Double, longitude: Double, radius: Int
+    ): HashMap<String, Any> {
+        val userKey = authRepository.getUserKey().toString()
+        return productsCloudService.getProductByEANLatLng(ean, latitude, longitude, radius)
+    }
 
 
     /**
@@ -39,15 +49,19 @@ class ProductsRepository(
      * @param longitude : Double
      * @return Flow<Resource<List<Product>?>>
      */
-    suspend fun searchByBarCodeByLatLngCloud(
-        ean: String, latitude: Double, longitude: Double
+    suspend fun searchByBarCodeCloud(
+        ean: String
     ): HashMap<String, Any> {
         val userKey = authRepository.getUserKey().toString()
         return productsCloudService.getProductByEANWithShoppingList(ean, userKey)
     }
 
+/*
 
-    suspend fun searchByBarCodeByLatLngCloud(
+*/
+
+
+    suspend fun searchByBarCodeCloud(
         ean: String,
 
         latitude: Double,

@@ -30,15 +30,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -48,9 +45,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -75,7 +70,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -87,7 +81,6 @@ import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.app.Section
 import com.iyr.ultrachango.data.models.app.sections
 import com.iyr.ultrachango.getCurrentLocation
-import com.iyr.ultrachango.onItemClick
 
 
 import com.iyr.ultrachango.ui.ScaffoldViewModel
@@ -96,9 +89,6 @@ import com.iyr.ultrachango.ui.dialogs.ProductInfoDialog
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.home.components.LocationIndicator
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
-import com.iyr.ultrachango.ui.screens.navigation.bottombar.BottomNavigationBar
-import com.iyr.ultrachango.ui.screens.navigation.navigationItemsLists
-import com.iyr.ultrachango.ui.screens.topbars.HomeTopAppBar
 import com.iyr.ultrachango.ui.theme.textColor
 import com.iyr.ultrachango.utils.extensions.isDigitsOnly
 import com.iyr.ultrachango.utils.helpers.getProductImageUrl
@@ -110,7 +100,6 @@ import com.iyr.ultrachango.utils.ui.device.getScreenWidth
 import com.iyr.ultrachango.utils.ui.elements.PicturesBoard
 import com.iyr.ultrachango.utils.ui.elements.ReusableSearchTextField
 import com.iyr.ultrachango.utils.ui.elements.StyleTextBig
-import com.iyr.ultrachango.utils.ui.elements.screenOuterPadding
 import com.iyr.ultrachango.utils.ui.elements.textSize12
 import com.iyr.ultrachango.utils.ui.elements.textSize16
 import com.iyr.ultrachango.utils.ui.elements.textSize20
@@ -136,7 +125,6 @@ import org.ncgroup.kscan.BarcodeResult
 import org.ncgroup.kscan.ScannerView
 import ultrachango2.composeapp.generated.resources.Res
 import ultrachango2.composeapp.generated.resources.hello_there
-import ultrachango2.composeapp.generated.resources.shopping_lists
 import ultrachango2.composeapp.generated.resources.sin_imagen
 
 
@@ -154,7 +142,7 @@ fun HomeScreen(
     navController.clearBackStack(RootRoutes.HomeRoute.route)
 
     LaunchedEffect(Unit) {
-      //  vm.setPermissionsController(permissionsController)
+        //  vm.setPermissionsController(permissionsController)
 
         vm.fetchData(true)
     }
@@ -224,11 +212,12 @@ fun HomeScreen(
     }
 
     if (vm.state.value.fetchingDeviceLocation) {
-        getCurrentLocation(onLocationObtained = {
-            println("Location obtained")
-            //   vm.onLocationObtained(it)
+        getCurrentLocation(
+            onLocationObtained = {
+                println("Location obtained")
+                //   vm.onLocationObtained(it)
 
-        },
+            },
 
             onError = {
                 println("Error: $it")
@@ -282,7 +271,7 @@ fun HomeScreen(
             hideVirtualKeyboard,
             state,
             vm,
-           // salutation,
+            // salutation,
             focusRequester,
             vm.state.value.fetchingDeviceLocation,
             locations,
@@ -324,52 +313,53 @@ private fun Screen(
 
 
 
-        Column(Modifier.fillMaxSize().padding(0.dp).verticalScroll(rememberScrollState())
+    Column(
+        Modifier.fillMaxSize().padding(0.dp).verticalScroll(rememberScrollState())
             .clickable {
                 hideVirtualKeyboard1 = true
             }) {
 
 
-            if (state.productToShow != null) {
-                ProductInfoDialog(
-                    userKey = vm.getUserKey(),
-                    vm = vm,
-                    data = state.productToShow.toProduct(),
-                    availableList = state.shoppingLists,
-                    selectedShoppingLists = state.productShoppingLists,
-                    onDismissRequest = { vm.onProductAlreadyShown() },
-                    onListUnselected = { list -> vm.onListUnselected(list) },
-                    onListSelected = { list ->
-                        vm.onListSelected(list)
-                    },
-                    onFavPressed = { product, isFavorite ->
-                        vm.onFavButtonPressed(product, isFavorite)
-                    },
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            println("Screen - ubicaciones = " + Json.encodeToString(locations))
-
-            UpperSection(focusRequester, vm, fetchingLocations, locations, state)
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            ProductsSearch(
-                vm,
-                searchText1,
-                focusRequester,
-                productsDropdownExpanded,
-                productsList,
-                hideVirtualKeyboard1
+        if (state.productToShow != null) {
+            ProductInfoDialog(
+                userKey = vm.getUserKey(),
+                vm = vm,
+                data = state.productToShow.toProduct(),
+                availableList = state.shoppingLists,
+                selectedShoppingLists = state.productShoppingLists,
+                onDismissRequest = { vm.onProductAlreadyShown() },
+                onListUnselected = { list -> vm.onListUnselected(list) },
+                onListSelected = { list ->
+                    vm.onListSelected(list)
+                },
+                onFavPressed = { product, isFavorite ->
+                    vm.onFavButtonPressed(product, isFavorite)
+                },
             )
+        }
 
-            Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-            Body(vm, navController, state)
+        println("Screen - ubicaciones = " + Json.encodeToString(locations))
 
-  //      }
+        UpperSection(focusRequester, vm, fetchingLocations, locations, state)
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        ProductsSearch(
+            vm,
+            searchText1,
+            focusRequester,
+            productsDropdownExpanded,
+            productsList,
+            hideVirtualKeyboard1
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Body(vm, navController, state)
+
+        //      }
     }
 
 }
@@ -377,7 +367,7 @@ private fun Screen(
 
 @Composable
 private fun UpperSection(
-  //  salutation: String,
+    //  salutation: String,
     focusRequester: FocusRequester,
     vm: HomeScreenViewModel,
     fetchingLocations: Boolean,
@@ -388,7 +378,7 @@ private fun UpperSection(
         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(Color.LightGray)
 
     ) {
-       // Salutation(salutation)
+        // Salutation(salutation)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -420,8 +410,29 @@ private fun Body(
 
     FastActions(vm)
 
-    Categories(vm, navController, "Descuentos y Promociones", byRewardsBranchList)
-    Categories(vm, navController, "Por Supermercado", byMarket)
+//    Categories(vm, navController, "Descuentos y Promociones", byRewardsBranchList)
+//    Categories(vm, navController, "Por Supermercado", byMarket)
+
+
+    val noFidelizationButton = @androidx.compose.runtime.Composable { NoFidelizationButton(navController = navController) }
+
+    FidelizationSection(
+        viewModel = vm,
+        navController = navController,
+        data = byRewardsBranchList,
+        onEmpty = {
+            noFidelizationButton.invoke()
+        }
+    )
+
+    NearbyStoresSection(
+        viewModel = vm,
+        navController = navController,
+        data = byMarket,
+        onEmpty = {
+            noFidelizationButton
+        }
+    )
 
     val shoppingLists = state.shoppingLists?.map { shoppingList ->
         Section(
@@ -438,6 +449,149 @@ private fun Body(
         Categories(vm, navController, "Tus Listas", lists)
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NoFidelizationButton(navController: NavHostController) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(16f / 7f)
+            .padding(horizontal = 4.dp)
+
+            .clickable {
+            /* Acción del botón */
+            navController.navigate(RootRoutes.FidelizationRoute.route)
+            },
+        elevation = CardDefaults.elevatedCardElevation(4.dp),
+        colors = CardColors(
+            containerColor = Color.White,
+            contentColor = textColor,
+            disabledContainerColor = Color.Blue,
+            disabledContentColor = Color.White
+        )
+
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        )
+        {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                Icon(
+                    Icons.Default.AddCircle,
+                    contentDescription = "Agregar tarjeta de fidelización",
+                    tint = Color.LightGray
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Agrega tus tarjetas de fidelización",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray
+                    )
+                )
+            }
+
+        }
+    }
+}
+
+
+@Composable
+fun FidelizationSection(
+    viewModel: HomeScreenViewModel,
+    navController: NavHostController,
+    data: List<Section>,
+    onEmpty: @Composable () -> Unit = {}
+) {
+    val categoriesListState = rememberLazyGridState()
+    val itemWidth =
+        (getScreenWidth() / 2) - 15.dp // Ancho de cada item (mitad de la pantalla menos margen)
+    Column {
+        Text(
+            "Descuentos y Promociones",
+            style = TextStyle(
+                fontWeight = FontWeight.Bold,
+                fontSize = textSize16,
+                color = textColor
+            )
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        //  CategoriesList(vm, navController, data)
+        if (data.isNullOrEmpty() == false) {
+            LazyHorizontalGrid(
+                rows = GridCells.Fixed(1),
+                state = categoriesListState,
+                reverseLayout = false,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.width(itemWidth * 2 + 10.dp).height(200.dp),
+
+                content = {
+                    items(data) { item ->
+                        CategoryItem(
+                            navController = navController,
+                            vm = viewModel, itemWidth = itemWidth, data = item
+                        )
+                    }
+                })
+        } else {
+            onEmpty()
+        }
+    }
+}
+
+@Composable
+fun NearbyStoresSection(
+    viewModel: HomeScreenViewModel,
+    navController: NavHostController,
+    data: List<Section>,
+    onEmpty: @Composable () -> Unit = {}
+) {
+    val categoriesListState = rememberLazyGridState()
+    val itemWidth =
+        (getScreenWidth() / 2) - 15.dp // Ancho de cada item (mitad de la pantalla menos margen)
+    Column {
+        Text(
+            "Por Supermercado",
+            style = TextStyle(
+                fontWeight = FontWeight.Bold,
+                fontSize = textSize16,
+                color = textColor
+            )
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        //  CategoriesList(vm, navController, data)
+        if (data.isNullOrEmpty() == false) {
+            LazyHorizontalGrid(
+                rows = GridCells.Fixed(1),
+                state = categoriesListState,
+                reverseLayout = false,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.width(itemWidth * 2 + 10.dp).height(200.dp),
+
+                content = {
+
+                    items(data) { item ->
+                        CategoryItem(
+                            navController = navController,
+                            vm = viewModel, itemWidth = itemWidth, data = item
+                        )
+                    }
+                })
+
+        } else {
+            onEmpty()
+        }
+
+
+    }
+}
+
 
 @Composable
 fun FastActions(vm: HomeScreenViewModel) {
@@ -549,7 +703,8 @@ fun CategoriesList(
     val itemWidth =
         (getScreenWidth() / 2) - 15.dp // Ancho de cada item (mitad de la pantalla menos margen)
 
-    LazyHorizontalGrid(rows = GridCells.Fixed(1),
+    LazyHorizontalGrid(
+        rows = GridCells.Fixed(1),
         state = categoriesListState,
         reverseLayout = false,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -574,8 +729,11 @@ fun CategoryItem(
             SectionShoppingListItem(itemWidth, data, onClick = {
                 triggerHapticFeedback()
                 val listId = (data.data as ShoppingList).listId!!
+                val listName = (data.data as ShoppingList).listName!!
                 val route = vm.onCreateRoutToShoppingListRequested(
-                    listId
+                    listId,
+                    listName
+
                 )
 
 
@@ -602,7 +760,8 @@ fun CategoryItem(
                             elevation = CardDefaults.elevatedCardElevation()
                         ) {
 
-                            AsyncImage(modifier = Modifier.fillMaxSize(),
+                            AsyncImage(
+                                modifier = Modifier.fillMaxSize(),
                                 model = data.photo,
 
                                 contentDescription = data.title,
@@ -1051,7 +1210,8 @@ fun SearchTextFieldWithScanner(
             },
         )
 
-        ExposedDropdownMenu(modifier = Modifier.fillMaxWidth(),
+        ExposedDropdownMenu(
+            modifier = Modifier.fillMaxWidth(),
             expanded = dropdownExpanded && productsList.size > 1,
             onDismissRequest = {
                 vm.onPulldownStatusInvert()

@@ -28,7 +28,7 @@ class UserViewModel(
     }
 
     fun setUserKey(key: String) {
-        _user.value = _user.value?.copy(uid = key)
+        _user.value = _user.value?.copy(userKey = key)
     }
 
     fun getUserKey():String?

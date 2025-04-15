@@ -19,14 +19,17 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.iyr.ultrachango.data.models.ShoppingCartProduct
 import com.iyr.ultrachango.data.models.enums.toGender
 import com.iyr.ultrachango.ui.MainScreen
 import com.iyr.ultrachango.ui.ScaffoldViewModel
+import com.iyr.ultrachango.ui.screens.animations.ShoppingBasketScreen
 import com.iyr.ultrachango.ui.screens.auth.config.profile.RegistrationProfileScreen
 import com.iyr.ultrachango.ui.screens.auth.forgot.ForgotPasswordScreen
 import com.iyr.ultrachango.ui.screens.auth.login.LoginScreen
 import com.iyr.ultrachango.ui.screens.auth.otp.OtpScreen
 import com.iyr.ultrachango.ui.screens.auth.registration.RegisterScreen
+import com.iyr.ultrachango.ui.screens.shoppingcart.PreparationScreen
 import com.iyr.ultrachango.ui.screens.fidelization.FidelizationScreen
 import com.iyr.ultrachango.ui.screens.home.HomeScreen
 import com.iyr.ultrachango.ui.screens.invite.InviteScreen
@@ -38,6 +41,9 @@ import com.iyr.ultrachango.ui.screens.qrscanner.QRScannerScreen
 import com.iyr.ultrachango.ui.screens.qrscanner.QRTypes
 import com.iyr.ultrachango.ui.screens.setting.SettingScreen.SettingScreen
 import com.iyr.ultrachango.ui.screens.setting.profile.ProfileScreen
+import com.iyr.ultrachango.ui.screens.shopping.ProductPriceDisplayScreen
+import com.iyr.ultrachango.ui.screens.shopping.ShoppingScreen
+import com.iyr.ultrachango.ui.screens.shoppingcart.ShoppingCartMaintenanceScreen
 import com.iyr.ultrachango.ui.screens.shoppinglist.edition.ShoppingListAddEditScreen
 import com.iyr.ultrachango.ui.screens.shoppinglist.main.ShoppingListScreen
 import com.iyr.ultrachango.ui.screens.shoppinglist.members.ShoppingMembersSelectionScreen
@@ -84,25 +90,36 @@ fun RootNavGraph(
     )
     val isProfileComplete by remember { mutableStateOf(checkLoggedIn) }
 
-   var start =  if (isLoggedIn) {
+
+
+
+
+    var start = if (isLoggedIn) {
         if (isProfileComplete)
             RootRoutes.HomeRoute.route
         else {
-                RootRoutes.SetupProfileRoute.createRoute(me)
+            RootRoutes.SetupProfileRoute.createRoute(me)
         }
     } else {
         RootRoutes.LandingRoute.route
     }
 
-
+    start = RootRoutes.IntroAnimationRoute.route
 
     NavHost(
         modifier = modifier.padding(innerPadding).fillMaxSize().background(Color.Transparent),
         navController = rootNavController,
         startDestination = start
-
-
     ) {
+
+        composable(
+            route = "introanimation",
+
+        )
+        { backStackEntry ->
+            ShoppingBasketScreen(navController = rootNavController,
+                authRepository = koinInject())
+        }
 
         composable(
             route = "sharing/{qrTypeName}/{refererId}",
@@ -194,7 +211,63 @@ fun RootNavGraph(
 
                 )
         }
-//----------
+
+
+        composable(
+            route = "preparation"
+        ) { backStackEntry ->
+            PreparationScreen(
+                navController = rootNavController,
+            )
+        }
+
+
+        composable(
+            route = "buy"
+        ) { backStackEntry ->
+            ShoppingScreen(
+                navController = rootNavController,
+                permissionsController = permissionsController,
+                scaffoldVM = scaffoldVM,
+            )
+        }
+
+
+        composable(
+            route = "preparationdetail",
+            /*
+                      arguments = listOf(
+                          navArgument("userKey") { type = NavType.StringType },
+                          navArgument("preparationListId") { type = NavType.IntType },
+                          navArgument("preparationListName") { type = NavType.StringType },
+                          )
+          */
+        ) { backStackEntry ->
+
+            val userKey: String = authRepository.getUserKey().toString()
+            /*
+                    val preparationListId = backStackEntry.arguments?.getInt("listId")
+                   val preparationListName: String = backStackEntry.arguments?.getString("preparationListName").toString()
+        */
+
+
+
+
+
+            ShoppingCartMaintenanceScreen(
+                userKey = userKey,
+//                preparationListId = preparationListId,
+//                preparationListName = preparationListName,
+                navController = rootNavController,
+                scaffoldVM = scaffoldVM,
+                vm = koinViewModel(parameters = { parametersOf(userKey, -1) }),
+                permissionsController = permissionsController,
+
+                )
+
+        }
+
+
         composable(
             route = "shoppinglistedit/{userKey}/{listId}/{listName}",
             arguments = listOf(
@@ -208,7 +281,6 @@ fun RootNavGraph(
             val shoppingListId = backStackEntry.arguments?.getInt("listId")
             val listName: String = backStackEntry.arguments?.getString("listName").toString()
 
-
             ShoppingListAddEditScreen(
                 userKey,
                 shoppingListId,
@@ -221,6 +293,43 @@ fun RootNavGraph(
 
                     rootNavController.navigate(AppRoutes.MembersRoute.route)
                 })
+        }
+
+
+        composable(
+            route = "productpricesdetail/{entityId}/{userKey}/{ean}/{name}/{productAsJson}",
+            arguments = listOf(
+                navArgument("entityId") { type = NavType.IntType },
+                navArgument("userKey") { type = NavType.StringType },
+                navArgument("ean") { type = NavType.StringType },
+                navArgument("name") { type = NavType.StringType },
+                navArgument("productAsJson") { type = NavType.StringType },
+
+                )
+        ) { backStackEntry ->
+
+             val entityId = backStackEntry.arguments?.getInt("entityId")
+             val userKey: String = backStackEntry.arguments?.getString("userKey").toString()
+             val ean = backStackEntry.arguments?.getString("ean")
+            //      val listName: String = backStackEntry.arguments?.getString("listName").toString()
+            val productAsJson = backStackEntry.arguments?.getString("productAsJson")
+            val product = Json.decodeFromString<ShoppingCartProduct>(
+                productAsJson.toString()
+            )
+            ProductPriceDisplayScreen(entityId, product)
+
+            /*
+            *                 userKey,
+                shoppingListId,
+                listName = listName,
+                rootNavController,
+                scaffoldVM = scaffoldVM,
+                vm = koinViewModel(parameters = { parametersOf(userKey, shoppingListId) }),
+                permissionsController = permissionsController,
+                onGroupButtonClicked = { listId ->
+                    rootNavController.navigate(AppRoutes.MembersRoute.route)
+                })
+*/
         }
 
 
