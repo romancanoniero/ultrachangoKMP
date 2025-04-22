@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.iyr.ultrachango.data.models.Product
 import com.iyr.ultrachango.data.models.ProductOnSearch
+import com.iyr.ultrachango.data.models.toProduct
 import com.iyr.ultrachango.utils.helpers.getProductImageUrl
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 import org.jetbrains.compose.resources.painterResource

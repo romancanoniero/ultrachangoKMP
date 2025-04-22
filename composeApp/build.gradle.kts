@@ -83,6 +83,10 @@ kotlin {
             version = "~> 10.19.0"
         }
 
+        // Dependencias de ubicación
+        pod("CoreLocation")
+        pod("UIKit")
+
         /*
         // Authentication Providers
         pod("GoogleSignIn") {
@@ -219,6 +223,16 @@ kotlin {
             implementation(libs.kmpaut.google)
             implementation(libs.kmpaut.uihelper)
             implementation(libs.kmpaut.firebase)
+
+            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+            implementation(compose.components.resources)
+            implementation("io.insert-koin:koin-core:3.5.3")
+            implementation("io.ktor:ktor-client-core:2.3.7")
+            implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
+            implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.7")
+            implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.21")
+            implementation("org.jetbrains.kotlin:kotlin-stdlib-common:1.9.21")
 
         }
         iosMain.dependencies {

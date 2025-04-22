@@ -1,6 +1,5 @@
 package com.iyr.ultrachango
 
-
 import com.iyr.ultrachango.data.api.cloud.auth.CloudAuthService
 import com.iyr.ultrachango.data.api.cloud.buy.prepare.CloudShoppingCartService
 import com.iyr.ultrachango.data.api.cloud.familymembers.CloudFamilyMembersService
@@ -19,6 +18,7 @@ import com.iyr.ultrachango.data.database.repositories.StoresRepository
 import com.iyr.ultrachango.data.database.repositories.UserLocationsRepository
 import com.iyr.ultrachango.data.database.repositories.UserRepositoryImpl
 import com.iyr.ultrachango.di.permissions.permissionsModule
+import com.iyr.ultrachango.services.LocationService
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.auth.config.profile.RegistrationProfileViewModel
 import com.iyr.ultrachango.ui.screens.auth.login.LoginViewModel
@@ -51,6 +51,9 @@ import com.iyr.ultrachango.utils.ui.places.borrar.PlacesSearchViewModel
 import com.iyr.ultrachango.viewmodels.InviteViewModel
 import com.iyr.ultrachango.viewmodels.UserViewModel
 import com.russhwolf.settings.Settings
+import com.ultrachango2.features.location.presentation.LocationOptionsViewModel
+import dev.jordond.compass.geolocation.Geolocator
+import dev.jordond.compass.geolocation.mobile
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
@@ -63,7 +66,31 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 
+val locationModule = module {
+    single {
+        Geolocator.mobile()
+    }
+
+    single { 
+        LocationService(
+            permissionsController = get(),
+            userLocationsRepository = get(),
+            settings = Settings()
+        ) 
+    }
+
+    viewModel {
+        LocationOptionsViewModel(
+            userLocationsRepository = get(),
+            authRepository = get(),
+            locationService = get(),
+            permissionsController = get()
+        )
+    }
+}
+
 val baseModule = module {
+    includes(locationModule)
 
     single {
         Settings()
@@ -80,9 +107,7 @@ val baseModule = module {
             }
         }
     }
-
 }
-
 
 val configModule: Module = module {
     // Configuración de versiones
@@ -139,7 +164,7 @@ val authModule = module {
 }
 
 val appModule = module {
-
+    includes(locationModule)
 
     single<CloudUsersService> {
         CloudUsersService(
@@ -278,6 +303,8 @@ val dataModule = module {
         )
     }
 
+
+
 }
 
 val viewModelsModule = module {
@@ -299,12 +326,26 @@ val viewModelsModule = module {
     viewModel { OtpViewModel(get()) }
 
     viewModel {
+        LocationOptionsViewModel(
+            userLocationsRepository = get(),
+            authRepository = get(),
+            locationService = get(),
+            permissionsController = get()
+        )
+    }
+
+    viewModel {
         LoginViewModel(
             authRepository = get(),
             scaffoldVM = get(),
             authViewModel = get()
         )
     }
+
+
+
+
+
 
     viewModel {
         RegisterViewModel(

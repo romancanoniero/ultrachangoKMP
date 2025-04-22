@@ -4,6 +4,7 @@ package com.iyr.ultrachango.data.database.repositories
 
 import com.iyr.ultrachango.data.api.cloud.products.CloudProductsService
 import com.iyr.ultrachango.data.api.preciosclaros.PreciosClarosService
+import com.iyr.ultrachango.data.models.BaseProduct
 
 import com.iyr.ultrachango.data.models.PriceInBranch
 import com.iyr.ultrachango.data.models.Product
@@ -174,7 +175,7 @@ class ProductsRepository(
         val userKey = authRepository.getUserKey().toString()
         val callCloudService =
             productsCloudService.togleProductFavorite(userKey, ean, favorite)
-        val result = Product()
+        val result = BaseProduct()
 
         return Resource.Success<Product?>(result)
 

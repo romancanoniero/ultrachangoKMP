@@ -24,13 +24,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.iyr.ultrachango.data.models.sampleLocations
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.fidelization.FidelizationScreen
 import com.iyr.ultrachango.ui.screens.home.HomeScreen
-import com.iyr.ultrachango.ui.screens.locations.dialogs.LocationDialog
-import com.iyr.ultrachango.ui.screens.locations.main.LocationsDetailsScreen
 import com.iyr.ultrachango.ui.screens.locations.main.LocationsScreen
 import com.iyr.ultrachango.ui.screens.member.MembersScreen
 import com.iyr.ultrachango.ui.screens.navigation.bottombar.NavigationItem

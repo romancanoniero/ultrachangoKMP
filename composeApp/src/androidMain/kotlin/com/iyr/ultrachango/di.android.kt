@@ -1,15 +1,19 @@
 package com.iyr.ultrachango
 
-import com.iyr.ultrachango.auth.PhoneVerificationViewModel
-import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
-import com.iyr.ultrachango.utils.permissions.PermissionsController
-import org.koin.core.context.startKoin
+import androidx.activity.ComponentActivity
+import dev.icerock.moko.permissions.PermissionsController
 import org.koin.dsl.module
 
 actual val nativeModule = module {
 
    // single { PhoneVerificationViewModel() }
-
+      single<PermissionsController> {
+         PermissionsController(AppContext.context).apply {
+            AppContext.activity?.let { activity ->
+               bind(activity as ComponentActivity)
+            }
+         }
+      }
 
 
 }

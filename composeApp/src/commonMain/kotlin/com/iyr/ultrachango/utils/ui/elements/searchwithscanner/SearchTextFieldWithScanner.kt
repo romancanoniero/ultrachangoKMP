@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.iyr.ultrachango.data.models.Product
 import com.iyr.ultrachango.data.models.ProductOnSearch
+import com.iyr.ultrachango.data.models.toProductOnSearch
 import com.iyr.ultrachango.ui.screens.home.MIN_THRESHOLD_SEARCH
 import com.iyr.ultrachango.utils.ui.elements.MySearchTexField
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback

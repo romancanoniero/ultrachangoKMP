@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import com.google.firebase.FirebaseApp
 import com.iyr.ultrachango.utils.shared.firebase.FirebaseConfig
+import dev.icerock.moko.permissions.compose.BindEffect
 import org.koin.android.ext.koin.androidContext
 
 class UltraChangoApp : Application() {
@@ -19,6 +20,8 @@ class UltraChangoApp : Application() {
         super.onCreate()
         contextProvider = this.baseContext
         AppContext.context = this
+
+
 
         FirebaseApp.initializeApp(this)
         initKoin {

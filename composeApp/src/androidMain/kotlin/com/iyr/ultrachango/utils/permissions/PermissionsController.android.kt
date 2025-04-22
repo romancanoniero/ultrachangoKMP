@@ -14,7 +14,7 @@ import android.provider.Settings
 import androidx.core.content.ContextCompat
 
 // androidMain/kotlin/com/iyr/ultrachango/permissions/AndroidPermissionsController.kt
-actual class PermissionsController {
+actual class PermissionsControllerMio {
 
     private val context = AppContext.context
     private val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager

@@ -6,6 +6,7 @@ import com.iyr.ultrachango.data.database.repositories.ProductsRepository
 import com.iyr.ultrachango.data.models.Product
 import com.iyr.ultrachango.data.models.ProductOnSearch
 import com.iyr.ultrachango.data.models.ShoppingList
+import com.iyr.ultrachango.data.models.toProduct
 import com.iyr.ultrachango.utils.coroutines.Resource
 import dev.icerock.moko.permissions.DeniedAlwaysException
 import dev.icerock.moko.permissions.DeniedException

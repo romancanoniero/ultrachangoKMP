@@ -37,6 +37,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -75,11 +77,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.iyr.ultrachango.Constants
-import com.iyr.ultrachango.data.models.Location
 import com.iyr.ultrachango.data.models.Product
+import com.iyr.ultrachango.data.models.ProductOnSearch
 import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.app.Section
 import com.iyr.ultrachango.data.models.app.sections
+import com.iyr.ultrachango.data.models.toProduct
+import com.iyr.ultrachango.data.models.toProductOnSearch
 import com.iyr.ultrachango.getCurrentLocation
 
 
@@ -87,7 +91,6 @@ import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
 import com.iyr.ultrachango.ui.dialogs.ProductInfoDialog
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
-import com.iyr.ultrachango.ui.screens.home.components.LocationIndicator
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
 import com.iyr.ultrachango.ui.theme.textColor
 import com.iyr.ultrachango.utils.extensions.isDigitsOnly
@@ -100,16 +103,16 @@ import com.iyr.ultrachango.utils.ui.device.getScreenWidth
 import com.iyr.ultrachango.utils.ui.elements.PicturesBoard
 import com.iyr.ultrachango.utils.ui.elements.ReusableSearchTextField
 import com.iyr.ultrachango.utils.ui.elements.StyleTextBig
+import com.iyr.ultrachango.utils.ui.elements.mySearchTextFieldWithScanner.MySearchTextFieldWithScanner
 import com.iyr.ultrachango.utils.ui.elements.textSize12
 import com.iyr.ultrachango.utils.ui.elements.textSize16
 import com.iyr.ultrachango.utils.ui.elements.textSize20
 import com.iyr.ultrachango.utils.ui.elements.textSize26
 import com.iyr.ultrachango.utils.ui.pagerindicator.PagerIndicator
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
+import com.ultrachango2.features.location.presentation.LocationOptionsViewModel
 import dev.icerock.moko.permissions.PermissionsController
 import dev.icerock.moko.permissions.compose.BindEffect
-import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
-import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -126,6 +129,10 @@ import org.ncgroup.kscan.ScannerView
 import ultrachango2.composeapp.generated.resources.Res
 import ultrachango2.composeapp.generated.resources.hello_there
 import ultrachango2.composeapp.generated.resources.sin_imagen
+import com.ultrachango2.features.location.presentation.LocationOptionsScreen
+import com.ultrachango2.features.location.domain.model.LocationOption
+import com.ultrachango2.features.location.domain.model.ReferenceLocation
+import dev.icerock.moko.permissions.PermissionState
 
 
 val MIN_THRESHOLD_SEARCH: Int = 3
@@ -137,7 +144,6 @@ fun HomeScreen(
     vm: HomeScreenViewModel = koinViewModel(),
     scaffoldVM: ScaffoldViewModel,
 ) {
-
 
     navController.clearBackStack(RootRoutes.HomeRoute.route)
 
@@ -158,9 +164,6 @@ fun HomeScreen(
 
     scaffoldVM.setTitle("UltraChango")
 
-    val factory: PermissionsControllerFactory = rememberPermissionsControllerFactory()
-    val controller: PermissionsController =
-        remember(factory) { factory.createPermissionsController() }
 
     val focusRequester = remember { FocusRequester() }
 
@@ -212,6 +215,8 @@ fun HomeScreen(
     }
 
     if (vm.state.value.fetchingDeviceLocation) {
+
+
         getCurrentLocation(
             onLocationObtained = {
                 println("Location obtained")
@@ -268,6 +273,7 @@ fun HomeScreen(
         }
 
         Screen(
+            permissionsController,
             hideVirtualKeyboard,
             state,
             vm,
@@ -289,13 +295,14 @@ fun HomeScreen(
 
 @Composable
 private fun Screen(
+    permissionsController: PermissionsController,
     hideVirtualKeyboard: Boolean,
     state: HomeScreenViewModel.UiState,
     vm: HomeScreenViewModel,
 
     focusRequester: FocusRequester,
     fetchingLocations: Boolean,
-    locations: List<Location>,
+    referenceLocations: List<ReferenceLocation>,
     searchText: String,
     productsDropdownExpanded: Boolean,
     productsList: List<Product>,
@@ -340,9 +347,12 @@ private fun Screen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        println("Screen - ubicaciones = " + Json.encodeToString(locations))
+        println("Screen - ubicaciones = " + Json.encodeToString(referenceLocations))
 
-        UpperSection(focusRequester, vm, fetchingLocations, locations, state)
+        UpperSection(
+            permissionsController,
+            focusRequester, vm, fetchingLocations, referenceLocations, state
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -368,10 +378,11 @@ private fun Screen(
 @Composable
 private fun UpperSection(
     //  salutation: String,
+    permissionsController: PermissionsController,
     focusRequester: FocusRequester,
     vm: HomeScreenViewModel,
     fetchingLocations: Boolean,
-    locations: List<Location>,
+    referenceLocations: List<ReferenceLocation>,
     state: HomeScreenViewModel.UiState
 ) {
     Column(
@@ -383,14 +394,15 @@ private fun UpperSection(
         Spacer(modifier = Modifier.height(10.dp))
 
 
-        println("UpperSections - ubicaciones = " + Json.encodeToString(locations))
+        println("UpperSections - ubicaciones = " + Json.encodeToString(referenceLocations))
 
 
         Header(
+            permissionsController = permissionsController,
             focusRequester = focusRequester,
             vm = vm,
             fetchingLocations = fetchingLocations,
-            locations = locations,
+            referenceLocations = referenceLocations,
             uiState = state
         )
 
@@ -414,7 +426,8 @@ private fun Body(
 //    Categories(vm, navController, "Por Supermercado", byMarket)
 
 
-    val noFidelizationButton = @androidx.compose.runtime.Composable { NoFidelizationButton(navController = navController) }
+    val noFidelizationButton =
+        @androidx.compose.runtime.Composable { NoFidelizationButton(navController = navController) }
 
     FidelizationSection(
         viewModel = vm,
@@ -460,8 +473,8 @@ fun NoFidelizationButton(navController: NavHostController) {
             .padding(horizontal = 4.dp)
 
             .clickable {
-            /* Acción del botón */
-            navController.navigate(RootRoutes.FidelizationRoute.route)
+                /* Acción del botón */
+                navController.navigate(RootRoutes.FidelizationRoute.route)
             },
         elevation = CardDefaults.elevatedCardElevation(4.dp),
         colors = CardColors(
@@ -620,7 +633,9 @@ private fun ProductsSearch(
     productsList: List<Product>,
     hideVirtualKeyboard1: Boolean
 ) {
-    var searchText11 = searchText1
+
+    var searchText by remember { mutableStateOf("") }
+
     var hideVirtualKeyboard11 = hideVirtualKeyboard1
     val searchTextFlow = remember { MutableStateFlow("") }
     LaunchedEffect(searchTextFlow) {
@@ -633,11 +648,59 @@ private fun ProductsSearch(
             }
     }
 
-    SearchTextFieldWithScanner(
-        text = searchText11,
+    /*
+    MySearchTextFieldWithScanner(
+        text = searchText,
         onTextChange = {
-            searchText11 = it
-            if (!searchText11.isEmpty() && searchText11.length > MIN_THRESHOLD_SEARCH) {
+            searchText = it
+            if (!searchText.isEmpty() && searchText.length > MIN_THRESHOLD_SEARCH) {
+                searchTextFlow.value = it
+            } else {
+                vm.onEmptySeachText()
+            }
+        },
+        onScannerClick = {
+            vm.onScanPressed()
+        },
+        focusRequester = focusRequester,
+        onFocusChanged = { hasFocus, focusRequester ->
+            vm.onFocusChanged(hasFocus)
+        },
+        //productsList = vm.productsList
+    )
+*/
+    MySearchTextFieldWithScanner<ProductOnSearch>(
+        text = searchText,
+        onTextChange = {
+            searchText = it
+            if (!searchText.isEmpty() && searchText.length > MIN_THRESHOLD_SEARCH) {
+                searchTextFlow.value = it
+            } else {
+                vm.onEmptySeachText()
+            }
+        },
+        onScannerClick = { vm.onScanPressed() },
+        focusRequester = focusRequester,
+        onFocusChanged = { hasFocus, focusRequester ->
+            vm.onFocusChanged(hasFocus)
+        },
+        dropdownItemContent = { product ->
+            HomeProductItem(
+                product = product,
+                onImageClick = { vm.onShowProductRequest(it) },
+                onAddClick = {
+                // vm.onAddProductRequest(it)
+                     }
+            )
+        }
+    )
+
+/*
+    SearchTextFieldWithScanner(
+        text = searchText,
+        onTextChange = {
+            searchText = it
+            if (!searchText.isEmpty() && searchText.length > MIN_THRESHOLD_SEARCH) {
                 searchTextFlow.value = it
             } else {
                 vm.onEmptySeachText()
@@ -656,9 +719,78 @@ private fun ProductsSearch(
         onDropdownExpandStatudChanged = { expanded ->
             hideVirtualKeyboard11 = expanded
         },
-
         )
+*/
+
 }
+
+
+@Composable
+fun HomeProductItem(
+    product: ProductOnSearch,
+    onImageClick: (ProductOnSearch) -> Unit,
+    onAddClick: (ProductOnSearch) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        // Imagen del producto
+        if (product.haveImage == true) {
+            AsyncImage(
+                model = getProductImageUrl(product.ean ?: ""),
+                placeholder = painterResource(Res.drawable.sin_imagen),
+                contentDescription = product.name,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .clickable { onImageClick(product) }
+            )
+        }
+
+        Spacer(Modifier.width(8.dp))
+
+        // Información del producto
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = product.name ?: "",
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = product.brand ?: "",
+                fontSize = 12.sp
+            )
+            // Información específica de HomeScreen
+   /*
+            Text(
+                text = "Precio: ${product.price}",
+                fontSize = 12.sp
+            )
+     */
+        }
+
+        // Icono de estado
+        when (product.status) {
+            "exists" -> Icon(
+                imageVector = Icons.Outlined.CheckCircle,
+                contentDescription = "Ya existe",
+                tint = Color.Green
+            )
+            else -> IconButton(
+                onClick = {
+                    triggerHapticFeedback()
+                    onAddClick(product)
+                }
+            ) {
+                Icon(
+                    Icons.Outlined.AddCircle,
+                    contentDescription = "Agregar"
+                )
+            }
+        }
+    }
+}
+
 
 
 @Composable
@@ -1021,8 +1153,6 @@ private fun MenuItems(navController: NavHostController) {
             )
         )
 
-
-
         LazyVerticalGrid(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp),
             columns = GridCells.Fixed(3),
@@ -1045,32 +1175,40 @@ private fun MenuItems(navController: NavHostController) {
 
 @Composable
 fun Header(
+    permissionsController: PermissionsController,
     focusRequester: FocusRequester,
     vm: HomeScreenViewModel,
     fetchingLocations: Boolean,
-    locations: List<Location>,
+    referenceLocations: List<ReferenceLocation>,
     uiState: HomeScreenViewModel.UiState
 ) {
-    println("Header - ubicaciones = " + Json.encodeToString(locations))
 
+    println("Header - ubicaciones = " + Json.encodeToString(referenceLocations))
 
+    // 1. Obtener el ViewModel
+    val locationViewModel: LocationOptionsViewModel = koinViewModel()
+
+    // 2. Observar el estado
+    val locationState by locationViewModel.uiState.collectAsState()
 
     Column(modifier = Modifier.fillMaxWidth().background(Color.Gray)) {
-
         Spacer(modifier = Modifier.height(10.dp))
-
-        LocationIndicator(
-            focusRequester = focusRequester,
-            vm = vm,
-            uiState = uiState,
-            fetchingLocations = fetchingLocations,
-            locations = locations,
-
-            navigateToAddLocation = {
-                //  navController.navigate(Routes.AddLocation.createRoute())
-                val pp = 33
+        // Integrar el composable de ubicación
+        // Este es el que funciona
+        LocationOptionsScreen(
+            state = locationState,
+            referenceLocations = vm.knownLocations.value,
+            onLocationSelected = { locationData ->
+                locationViewModel.onLocationSelected(LocationOption.StoredLocation(locationData))
             },
+            onSystemOptionSelected = { optionType ->
+                locationViewModel.onSystemOptionSelected(optionType)
+            },
+            permissionsController = permissionsController,
         )
+        val scope = rememberCoroutineScope()
+
+        var permissionState by remember { mutableStateOf<PermissionState?>(null) }
 
     }
 
@@ -1146,7 +1284,6 @@ fun BannerItem(index: Int) {
                 Text(text = "all fresh vegetables", fontSize = textSize12)
 
             }
-
 
             Card(
                 modifier = Modifier.width(110.dp).aspectRatio(1.30f / 1f), colors = CardColors(
@@ -1228,7 +1365,6 @@ fun SearchTextFieldWithScanner(
             }
         }
     }
-
 }
 
 @Composable

@@ -1,6 +1,6 @@
 package com.iyr.ultrachango.utils.ui.places.models
 
-import com.iyr.ultrachango.data.models.Location
+import com.iyr.ultrachango.data.models.UserAddress
 import com.iyr.ultrachango.utils.ui.places.nominatim.model.NominatimModelItem
 import kotlinx.serialization.Serializable
 
@@ -62,8 +62,8 @@ fun NominatimModelItem.toCustomPlace():CustomPlace
 }
 
 
-fun CustomPlace.toLocation(userKey: String, name: String): Location {
-    return Location(
+fun CustomPlace.toLocation(userKey: String, name: String): UserAddress {
+    return UserAddress(
         userId = userKey,
         title = name,
         street = this.address.road,

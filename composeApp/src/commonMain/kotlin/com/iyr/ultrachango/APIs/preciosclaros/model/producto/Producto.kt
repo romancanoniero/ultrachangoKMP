@@ -12,16 +12,6 @@ data class Producto(
 ) {
 
 
-    fun toDomainProduct(): Product {
-        val originalObject = this
-        return Product(
-         //   id = originalObject.id.toLong(),
-            ean = originalObject.id,
-            brand = originalObject.marca,
-            marca_lower = originalObject.marca.toString().lowercase(),
-            nombre_lower = originalObject.nombre,
-            name = originalObject.nombre.toString().lowercase(),
-            presentation = originalObject.presentacion
-        )
-    }
 }
+
+

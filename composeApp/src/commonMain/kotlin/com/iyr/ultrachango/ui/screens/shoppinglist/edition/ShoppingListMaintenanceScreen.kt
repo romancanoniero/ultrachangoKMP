@@ -52,6 +52,7 @@ import com.iyr.ultrachango.Constants.PRODUCT_DOES_NOT_EXIST
 import com.iyr.ultrachango.data.models.Product
 import com.iyr.ultrachango.data.models.ProductOnSearch
 import com.iyr.ultrachango.data.models.ShoppingListMemberComplete
+import com.iyr.ultrachango.data.models.toProduct
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.dialogs.AddProductConfirmationDialog
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
@@ -480,7 +481,7 @@ fun DropdownItemProductSearch(
     ) {
         // Imagen del producto
 
-        if (product.haveImage) {
+        if (product.haveImage == true) {
             val urlProduct = getProductImageUrl(product.ean.toString())
             AsyncImage(
                 model = urlProduct,

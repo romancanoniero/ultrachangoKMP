@@ -7,13 +7,15 @@ import com.iyr.ultrachango.Constants
 import com.iyr.ultrachango.data.database.repositories.ProductsRepository
 import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
 import com.iyr.ultrachango.data.database.repositories.UserLocationsRepository
-import com.iyr.ultrachango.data.models.Location
-import com.iyr.ultrachango.data.models.Locations
 import com.iyr.ultrachango.data.models.PriceInBranch
 import com.iyr.ultrachango.data.models.Product
 import com.iyr.ultrachango.data.models.ProductOnSearch
 import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.ShoppingListComplete
+import com.iyr.ultrachango.data.models.UserAddress
+import com.iyr.ultrachango.data.models.Locations
+import com.iyr.ultrachango.data.models.toProductOnSearch
+import com.iyr.ultrachango.data.models.toReferenceLocation
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
 import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
@@ -21,11 +23,18 @@ import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.coroutines.Resource
 import com.iyr.ultrachango.utils.extensions.toLocalLocation
 import com.iyr.ultrachango.utils.geo.getPlaceFromCoordinates
+import com.iyr.ultrachango.utils.isGpsEnabled
+import com.iyr.ultrachango.utils.isGpsPresent
 import com.iyr.ultrachango.viewmodels.UserViewModel
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
+import com.ultrachango2.features.location.domain.model.LocationType
+import com.ultrachango2.features.location.domain.model.ReferenceLocation
 import dev.icerock.moko.permissions.DeniedAlwaysException
 import dev.icerock.moko.permissions.DeniedException
+import dev.icerock.moko.permissions.Permission
+import dev.icerock.moko.permissions.PermissionState
+import dev.icerock.moko.permissions.PermissionsController
 import dev.jordond.compass.Place
 import dev.jordond.compass.geolocation.Geolocator
 import dev.jordond.compass.geolocation.GeolocatorResult
@@ -46,6 +55,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
+import kotlin.collections.ArrayList
+import kotlin.collections.plus
 
 class HomeScreenViewModel(
     private val productsRepository: ProductsRepository,
@@ -54,7 +65,7 @@ class HomeScreenViewModel(
     private val userViewModel: UserViewModel,
     private val authRepository: AuthRepository,
     private val scaffoldVM: ScaffoldViewModel,
-    private val permissionsController: com.iyr.ultrachango.utils.permissions.PermissionsController,
+    private val permissionsController: PermissionsController,
 ) : ViewModel(), KoinComponent {
 
 
@@ -102,7 +113,7 @@ class HomeScreenViewModel(
                 //      try {
                 //   val permissionsController = _controller.value!!
                 val granted =
-                    permissionsController.isPermissionGranted(com.iyr.ultrachango.utils.permissions.Permission.LOCATION)
+                    permissionsController.isPermissionGranted(Permission.LOCATION)
 
                 println("HomeScreenViewModel - fetchData - granted = $granted")
 
@@ -114,35 +125,34 @@ class HomeScreenViewModel(
                         //                permissionsController.providePermission(Permission.LOCATION)
                         //  val result = permissionsController.getPermissionState(Permission.LOCATION)
                         val result =
-                            permissionsController.getPermissionState(com.iyr.ultrachango.utils.permissions.Permission.LOCATION)
+                            permissionsController.getPermissionState(Permission.LOCATION)
 
 
                         when (result) {
-                            com.iyr.ultrachango.utils.permissions.PermissionState.NOT_DETERMINED -> {
+                            PermissionState.NotDetermined -> {
                                 executeMultipleRequests(false)
                             }
 
-                            com.iyr.ultrachango.utils.permissions.PermissionState.DENIED -> {
-                                permissionsController.requestPermission(com.iyr.ultrachango.utils.permissions.Permission.LOCATION)
+                            PermissionState.Denied -> {
+                                permissionsController.getPermissionState(Permission.LOCATION)
                                 //                 executeMultipleRequests(false)
                             }
 
-                            com.iyr.ultrachango.utils.permissions.PermissionState.GRANTED -> {
+                            PermissionState.Granted -> {
                                 executeMultipleRequests(true)
                             }
 
-                            com.iyr.ultrachango.utils.permissions.PermissionState.DENIED_ALWAYS -> {
+                            PermissionState.DeniedAlways -> {
                                 //                   permissionsController.providePermission(Permission.LOCATION)
                                 executeMultipleRequests(false)
                             }
 
-                            com.iyr.ultrachango.utils.permissions.PermissionState.DENIED_ALWAYS -> {
-                                executeMultipleRequests(false)
-                            }
 
-                            com.iyr.ultrachango.utils.permissions.PermissionState.RESTRICTED -> executeMultipleRequests(
+                            PermissionState.NotDetermined -> executeMultipleRequests(
                                 false
                             )
+
+                            else -> {}
                         }
 
                     } catch (e: Exception) {
@@ -167,7 +177,7 @@ class HomeScreenViewModel(
 
 
             var shoppingLists: List<ShoppingListComplete>? = null
-            var locations: List<Location>? = null
+            var UserAddresses: List<UserAddress>? = null
 
             val deferredResults = listOf(viewModelScope.async {
                 shoppingLists = getShoppingLists()
@@ -415,7 +425,7 @@ class HomeScreenViewModel(
     //------------------------------------
 
 
-    fun onCreateRoutToShoppingListRequested(listId: Int, listName : String): String {
+    fun onCreateRoutToShoppingListRequested(listId: Int, listName: String): String {
         val userKey = userViewModel.getUserKey()
         return AppRoutes.ShoppingListEditRoute.createRoute(userKey, listId, listName)
     }
@@ -443,8 +453,8 @@ class HomeScreenViewModel(
     //------------ Locations -------------------------------------
 
 
-    private val _knownLocations = MutableStateFlow(emptyList<Location>())
-    val knownLocations: StateFlow<List<Location>> =
+    private val _knownLocations = MutableStateFlow(emptyList<ReferenceLocation>())
+    val knownLocations: StateFlow<List<ReferenceLocation>> =
         _knownLocations.asStateFlow()
 
     private val _currentLocation = MutableStateFlow<dev.jordond.compass.Location?>(null)
@@ -455,7 +465,7 @@ class HomeScreenViewModel(
     private var myLocation: dev.jordond.compass.Location? = null
 
     // Ubicaciones del usuario
-    private var locations: ArrayList<Location>? = ArrayList<Location>()
+    private var UserAddresses: ArrayList<UserAddress>? = ArrayList<UserAddress>()
 
     /**
      * Método que se llama cuando se obtiene la ubicación del usuario
@@ -486,7 +496,7 @@ class HomeScreenViewModel(
         }
     }
 
-    suspend fun geoCode(location: dev.jordond.compass.Location?): Location? {
+    suspend fun geoCode(location: dev.jordond.compass.Location?): UserAddress? {
         myLocation = location
         myLocation?.let {
 
@@ -500,12 +510,9 @@ class HomeScreenViewModel(
 
 
     private suspend fun fetchLocations(requestRealLocation: Boolean) {
-
         println("fetchLocations = ")
         val userKey = authRepository.getUserKey()
         var deferredResults: List<Deferred<Any>> = emptyList()
-
-
         if (requestRealLocation) {
             deferredResults = listOf(
                 viewModelScope.async {
@@ -518,23 +525,25 @@ class HomeScreenViewModel(
                         )
                     }
                     val result = fetchLocation()
-                    val location = geoCode(result.getOrNull())
-//                    _fetchingLocations.value = false
+                    val location =
+                        geoCode(result.getOrNull()).toReferenceLocation(LocationType.CURRENT_LOCATION)
                     _state.update {
                         _state.value.copy(
                             fetchingDeviceLocation = false
                         )
                     }
+                    var toReturn: ArrayList<ReferenceLocation> = ArrayList<ReferenceLocation>()
+                    /*
+                                        if (location != null) {
+                                            location.toReferenceLocation()
 
-                    var toReturn : ArrayList<Location> = ArrayList<Location>()
-
-                    if (location != null) {
-                        toReturn.add(Location(title = location.province.toString(),locationType = Locations.CURRENT_LOCATION ))
-                    }
-                    else
-                    {
-                        toReturn.add(Location(title = "Error de Ubicacion",locationType = Locations.LOCATION_ERROR ))
-                    }
+                                            toReturn.add(ReferenceLocation(title = location.province.toString(),locationType = Locations.CURRENT_LOCATION ))
+                                        }
+                                        else
+                                        {
+                                            toReturn.add(UserAddress(title = "Error de Ubicacion",locationType = Locations.LOCATION_ERROR ))
+                                        }
+                                        */
                     toReturn
                 }
             )
@@ -546,32 +555,79 @@ class HomeScreenViewModel(
             )
         }
 
-        val responseConbined = ArrayList<Location>()
+        val responseConbined = ArrayList<ReferenceLocation>()
         val results = deferredResults.awaitAll()
-        val userLocations = (results[0] as ArrayList<Location>)
+        //   val userUserAddresses = (results[0] as ArrayList<UserAddress>)
 
-        responseConbined.addAll(userLocations)
+
+        val userUserAddresses: ArrayList<ReferenceLocation> = ArrayList<ReferenceLocation>()
+        (results[0] as ArrayList<UserAddress>).forEach { it ->
+            userUserAddresses.add(it.toReferenceLocation(LocationType.CUSTOM))
+        }
+
+        responseConbined.addAll(userUserAddresses)
 
         if (requestRealLocation && results.size > 1) {
-            val currentLocation = results[1].get(0)
-            responseConbined.add(currentLocation)
+        //    val currentLocation = results[1].get(0)
+  // que tipo de dato es
+        //          responseConbined.add(currentLocation)
         } else {
-            if (permissionsController.isPermissionGranted(com.iyr.ultrachango.utils.permissions.Permission.LOCATION) == true == false) {
-                val enableLocationsServiceOption = Location(
+            if (permissionsController.isPermissionGranted(Permission.LOCATION) == true == false) {
+
+                val pp =3
+           /*
+                val enableLocationsServiceOption = UserAddress(
                     title = "Habilitar Servicio de Ubicación",
                     locationType = Locations.ENABLE_LOCATION
                 )
                 responseConbined.add(enableLocationsServiceOption)
+         */
             }
         }
         //   onLocationsListUpdate(responseConbined.toList())
+
+
+
+        if (isGpsPresent()) {
+
+            //------
+            val realLocationData: ReferenceLocation = if (!isGpsEnabled()) {
+                ReferenceLocation(
+                    id = (-1).toString(), // ID especial para ubicación actual
+                    locationType = LocationType.ENABLE_LOCATION,
+                    name = "GPS Apagado",
+                    address = "Enciende tu GPS para usar esta opción",
+                )
+            } else if (permissionsController.isPermissionGranted(Permission.LOCATION)== false) {
+                ReferenceLocation(
+                    id = (-1).toString(), // ID especial para ubicación actual
+                    locationType = LocationType.PERMISSION_REQUIRED,
+                    name = "No hay permisos",
+                    address = "Otorga permisos para usar esta opción",
+                )
+            } else {
+                ReferenceLocation(
+                    id = (-1).toString(), // ID especial para ubicación actual
+                    locationType = LocationType.CURRENT_LOCATION,
+                    name = "Ubicación actual",
+                    address = "Usar mi ubicación actual",
+                )
+            }
+
+           responseConbined.add(realLocationData)
+
+        }
+
+
+
         println("ViewModel - ubicaciones = " + Json.encodeToString(responseConbined.toList()))
         _knownLocations.emit(responseConbined.toList())
     }
 
 
+
     private suspend fun getCurrentLocation(
-        permissionsController: com.iyr.ultrachango.utils.permissions.PermissionsController,
+        permissionsController: PermissionsController,
     ): GeolocatorResult {
         val geolocator: Geolocator = Geolocator.mobile()
         val result: GeolocatorResult = geolocator.current()
@@ -617,23 +673,25 @@ class HomeScreenViewModel(
 
     }
 
-    private suspend fun getUserLocations(userKey: String): List<Location> {
+    private suspend fun getUserLocations(userKey: String): List<UserAddress> {
         return userLocationsRepository.list(userKey)
     }
 
-    private fun onLocationsListUpdate(updated: List<Location>) {
-        val oldLocations = locations ?: emptyList()
+    private fun onLocationsListUpdate(updated: List<UserAddress>) {
+        val oldLocations = UserAddresses ?: emptyList()
         val newList =
             updated.filter { it.locationType != Locations.CURRENT_LOCATION }
+
+      /*
         newList.let { it ->
             _knownLocations.value = it.toList()
         }
-
+*/
     }
 
-    private fun updateMyLocation(myLocation: Location?) {
-        var newResult = ArrayList<Location>()
-        if (myLocation == null) {
+    private fun updateMyLocation(myUserAddress: UserAddress?) {
+        var newResult = ArrayList<UserAddress>()
+        if (myUserAddress == null) {
             // Eliminar la ubicación con locationType = CURRENT_LOCATION
 
             //   newResult = _state.value.locations?.filter { it.locationType != Locations.CURRENT_LOCATION }
@@ -641,8 +699,8 @@ class HomeScreenViewModel(
         } else {
             // Verificar si existe una ubicación con locationType = CURRENT_LOCATION
             val currentLocationIndex =
-                locations?.indexOfFirst { it.locationType == Locations.CURRENT_LOCATION }
-            locations
+                UserAddresses?.indexOfFirst { it.locationType == Locations.CURRENT_LOCATION }
+            UserAddresses
 
 
             if (currentLocationIndex != null && currentLocationIndex != -1) {
@@ -650,14 +708,14 @@ class HomeScreenViewModel(
                 //       _state.value.locations?.set(currentLocationIndex, myLocation)
             } else {
                 // Agregar la nueva ubicación
-                val location = myLocation.copy(locationType = Locations.CURRENT_LOCATION)
+                val location = myUserAddress.copy(locationType = Locations.CURRENT_LOCATION)
 
 
-
-                locations = ArrayList<Location>(locations!!.toList())
-                locations!!.add(location)
-                _knownLocations.value = locations as ArrayList<Location>
-
+/*
+                UserAddresses = ArrayList<UserAddress>(UserAddresses!!.toList())
+                UserAddresses!!.add(location)
+                _knownLocations.value = UserAddresses as ArrayList<UserAddress>
+*/
             }
             _state.update {
                 _state.value.copy(
@@ -670,20 +728,14 @@ class HomeScreenViewModel(
     }
 
 
-    fun onLocationSelected(location: Location) {
+    fun onLocationSelected(UserAddress: UserAddress) {
         val settings: Settings = Settings()
-        if (location.locationType != Locations.ENABLE_LOCATION) {
-            settings[Constants.CURRENT_LOCATION] = Json.encodeToString(location)
-            _state.value = _state.value.copy(locationSelected = location)
+        if (UserAddress.locationType != Locations.ENABLE_LOCATION) {
+            settings[Constants.CURRENT_LOCATION] = Json.encodeToString(UserAddress)
+            _state.value = _state.value.copy(userAddressSelected = UserAddress)
         } else {
-
-
             viewModelScope.launch(Dispatchers.Main) {
-                //sss
-                //   fetchLocations(true)
-
                 permissionsController.openAppSettings()
-//               permissionsController.value?.providePermission(Permission.LOCATION)
             }
         }
     }
@@ -693,7 +745,7 @@ class HomeScreenViewModel(
         val settings: Settings = Settings()
         val value = settings.getStringOrNull(Constants.CURRENT_LOCATION)
         if (value != null) {
-            val location = Json.decodeFromString<Location>(value)
+            val location = Json.decodeFromString<UserAddress>(value)
             when (location.locationType) {
                 Locations.CUSTOM -> {
                     response = Pair(location.latitude, location.longitude)
@@ -708,12 +760,9 @@ class HomeScreenViewModel(
                         val lng = it.coordinates.longitude
                         response = Pair(location.latitude, location.longitude)
                     }
-
-
                 }
 
                 else -> {
-
                 }
             }
         }
@@ -721,9 +770,48 @@ class HomeScreenViewModel(
     }
 
     fun requestCurrentLocation() {
+        viewModelScope.launch {
+            _state.update { it.copy(fetchingDeviceLocation = true) }
+            try {
+                val result = fetchLocation()
+                when (result) {
+                    is GeolocatorResult.Success -> {
+                        val location = result.data.toLocalLocation()
+                        val place = getPlaceFromCoordinates(
+                            viewModelScope,
+                            location.latitude,
+                            location.longitude
+                        ) { place ->
+                            location.title = place?.locality ?: "Ubicación actual"
+                            updateMyLocation(location)
+                        }
+                    }
 
-        var pp = 3
-        // TODO("Not yet implemented")
+                    is GeolocatorResult.Error -> {
+                        when (result) {
+                            is GeolocatorResult.NotSupported -> showError("Geolocalización no soportada")
+                            is GeolocatorResult.NotFound -> showError("No se pudo obtener la ubicación")
+                            is GeolocatorResult.PermissionError -> showError("Se requieren permisos de ubicación")
+                            is GeolocatorResult.GeolocationFailed -> showError("Error al obtener la ubicación")
+                            else -> showError("Error desconocido")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                showError(e.message ?: "Error al obtener la ubicación")
+            } finally {
+                _state.update { it.copy(fetchingDeviceLocation = false) }
+            }
+        }
+    }
+
+    private fun showError(message: String) {
+        _state.update {
+            it.copy(
+                showErrorMessage = true,
+                errorMessage = message
+            )
+        }
     }
 
     /*
@@ -761,6 +849,12 @@ class HomeScreenViewModel(
         }
     }
 
+    fun setPermissionState(state: PermissionState) {
+        _state.value = _state.value.copy(
+
+        )
+    }
+
 
     data class UiState(
         val showKeyboard: Boolean = false,
@@ -769,17 +863,18 @@ class HomeScreenViewModel(
         val showPulldownIcon: Boolean = true,
         val shoppingLists: List<ShoppingList>? = null,
         val fetchingDeviceLocation: Boolean = false,
-        val locationSelected: Location? = null,
+        val userAddressSelected: UserAddress? = null,
         val showErrorMessage: Boolean = false,
         val errorMessage: String? = null,
+        val havePermissionState: PermissionState = PermissionState.NotDetermined,
         //   val waitForLocation: Boolean = false
     )
 
 }
 
 
-fun Place.toLocalLocation(): Location {
-    return Location(
+fun Place.toLocalLocation(): UserAddress {
+    return UserAddress(
         title = locality.toString(),
         street = thoroughfare.toString(),
         number = subThoroughfare.toString(),

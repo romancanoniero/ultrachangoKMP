@@ -2,7 +2,7 @@ package com.iyr.ultrachango.data.database.repositories
 
 import com.iyr.ultrachango.data.api.cloud.location.CloudLocationsService
 
-import com.iyr.ultrachango.data.models.Location
+import com.iyr.ultrachango.data.models.UserAddress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.encodeToString
@@ -15,10 +15,10 @@ class UserLocationsRepository(
 ) {
 
 
-    suspend fun save(location: Location) {
+    suspend fun save(UserAddress: UserAddress) {
         try {
-            val stringaso = Json.encodeToString(location)
-            locationsCloudService.save(location)?.let { result ->
+            val stringaso = Json.encodeToString(UserAddress)
+            locationsCloudService.save(UserAddress)?.let { result ->
                 val pp = 3
             }
 
@@ -30,13 +30,13 @@ class UserLocationsRepository(
     }
 
 
-    fun fetchLists(userKey: String): Flow<List<Location>> = flow {
+    fun fetchLists(userKey: String): Flow<List<UserAddress>> = flow {
         val cloudCall = locationsCloudService.list(userKey)
         emit(cloudCall)
     }
 
 
-    suspend fun list(userKey: String): List<Location>  {
+    suspend fun list(userKey: String): List<UserAddress>  {
         val cloudCall =ArrayList(locationsCloudService.list(userKey))
      /*
         val currentLocation = Location()

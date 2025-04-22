@@ -49,7 +49,7 @@ import platform.UserNotifications.UNUserNotificationCenter
 import platform.darwin.swtch
 
 // iosMain/kotlin/com/iyr/ultrachango/permissions/IOSPermissionsController.kt
-actual class PermissionsController {
+actual class PermissionsControllerMio {
 
 
     private val locationManager = CLLocationManager()

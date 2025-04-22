@@ -3,6 +3,7 @@ package com.iyr.ultrachango.data.api.cloud.shoppinglist
 
 import com.iyr.ultrachango.config.Config.BASE_URL_CLOUD_SERVER
 import com.iyr.ultrachango.data.api.cloud.Response
+import com.iyr.ultrachango.data.models.BaseProduct
 import com.iyr.ultrachango.data.models.Product
 import com.iyr.ultrachango.data.models.ShoppingListProduct
 import com.iyr.ultrachango.data.models.ShoppingList
@@ -63,7 +64,7 @@ class CloudShoppingListService(
             it.payload?.items?.forEach { item ->
                 if (!item.ean.isDigitsOnly())
                 {
-                    var newProduct = Product(ean = item.ean,
+                    var newProduct = BaseProduct(ean = item.ean,
                         name = item.ean,
                         brand = "",
                         description = "",

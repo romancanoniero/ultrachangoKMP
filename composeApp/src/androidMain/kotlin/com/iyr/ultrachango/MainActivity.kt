@@ -34,8 +34,11 @@ import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.Genders
 import com.iyr.ultrachango.utils.firebase.GoogleAuth
 import com.iyr.ultrachango.utils.firebase.provideGoogleAuth
+import com.iyr.ultrachango.utils.moko.permissions.PermissionsViewModel
 import com.iyr.ultrachango.utils.ui.elements.IncDecSelectorPreview
 import com.iyr.ultrachango.voice.handleVoiceCommand
+import dev.icerock.moko.permissions.PermissionsController
+import dev.icerock.moko.permissions.compose.BindEffect
 
 class MainActivity : ComponentActivity() {
 
@@ -64,6 +67,16 @@ class MainActivity : ComponentActivity() {
 
         val firebaseApp = FirebaseApp.initializeApp(AppContext.context)
         AppContext.firebaseAuth = FirebaseAuth.getInstance(firebaseApp!!)
+/*
+        val permissionsViewModel =
+            // Pass the platform implementation of the permission controller to a common code.
+            PermissionsViewModel(PermissionsController(this))
+
+
+        // Binds the permissions controller to the activity lifecycle.
+        permissionsViewModel.permissionsController.bind(this)
+*/
+
 
         /*
               Firebase.initialize(

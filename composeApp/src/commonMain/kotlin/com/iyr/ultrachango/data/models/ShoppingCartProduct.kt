@@ -3,7 +3,36 @@ package com.iyr.ultrachango.data.models
 
 import kotlinx.serialization.Serializable
 
+@Serializable
+data class ShoppingCartProduct(
+    override var ean: String? = null,
+    override var name: String? = null,
+    override var  brand: String? = null,
+    override var  description: String? = null,
+    override var  presentationUnit: String? = null,
+    override var  presentationQty: Double? = null,
+    override var  marca_lower: String? = null,
+    override var  message: String? = null,
+    override var  nombre_lower: String? = null,
+    override var  presentation: String? = null,
+    override var   haveImage: Boolean? = false,
+    var status: String? = null,
+    var requirers: ArrayList<UserMinimum>? = null,
+    var qty: Double? = null,
+    var productPrice: ProductPrice? = null
+) : Product {
+    fun toProductGeneric(): ShoppingCartGeneric {
+        return ShoppingCartGeneric(
+            ean = ean,
+            name = ean,
+            haveImage = false,
+            requirers = requirers,
+            qty = 1.0
+        )
+    }
+}
 
+/*
 @Serializable
 //@Entity("products")
 data class ShoppingCartProduct
@@ -36,7 +65,7 @@ data class ShoppingCartProduct
     }
 
 }
-
+*/
 
 
 val sampleShoppingCartProducts = listOf(

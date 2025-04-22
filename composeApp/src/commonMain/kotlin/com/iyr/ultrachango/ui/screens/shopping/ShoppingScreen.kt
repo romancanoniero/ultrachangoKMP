@@ -73,6 +73,7 @@ import com.iyr.ultrachango.data.models.ProductOnSearch
 import com.iyr.ultrachango.data.models.ShoppingListComplete
 import com.iyr.ultrachango.data.models.ShoppingListMemberComplete
 import com.iyr.ultrachango.data.models.UserMinimum
+import com.iyr.ultrachango.data.models.toProduct
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.dialogs.AddProductConfirmationDialog
 import com.iyr.ultrachango.ui.dialogs.ConfirmationDialog
@@ -761,7 +762,7 @@ fun DropdownItemProductSearch(
     ) {
         // Imagen del producto
 
-        if (product.haveImage) {
+        if (product.haveImage == true) {
             val urlProduct = getProductImageUrl(product.ean.toString())
             AsyncImage(
                 model = urlProduct,

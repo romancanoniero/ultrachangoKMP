@@ -3,10 +3,10 @@ package com.iyr.ultrachango.utils.extensions
 import dev.jordond.compass.Location
 
 
-fun Location.toLocalLocation() : com.iyr.ultrachango.data.models.Location
+fun Location.toLocalLocation() : com.iyr.ultrachango.data.models.UserAddress
 {
 
-    return com.iyr.ultrachango.data.models.Location(
+    return com.iyr.ultrachango.data.models.UserAddress(
         title = "Ubicacion Actual",
         latitude = this.coordinates.latitude,
         longitude = this.coordinates.longitude,

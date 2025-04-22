@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import com.iyr.ultrachango.data.database.repositories.UserLocationsRepository
-import com.iyr.ultrachango.data.models.Location
+import com.iyr.ultrachango.data.models.UserAddress
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.ui.places.borrar.PlacesSearchService
@@ -182,7 +182,7 @@ class LocationsViewModel(
         val loading: Boolean = false,
         val showKeyboard: Boolean = false,
         val searchResults: List<Result> = emptyList(),
-        val list: List< Location> = emptyList(),
+        val list: List< UserAddress> = emptyList(),
         val refresh: Boolean = true,
         val showErrorMessage: Boolean = false,
         val errorMessage: String? = null,

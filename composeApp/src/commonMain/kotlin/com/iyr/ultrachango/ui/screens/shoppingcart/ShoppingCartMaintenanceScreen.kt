@@ -19,16 +19,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -62,6 +58,7 @@ import com.iyr.ultrachango.data.models.ProductOnSearch
 import com.iyr.ultrachango.data.models.ShoppingListComplete
 import com.iyr.ultrachango.data.models.ShoppingListMemberComplete
 import com.iyr.ultrachango.data.models.UserMinimum
+import com.iyr.ultrachango.data.models.toProduct
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.dialogs.AddProductConfirmationDialog
 import com.iyr.ultrachango.ui.dialogs.ConfirmationDialog
@@ -76,8 +73,8 @@ import com.iyr.ultrachango.utils.ui.ShowKeyboard
 import com.iyr.ultrachango.utils.ui.UserImage
 import com.iyr.ultrachango.utils.ui.capitalizeFirstLetter
 import com.iyr.ultrachango.utils.ui.elements.CircleSize
-import com.iyr.ultrachango.utils.ui.elements.ReusableSearchTextField
 import com.iyr.ultrachango.utils.ui.elements.StyleLight
+import com.iyr.ultrachango.utils.ui.elements.mySearchTextFieldWithScanner.MySearchTextFieldWithScanner
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.ALREADY_EXISTS
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.GENERIC_PRODUCT
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.NON_EXISTING
@@ -271,10 +268,12 @@ fun ShoppingCartMaintenanceScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            SearchTextFieldWithScanner(
-                userKey = userViewModel.user.value?.userKey,
+
+            /*
+            MySearchTextFieldWithScanner(
+//                userKey = userViewModel.user.value?.userKey,
                 text = searchText,
-                loadingProducts = state.loadingProducts,
+  //              loadingProducts = state.loadingProducts,
                 onTextChange = {
                     searchText = it
                     if (!searchText.isEmpty() && searchText.length > MIN_THRESHOLD_SEARCH) {
@@ -288,8 +287,8 @@ fun ShoppingCartMaintenanceScreen(
                     vm.onScanPressed()
                 },
 
-                state = state,
-                vm = vm,
+    //            state = state,
+    //            vm = vm,
                 focusRequester = focusRequester,
                 onFocusChanged = { hasFocus, focusRequester ->
                     vm.onFocusChanged(hasFocus)
@@ -301,6 +300,33 @@ fun ShoppingCartMaintenanceScreen(
                     triggerHapticFeedback()
                     vm.onAddProductAsk(product)
 
+                },
+
+            )
+*/
+            MySearchTextFieldWithScanner<ShoppingCartProduct>(
+                text = searchText,
+                onTextChange = {
+                    searchText = it
+                    if (!searchText.isEmpty() && searchText.length > MIN_THRESHOLD_SEARCH) {
+                        searchTextFlow.value = it
+                    } else {
+                        vm.onEmptySeachText()
+                    }
+                },
+                onScannerClick = { vm.onScanPressed() },
+                focusRequester = focusRequester,
+                onFocusChanged = { hasFocus, focusRequester ->
+                    vm.onFocusChanged(hasFocus)
+                },
+                dropdownItemContent = { product ->
+                    ShoppingListProductItem(
+                        product = product,
+                        onImageClick = {
+                            //vm.onShowProductRequest(it)
+                                       },
+                        onAddClick = { vm.onAddProductAsk(it) }
+                    )
                 }
             )
 
@@ -373,6 +399,71 @@ fun ShoppingCartMaintenanceScreen(
     }
 
 
+}
+
+@Composable
+fun ShoppingListProductItem(
+    product: ShoppingCartProduct,
+    onImageClick: (ShoppingCartProduct) -> Unit,
+    onAddClick: (ShoppingCartProduct) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        // Imagen del producto
+        if (product.haveImage == true) {
+            AsyncImage(
+                model = getProductImageUrl(product.ean ?: ""),
+                placeholder = painterResource(Res.drawable.sin_imagen),
+                contentDescription = product.name,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .clickable { onImageClick(product) }
+            )
+        }
+
+        Spacer(Modifier.width(8.dp))
+
+        // Información del producto
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = product.name ?: "",
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = product.brand ?: "",
+                fontSize = 12.sp
+            )
+            // Información específica de ShoppingList
+            Text(
+                text = "Cantidad: ${product.qty ?: 0}",
+                fontSize = 12.sp
+            )
+        }
+
+        // Icono de estado
+        if (product.qty != null && product.qty!! > 0) {
+            Icon(
+                imageVector = Icons.Outlined.CheckCircle,
+                contentDescription = "Ya existe",
+                tint = Color.Green
+            )
+        } else {
+            IconButton(
+                onClick = {
+                    triggerHapticFeedback()
+                    onAddClick(product)
+                }
+            ) {
+                Icon(
+                    Icons.Outlined.AddCircle,
+                    contentDescription = "Agregar"
+                )
+            }
+        }
+    }
 }
 
 
@@ -551,88 +642,7 @@ fun RoundMemberItem(
 }
 
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
-@Composable
-fun SearchTextFieldWithScanner(
-    userKey: String? = null,
-    text: String,
-    onTextChange: (String) -> Unit,
-    loadingProducts: Boolean,
-    onScannerClick: () -> Unit,
-    state: UiState,
-    vm: ShoppingCartMaintenanceViewModel,
-    focusRequester: FocusRequester,
-    onFocusChanged: (Boolean, FocusRequester) -> Unit,
-    onImageClicked: (Product) -> Unit = {},
-    onAddButtonClicked: (Product) -> Unit = {},
-) {
-    var showScannerIcon by remember { mutableStateOf(true) }
 
-    //--------------------
-    val options = listOf("Option 1", "Option 2", "Option 3", "Option 4", "Option 5")
-    //  var expanded by remember { mutableStateOf(false) }
-    var selectedOptionText by remember { mutableStateOf(options[0]) }
-
-
-    ExposedDropdownMenuBox(
-        expanded = state.searchResultsExpanded && state.searchResults.size > 1,
-        onExpandedChange = {
-            vm.onPulldownStatusInvert()
-        }
-    ) {
-
-        ReusableSearchTextField(
-            text = text,
-            onTextChange = onTextChange,
-            loadingProducts = loadingProducts,
-            showScannerIcon = showScannerIcon,
-            onScannerClick = onScannerClick,
-            focusRequester = focusRequester,
-            onFocusChanged = onFocusChanged,
-            onScannerButtonVisibilityChange = {
-                showScannerIcon = it
-            },
-            onTextSearchRequested = {
-                var pp = 3
-            },
-        )
-
-
-        ExposedDropdownMenu(
-            modifier = Modifier.fillMaxWidth(),
-            expanded = state.searchResultsExpanded && state.searchResults.size > 1,
-            onDismissRequest = {
-                vm.onPulldownStatusInvert()
-            }
-        ) {
-            state.searchResults.forEach { product ->
-                DropdownMenuItem(
-                    onClick = {
-                        triggerHapticFeedback()
-                        selectedOptionText = product.name.toString()
-                    }
-                ) {
-
-                    //         dropDownItemComposable.invoke(product.toProductOnSearch())
-
-                    DropdownItemProductSearch(
-                        product = product,
-                        onImageClicked = {
-                            onImageClicked(it)
-                        },
-                        onAddButtonClicked = {
-                            //  vm.closeDropDown()
-                            onAddButtonClicked(it)
-                        },
-                        onExistingIcon = Icons.Outlined.CheckCircle,
-                        onNonExistingIcon = Icons.Outlined.AddCircle,
-                    )
-                }
-            }
-        }
-    }
-
-}
 
 @Composable
 fun DropdownItemProductSearch(
@@ -652,7 +662,7 @@ fun DropdownItemProductSearch(
     ) {
         // Imagen del producto
 
-        if (product.haveImage) {
+        if (product.haveImage == true) {
             val urlProduct = getProductImageUrl(product.ean.toString())
             AsyncImage(
                 model = urlProduct,

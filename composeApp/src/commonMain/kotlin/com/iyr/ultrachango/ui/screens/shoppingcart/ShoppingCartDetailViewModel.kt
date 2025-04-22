@@ -14,6 +14,7 @@ import com.iyr.ultrachango.data.models.ShoppingCart
 import com.iyr.ultrachango.data.models.ShoppingListComplete
 import com.iyr.ultrachango.data.models.ShoppingListProductComplete
 import com.iyr.ultrachango.data.models.ShoppingListQuantities
+import com.iyr.ultrachango.data.models.toProductOnSearch
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.coroutines.Resource

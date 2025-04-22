@@ -12,6 +12,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,14 +29,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
-import com.iyr.ultrachango.data.models.Location
 import com.iyr.ultrachango.data.models.Locations
+import com.iyr.ultrachango.data.models.UserAddress
 import com.iyr.ultrachango.ui.screens.home.HomeScreenViewModel
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Preview
@@ -44,48 +44,38 @@ fun LocationIndicator(
     vm: HomeScreenViewModel,
     uiState: HomeScreenViewModel.UiState,
     fetchingLocations: Boolean,
-    locations: List<Location> = emptyList(),
+    UserAddresses: List<UserAddress> = emptyList(),
     navigateToAddLocation: () -> Unit,
     focusRequester: FocusRequester
 ) {
+    println("LocationIndicator - ubicaciones = " + Json.encodeToString(UserAddresses))
 
-    println("LocationIndicator - ubicaciones = " + Json.encodeToString(locations))
-
-
-    // val waitForLocationState by mutableStateOf(vm.state.waitForLocation)
-    //   val locations  by mutableStateOf(vm.knownLocations.value)  //
     var expanded by remember { mutableStateOf(false) }
-    var selectedLocation by remember { mutableStateOf<Location?>(null) }
-
-
-    println("culo : " + locations.size)
-
-    // Filtrar ubicaciones por tipo
-
+    var selectedUserAddress by remember { mutableStateOf<UserAddress?>(null) }
 
     // Actualizar selección de ubicación
-    LaunchedEffect(locations) {
-        selectedLocation = when {
-            locations.isNotEmpty() -> locations.first()
-
+    LaunchedEffect(UserAddresses) {
+        selectedUserAddress = when {
+            UserAddresses.isNotEmpty() -> UserAddresses.first()
             else -> null
         }
     }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded }) {
+        onExpandedChange = { expanded = !expanded }
+    ) {
         Row {
             if (fetchingLocations) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.primary
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.primary
                 )
             } else {
-                if (selectedLocation?.locationType == Locations.CUSTOM)
+                if (selectedUserAddress?.locationType == Locations.CUSTOM)
                     Icon(imageVector = Icons.Filled.Home, contentDescription = null)
                 else
                     Icon(imageVector = Icons.Filled.GpsFixed, contentDescription = null)
-
             }
             Spacer(modifier = Modifier.width(5.dp))
             Text(
@@ -93,87 +83,99 @@ fun LocationIndicator(
                     .menuAnchor()
                     .fillMaxWidth()
                     .focusRequester(focusRequester)
-                    .clickable {
-                        expanded = true
-
-                    },
+                    .clickable { expanded = true },
                 style = MaterialTheme.typography.titleMedium,
-                text = selectedLocation?.title ?: "Select Location"
+                text = selectedUserAddress?.title ?: "Seleccionar ubicación"
             )
         }
 
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            if (locations.isNotEmpty()) {
-                locations.forEach { location ->
-                    DropdownMenuItem(onClick = {
-                        triggerHapticFeedback()
-                        selectedLocation = location
-                        vm.onLocationSelected(location)
-                        expanded = false
-                    },
-                        text = {
-                            LocationItem(location)
-                        }
-                    )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            // Mostrar ubicaciones guardadas si existen
+            if (UserAddresses.isNotEmpty()) {
+                UserAddresses.forEach { location ->
+                    if (location.locationType != Locations.ENABLE_LOCATION) {
+                        DropdownMenuItem(
+                            onClick = {
+                                triggerHapticFeedback()
+                                selectedUserAddress = location
+                                vm.onLocationSelected(location)
+                                expanded = false
+                            },
+                            text = { LocationItem(location) }
+                        )
+                    }
                 }
             }
 
-            if (locations.filter{ it.locationType == Locations.CURRENT_LOCATION }.isEmpty()) {
-                DropdownMenuItem(onClick = {
-                    triggerHapticFeedback()
-                    //      selectedLocation = currentLocation
-                    vm.requestCurrentLocation() // Gestionar solicitud de ubicación actual
-                    expanded = false
-                },
+            // Si hay una opción de habilitar ubicación, mostrarla
+            UserAddresses.find { it.locationType == Locations.ENABLE_LOCATION }?.let { enableLocation ->
+                DropdownMenuItem(
+                    onClick = {
+                        triggerHapticFeedback()
+                        vm.onLocationSelected(enableLocation)
+                        expanded = false
+                    },
                     text = {
-                        Text(
-                            modifier = Modifier.menuAnchor(),
-                            text = "Obtener ubicación actual"
-                        )
-                    })
+                        Row {
+                            Icon(
+                                imageVector = Icons.Filled.GpsFixed,
+                                contentDescription = "Habilitar ubicación"
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(enableLocation.title)
+                        }
+                    }
+                )
             }
 
-            if (locations.isEmpty()  && locations.filter{ it.locationType == Locations.CUSTOM }.isEmpty()) {
-                DropdownMenuItem(onClick = {
-                    triggerHapticFeedback()
-                    navigateToAddLocation()
-                    expanded = false
-                },
+            // Si no hay ubicaciones guardadas y no hay GPS, sugerir agregar ubicaciones manualmente
+            if (UserAddresses.isEmpty() || (UserAddresses.size == 1 && UserAddresses[0].locationType == Locations.ENABLE_LOCATION)) {
+                DropdownMenuItem(
+                    onClick = {
+                        triggerHapticFeedback()
+                        navigateToAddLocation()
+                        expanded = false
+                    },
                     text = {
-                        Text(
-                            modifier = Modifier.menuAnchor(),
-                            text = "Agregar Ubicación"
-                        )
-                    })
-            }
-
-            if (locations.isEmpty()) {
+                        Row {
+                            Icon(
+                                imageVector = Icons.Filled.Home,
+                                contentDescription = "Agregar ubicación"
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Agregar ubicación manualmente")
+                        }
+                    }
+                )
+                
+                // Mostrar mensaje informativo
                 Text(
-                    text = "No hay ubicaciones disponibles. Habilite la ubicación o cree una nueva.",
-                    modifier = Modifier.padding(16.dp).menuAnchor(),
-                    color = MaterialTheme.colorScheme.onSurface
+                    text = "No hay ubicaciones disponibles. Agregue una ubicación manualmente.",
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
         }
     }
 }
 
-
 @Composable
-private fun LocationItem(location: Location) {
-    Row(modifier = Modifier.fillMaxWidth())
-    {
-        if (location.locationType == Locations.CUSTOM)
-            Icon(imageVector = Icons.Filled.Home, contentDescription = null)
-        else
-            Icon(imageVector = Icons.Filled.GpsFixed, contentDescription = null)
-
-        Spacer(modifier = Modifier.width(4.dp))
-
-        Text(
-          //  modifier = Modifier.Companion.menuAnchor(),
-            text = location.title
+private fun LocationItem(UserAddress: UserAddress) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Icon(
+            imageVector = when (UserAddress.locationType) {
+                Locations.CURRENT_LOCATION -> Icons.Filled.GpsFixed
+                Locations.CUSTOM -> Icons.Filled.Home
+                Locations.ENABLE_LOCATION -> Icons.Filled.GpsFixed
+                else -> Icons.Filled.LocationOff
+            },
+            contentDescription = null
         )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text = UserAddress.title)
     }
-
 }

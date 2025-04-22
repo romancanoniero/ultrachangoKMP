@@ -6,6 +6,7 @@ import coil3.ImageLoader
 import coil3.request.ImageRequest
 import com.iyr.ultrachango.Constants.PRODUCT_DOES_NOT_EXIST
 import com.iyr.ultrachango.config.Config.BASE_URL_CLOUD_SERVER
+import com.iyr.ultrachango.data.models.BaseProduct
 import com.iyr.ultrachango.data.models.Product
 import com.iyr.ultrachango.getAuthToken
 import com.iyr.ultrachango.preferences.managers.settings
@@ -53,7 +54,7 @@ class CloudProductsService(
     }
 
     override suspend fun getProductById(id: String): Product {
-        return Product()
+        return BaseProduct()
     }
 
     override suspend fun getProductByMarca(marca: String): List<Product> {
@@ -116,11 +117,11 @@ class CloudProductsService(
                 .bodyAsText()
 
             val jsonElement = Json.parseToJsonElement(call)
-            var product = Product()
+            var product = BaseProduct()
             jsonElement.jsonObject["product"]?.let { it ->
                 if (it != JsonNull) {
                     val productJson = it.toString()
-                    product = Json.decodeFromString<Product>(productJson)
+                    product = Json.decodeFromString<BaseProduct>(productJson)
                     result["product"] = product
                 } else {
                     throw Exception(PRODUCT_DOES_NOT_EXIST)
@@ -203,20 +204,20 @@ var pp = 33
     }
 
     override suspend fun createProduct(product: Product): Product {
-        return Product()
+        return BaseProduct()
     }
 
     override suspend fun updateProduct(product: Product): Product {
-        return Product()
+        return BaseProduct()
     }
 
     override suspend fun deleteProduct(id: String): Product {
-        return Product()
+        return BaseProduct()
     }
 
     override fun togleProductFavorite(userKey: String, ean: String, favorite: Boolean): Product {
         // TODO("Not yet implemented")
-        return Product()
+        return BaseProduct()
     }
 
 
