@@ -1,13 +1,12 @@
 package com.iyr.ultrachango.data.api.cloud.products
 
 
-import coil3.Bitmap
-import coil3.ImageLoader
-import coil3.request.ImageRequest
 import com.iyr.ultrachango.Constants.PRODUCT_DOES_NOT_EXIST
 import com.iyr.ultrachango.config.Config.BASE_URL_CLOUD_SERVER
-import com.iyr.ultrachango.data.models.BaseProduct
+import com.iyr.ultrachango.data.api.cloud.Response
 import com.iyr.ultrachango.data.models.Product
+import com.iyr.ultrachango.data.models.ProductWithPricesAround
+import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.getAuthToken
 import com.iyr.ultrachango.preferences.managers.settings
 import com.iyr.ultrachango.utils.coroutines.Resource
@@ -19,13 +18,11 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.long
 import kotlinx.serialization.json.longOrNull
 
 class CloudProductsService(
@@ -54,7 +51,7 @@ class CloudProductsService(
     }
 
     override suspend fun getProductById(id: String): Product {
-        return BaseProduct()
+        return Product()
     }
 
     override suspend fun getProductByMarca(marca: String): List<Product> {
@@ -84,6 +81,46 @@ class CloudProductsService(
         return result
 
     }
+
+
+    override suspend fun getSuggestedProductsWithDetailed(
+                                          text: String,
+                                          latitude: Double,
+                                          longitude: Double,
+                                          distance : Double
+                                          ): List<ProductWithPricesAround>? {
+
+        var result: Response<List<ProductWithPricesAround>>? = null
+
+        Resource.Loading<Response<List<ProductWithPricesAround>>>()
+        try {
+
+            val token = settings.getAuthToken()
+
+            var url = "$BASE_URL_CLOUD_SERVER/products/suggest"
+            val call = client.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    mapOf(
+                        "text" to text,
+                        "latitude" to latitude.toString(),
+                        "longitude" to longitude.toString(),
+                        "distance" to distance.toString(),
+                        "promotionFilter" to "ALL",
+                        "token" to token
+                    )
+                )
+            }
+
+            call.bodyAsText()
+            result = call.body<Response<List<ProductWithPricesAround>>>()
+        } catch (exception: Exception) {
+            throw exception
+        }
+        return result.payload
+
+    }
+
 
     override suspend fun getProductByEAN(ean: String): Product {
         var result: Product? = null
@@ -117,11 +154,11 @@ class CloudProductsService(
                 .bodyAsText()
 
             val jsonElement = Json.parseToJsonElement(call)
-            var product = BaseProduct()
+            var product = Product()
             jsonElement.jsonObject["product"]?.let { it ->
                 if (it != JsonNull) {
                     val productJson = it.toString()
-                    product = Json.decodeFromString<BaseProduct>(productJson)
+                    product = Json.decodeFromString<Product>(productJson)
                     result["product"] = product
                 } else {
                     throw Exception(PRODUCT_DOES_NOT_EXIST)
@@ -171,6 +208,7 @@ class CloudProductsService(
             }
 
 
+
 var pp = 33
   /*
             var call = client.get(url)
@@ -204,20 +242,20 @@ var pp = 33
     }
 
     override suspend fun createProduct(product: Product): Product {
-        return BaseProduct()
+        return Product()
     }
 
     override suspend fun updateProduct(product: Product): Product {
-        return BaseProduct()
+        return Product()
     }
 
     override suspend fun deleteProduct(id: String): Product {
-        return BaseProduct()
+        return Product()
     }
 
     override fun togleProductFavorite(userKey: String, ean: String, favorite: Boolean): Product {
         // TODO("Not yet implemented")
-        return BaseProduct()
+        return Product()
     }
 
 

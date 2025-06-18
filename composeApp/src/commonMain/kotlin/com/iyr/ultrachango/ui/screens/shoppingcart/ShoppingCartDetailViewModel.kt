@@ -15,9 +15,11 @@ import com.iyr.ultrachango.data.models.ShoppingListComplete
 import com.iyr.ultrachango.data.models.ShoppingListProductComplete
 import com.iyr.ultrachango.data.models.ShoppingListQuantities
 import com.iyr.ultrachango.data.models.toProductOnSearch
+import com.iyr.ultrachango.domain.auth.AuthRepository
 import com.iyr.ultrachango.ui.ScaffoldViewModel
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+
 import com.iyr.ultrachango.utils.coroutines.Resource
+import com.iyr.ultrachango.utils.geo.getCurrentLocation
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.ALREADY_EXISTS
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.GENERIC_PRODUCT
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.NON_EXISTING
@@ -46,15 +48,13 @@ class ShoppingCartMaintenanceViewModel(
     private val productsRepository: ProductsRepository,
     private val shoppingCartRepository: ShoppingCartRepository,
     private val shoppingListRepository: ShoppingListRepository,
+    private val permissionsController: PermissionsController,
     private val scaffoldVM: ScaffoldViewModel,
 ) : ViewModel(), KoinComponent {
 
 
-    var permissionsController: PermissionsController? = null
-
     private val _state = MutableStateFlow(UiState())
     val state: StateFlow<UiState> = _state.asStateFlow()
-
 
     private var shoppingList: ShoppingListComplete? = null
 
@@ -68,13 +68,11 @@ class ShoppingCartMaintenanceViewModel(
     }
 
     fun assignPermissionsController(permissionsController: PermissionsController) {
-        this.permissionsController = permissionsController
+        //    this.permissionsController = permissionsController
     }
-
 
     fun fetchData(
     ) {
-
         _state.update {
             _state.value.copy(
                 loading = true
@@ -202,13 +200,11 @@ class ShoppingCartMaintenanceViewModel(
      * @param text
      *
      */
+    //TODO: Cambiar el nombre de la funcion a onSearchByText y simplificar
     fun onProductTextInput(
         text: String,
-        lat: Double = -34.586050,
-        lng: Double = -58.504600,
         includeFreeText: Boolean = false
     ) {
-        scaffoldVM.showLoader(true)
         _state.value = _state.value.copy(
             showKeyboard = false,
             loadingProducts = true,
@@ -217,69 +213,68 @@ class ShoppingCartMaintenanceViewModel(
             it.cancel()
         }
         searchJob = viewModelScope.launch(Dispatchers.IO) {
-            productsRepository.searchByText(text, lat, lng).onStart {
-                // Emitir estado de carga
-                scaffoldVM.showLoader(true)
-            }.catch { exception ->
-                // Manejar errores
-                val error = exception
-                scaffoldVM.showLoader(false)
-            }.collect { resource ->
-                // Actualizar el estado con los resultados de búsqueda
-                when (resource) {
-                    is Resource.Success -> {
 
-                        scaffoldVM.showLoader(false)
+            val location = getCurrentLocation(permissionsController)
+            location.getOrNull()?.let { location ->
+                val coordinates = location.coordinates
 
-                        var records = resource.data?.map { it -> it.toProductOnSearch() }
+                productsRepository.searchByText(text, coordinates.latitude, coordinates.longitude)
+                    .onStart {
+                        // Emitir estado de carga
+                    }.catch { exception ->
+                        // Manejar errores
+                        val error = exception
+                        _state.value = _state.value.copy(
+                            loadingProducts = false,
+                            errorMessage = error.message.toString(),
+                            showErrorMessage = true
+                        )
 
-                        if (includeFreeText) {
+                    }.collect { resource ->
+                        // Actualizar el estado con los resultados de búsqueda
+                        when (resource) {
+                            is Resource.Success -> {
+                                var records = resource.data?.map { it -> it.toProductOnSearch() }
+                                if (includeFreeText) {
+                                    records = listOf(
+                                        ProductOnSearch(
+                                            ean = text,
+                                            name = text,
+                                            brand = "",
+                                            status = GENERIC_PRODUCT
+                                        )
+                                    ) + (records ?: emptyList<ProductOnSearch>())
+                                }
 
-                            records = listOf(
-                                ProductOnSearch(
-                                    ean = text,
-                                    name = text,
-                                    brand = "",
-                                    status = GENERIC_PRODUCT
+                                val mappedList = records?.map { product ->
+                                    product.status =
+                                        if (shoppingList?.items?.any { it.product?.ean == product.ean } == true) ALREADY_EXISTS else NON_EXISTING
+                                    product
+                                } ?: emptyList()
+
+                                _state.value = _state.value.copy(
+                                    showPulldownIcon = true,
+                                    searchResultsExpanded = true,
+                                    searchResults = mappedList,
+                                    loadingProducts = false
                                 )
-                            ) + (records ?: emptyList<ProductOnSearch>())
+                            }
 
+                            is Resource.Error -> {
+                                _state.value = _state.value.copy(
+                                    showErrorMessage = true, errorMessage = resource.message
+                                )
+                            }
+                            else -> {
+                                null
+                            }
                         }
 
-                        val mappedList = records?.map { product ->
-                            product.status =
-                                if (shoppingList?.items?.any { it.product?.ean == product.ean } == true) ALREADY_EXISTS else NON_EXISTING
-                            product
-                        } ?: emptyList()
-
-
-
-
-                        _state.value = _state.value.copy(
-                            showPulldownIcon = true,
-                            searchResultsExpanded = true,
-                            searchResults = mappedList,
-                            loadingProducts = false
-                        )
-
                     }
 
-                    is Resource.Error -> {
-                        scaffoldVM.showLoader(false)
-
-                        _state.value = _state.value.copy(
-                            showErrorMessage = true, errorMessage = resource.message
-                        )
-
-
-                    }
-
-                    else -> {
-                        null
-                    }
-                }
 
             }
+
         }
 
     }
@@ -443,7 +438,7 @@ class ShoppingCartMaintenanceViewModel(
         val ean = product.ean
 
 
-        val itemsUpdated = ArrayList<ShoppingCartProduct> ()
+        val itemsUpdated = ArrayList<ShoppingCartProduct>()
         _state.value.shoppingCart?.items?.filter { it.ean != ean }?.forEach {
             itemsUpdated.add(it)
         }
@@ -455,13 +450,13 @@ class ShoppingCartMaintenanceViewModel(
         _state.value = _state.value.copy(
             shoppingCart = shoppingCartUpdated,
         )
-      /*
-        viewModelScope.launch(Dispatchers.IO) {
-            closeDialogsRequested()
-            shoppingCartRepository.addProductToList(listId, ean!!, 1.0)
-            fetchData()
-        }
-        */
+        /*
+          viewModelScope.launch(Dispatchers.IO) {
+              closeDialogsRequested()
+              shoppingCartRepository.addProductToList(listId, ean!!, 1.0)
+              fetchData()
+          }
+          */
 
 
     }

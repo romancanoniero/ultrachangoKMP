@@ -2,7 +2,6 @@
 
 package com.iyr.ultrachango.ui.screens.shoppingcart
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -21,11 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.iyr.ultrachango.data.Api.preciosclaros.model.producto.Sucursale
-import com.iyr.ultrachango.utils.formatCurrency
 import com.iyr.ultrachango.utils.ui.device.getScreenWidth
 import com.iyr.ultrachango.utils.ui.elements.Body1Text
 import com.iyr.ultrachango.utils.ui.elements.Body2Text
-import com.iyr.ultrachango.utils.ui.elements.H3Text
 import com.iyr.ultrachango.utils.ui.elements.ImageBox
 
 @Composable
@@ -71,7 +68,9 @@ private fun Content(
                     modifier = Modifier.fillMaxSize().padding(0.dp),
                     imageModel = urlBrand,
                     contentDesription = "Product Image",
-                    showImage = true,
+                    onClick = {
+                        onPriceSelected(pos)
+                    },
                 )
             }
 

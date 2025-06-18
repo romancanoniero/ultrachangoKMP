@@ -5,6 +5,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
@@ -40,6 +41,9 @@ import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
 import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
+import com.iyr.ultrachango.domain.Language
+import com.iyr.ultrachango.domain.Localization
+import com.iyr.ultrachango.domain.auth.AuthRepository
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.rootnavigation.RootNavGraph
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
@@ -51,20 +55,15 @@ import com.iyr.ultrachango.ui.screens.qrscanner.QRTypes
 import com.iyr.ultrachango.ui.screens.shoppingcart.ShoppingCartMaintenanceViewModel
 import com.iyr.ultrachango.ui.screens.topbars.HomeTopAppBar
 import com.iyr.ultrachango.ui.screens.topbars.ScreenTopAppBar
-import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
-import com.iyr.ultrachango.utils.auth_by_cursor.auth.FirebaseInit
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.domain.auth.models.AppUser
+import com.iyr.ultrachango.presentation.auth.AuthViewModel
 import com.iyr.ultrachango.utils.sound.AudioPlayer
 import com.iyr.ultrachango.utils.ui.LoadingDialog
 import com.iyr.ultrachango.utils.ui.capitalizeFirstLetter
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 import com.iyr.ultrachango.viewmodels.UserViewModel
-import com.mmk.kmpauth.google.GoogleAuthCredentials
-import com.mmk.kmpauth.google.GoogleAuthProvider
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
-import dev.gitlive.firebase.auth.FirebaseUser
 import dev.icerock.moko.permissions.PermissionsController
 import dev.icerock.moko.permissions.compose.PermissionsControllerFactory
 import dev.icerock.moko.permissions.compose.rememberPermissionsControllerFactory
@@ -88,32 +87,35 @@ fun App(
     authViewModel: AuthViewModel = koinInject(),
 ) {
     // MaterialTheme {
-    FirebaseInit().initialize()
+    // FirebaseInit().initialize()
+
     val navController = rememberNavController()
     val settings = Settings()
+    val localization = koinInject<Localization>()
+  /*
+    val languageIso by rememberStringSetting(
+        key = "savedLanguageIso",
+        defaultValue = Language.SPANISH
+    ) {
+        localization.applyLanguage(it)
+    }
+
+    val selectedLanguage by derivedStateOf {
+        Language.entries.first { it.iso == languageIso }
+    }
+*/
 
     ImageLoader.Builder(LocalPlatformContext.current).memoryCachePolicy(CachePolicy.ENABLED)
 
-    val onFirebaseResult: (Result<FirebaseUser?>) -> Unit = { result ->
-        if (result.isSuccess) {
-            val firebaseUser = result.getOrNull()
-            //      signedInUserName =
-            //         firebaseUser?.displayName ?: firebaseUser?.email ?: "Null User"
-        } else {
-            //    signedInUserName = "Null User"
-            println("Error Result: ${result.exceptionOrNull()?.message}")
-        }
 
-    }
-
-
-    var serverId = "1077576417175-8b3deus3foi11547ikbjr3plhoi52b6f.apps.googleusercontent.com"
-    GoogleAuthProvider.create(
-        credentials = GoogleAuthCredentials(
-            serverId = serverId
+    /*
+        var serverId = "1077576417175-8b3deus3foi11547ikbjr3plhoi52b6f.apps.googleusercontent.com"
+        GoogleAuthProvider.create(
+            credentials = GoogleAuthCredentials(
+                serverId = serverId
+            )
         )
-    )
-
+    */
 
     var loginStatusChecked by remember { mutableStateOf<Boolean?>(null) }
 
@@ -130,10 +132,12 @@ fun App(
     var user: AppUser? = null
     LaunchedEffect(Unit) {
         println("Reviso el Login")
+        authRepository.signOut()
         if (authRepository.isUserSignedIn()) {
-            val authToken = authRepository.getAuthToken(refresh = true)
+            println("Usuario Logueado")
+            val authToken = authRepository.getAuthToken(forceRefresh = true)
             settings.setAuthToken(authToken!!)
-            val it = authRepository.getCurrentUser(true)
+            val it = authRepository.getCurrentUser()
             if (it == null) {
                 authViewModel.signOut()
                 //                    authRepository.logout()
@@ -142,13 +146,10 @@ fun App(
             }
             loginStatusChecked = true
         } else {
+            println("No hay Usuario Logueado")
             loginStatusChecked = true
         }
     }
-
-//    loginStatusChecked = false
-
-
     loginStatusChecked?.let {
         if (it) {
             NavHostMain(
@@ -173,6 +174,7 @@ fun NavHostMain(
     onNavigate: (rootName: String) -> Unit,
 ) {
 
+    println("NavhostMain")
 
     val factory: PermissionsControllerFactory = rememberPermissionsControllerFactory()
     val permissionsController: PermissionsController =
@@ -228,47 +230,43 @@ fun NavHostMain(
 
             KoinContext {
 
-                Box(
+
+                Scaffold(
                     modifier = Modifier
-                    //   .background(backgroundColor)
-                )
-                {
-                    Scaffold(
-                        modifier = Modifier
-                            // .padding(statusBarValues.calculateTopPadding())
-                            .padding(0.dp),
-                        topBar = {
+                        .fillMaxSize(),
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0), // Esto es clave
 
-                            DynamicTopBar(
-                                authRepository,
-                                authViewModel,
-                                currentRoute,
-                                navController
-                            )
+                    topBar = {
 
-
-                        },
-                        bottomBar = {
-                            if (isBottomBarVisible) {
-                                DynamicBottomBar(currentRoute, navController)
-                            }
-                        }) { innerPadding ->
-
-
-                        RootNavGraph(
-                            modifier = Modifier
-                                .padding(horizontal = 0.dp),
-                            innerPadding,
-                            navController,
-                            permissionsController,
-                            scaffoldVM,
-
-                            authRepository
+                        DynamicTopBar(
+                            authRepository,
+                            authViewModel,
+                            currentRoute,
+                            navController
                         )
-                    }
+
+
+                    },
+                    bottomBar = {
+                        if (isBottomBarVisible) {
+                            DynamicBottomBar(currentRoute, navController)
+                        }
+                    }) { innerPadding ->
+
+
+                    RootNavGraph(
+                        modifier = Modifier,
+                        innerPadding,
+                        navController,
+                        permissionsController,
+                        scaffoldVM,
+
+                        authRepository
+                    )
                 }
             }
         }
+//        }
     }
 
 }
@@ -282,7 +280,7 @@ fun DynamicTopBar(
     currentRoute: String?,
     navController: NavController,
 
-) {
+    ) {
     val shareButton = {
         navController.navigate(
             RootRoutes.SharingRoute.createRoute(
@@ -299,7 +297,8 @@ fun DynamicTopBar(
             var me: AppUser? = null
             var name: String? = null
             me = authRepository.getCurrentUser()
-            name = (me?.displayName?.capitalizeFirstLetter() ?: me?.firstName.toString()).capitalizeFirstLetter()
+            name = (me?.displayName?.capitalizeFirstLetter()
+                ?: me?.firstName.toString()).capitalizeFirstLetter()
             HomeTopAppBar(me?.uid!!, name ?: "??????", me?.profilePicturePath, shareButton)
 
         }
@@ -307,6 +306,7 @@ fun DynamicTopBar(
         RootRoutes.MembersRoute.route,
         AppRoutes.SettingRoute.route,
         RootRoutes.ProductPricesDetailRoute.route.substringBefore("/"),
+        RootRoutes.ProductsSuggestedByTextDetailRoute.route.substringBefore("/"),
         RootRoutes.SharingRoute.route.substringBefore("/"),
         RootRoutes.BuyRoute.route,
         RootRoutes.ShoppingListRoute.route,
@@ -326,7 +326,7 @@ fun DynamicTopBar(
                         navController = navController,
                         title = "🛒 Listas de Compras",
 
-                    )
+                        )
                 }
 
                 RootRoutes.PreparationRoute.route -> {
@@ -334,16 +334,15 @@ fun DynamicTopBar(
                         navController = navController,
                         title = "🛒 Preparacion",
 
-                    )
+                        )
                 }
 
 
-
-                RootRoutes.SharingRoute.route.substringBefore("/")-> {
+                RootRoutes.SharingRoute.route.substringBefore("/") -> {
                     ScreenTopAppBar(
                         navController = navController,
                         title = "🔊 Invitar amigos ",
-                         //stringResource(Res.string.invite)
+                        //stringResource(Res.string.invite)
                     )
                 }
 
@@ -357,7 +356,7 @@ fun DynamicTopBar(
                         navController = navController,
                         title = "🛒 " + listName,
 
-                    )
+                        )
                 }
 
                 RootRoutes.ProductPricesDetailRoute.route.substringBefore("/") -> {
@@ -377,14 +376,34 @@ fun DynamicTopBar(
                         navController = navController,
                         title = "🛍️ " + name,
 
-                    )
+                        )
                 }
 
+                RootRoutes.ProductsSuggestedByTextDetailRoute.route.substringBefore("/") -> {
+                    val userKey =
+                        navController.currentBackStackEntry?.arguments?.getString("user_key")
+                            ?: "Producto"
+
+                    val ean =
+                        navController.currentBackStackEntry?.arguments?.getString("ean")
+                            ?: "Producto"
+
+                    val name =
+                        navController.currentBackStackEntry?.arguments?.getString("name")
+                            ?: "Producto"
+
+                    ScreenTopAppBar(
+                        navController = navController,
+                        title = "🛍️ " + name,
+
+                        )
+                }
 
 
                 RootRoutes.PreparationDetailRoute.route.substringBefore("/") -> {
                     // Lógica que se ejecuta cuando el icono es presionado
-                    val shoppingCartMaintenanceViewModel: ShoppingCartMaintenanceViewModel = koinInject()
+                    val shoppingCartMaintenanceViewModel: ShoppingCartMaintenanceViewModel =
+                        koinInject()
                     val actionEmptyTrash = Pair(
                         Icons.Default.Delete
                     ) {
@@ -394,16 +413,18 @@ fun DynamicTopBar(
                     val actions = listOf(actionEmptyTrash)
 
 
-                    ScreenTopAppBar(navController = navController,
+                    ScreenTopAppBar(
+                        navController = navController,
                         title = "🛒 " + stringResource(Res.string.shopping_cart),
                         actionIcons = actions,
-                      )
+                    )
                 }
 
 
                 RootRoutes.BuyRoute.route -> {
                     // Lógica que se ejecuta cuando el icono es presionado
-                    val shoppingCartMaintenanceViewModel: ShoppingCartMaintenanceViewModel = koinInject()
+                    val shoppingCartMaintenanceViewModel: ShoppingCartMaintenanceViewModel =
+                        koinInject()
                     val actionEmptyTrash = Pair(
                         Icons.Default.Delete
                     ) {
@@ -413,12 +434,12 @@ fun DynamicTopBar(
                     val actions = listOf(actionEmptyTrash)
 
 
-                    ScreenTopAppBar(navController = navController,
+                    ScreenTopAppBar(
+                        navController = navController,
                         title = "🛒 " + stringResource(Res.string.shopping),
                         actionIcons = actions,
                     )
                 }
-
 
 
                 RootRoutes.LocationRoute.route -> {
@@ -426,7 +447,7 @@ fun DynamicTopBar(
                         navController = navController,
                         title = "📍 Ubicación",
 
-                    )
+                        )
                 }
 
                 RootRoutes.SettingDetail.route -> {
@@ -434,7 +455,7 @@ fun DynamicTopBar(
                         navController = navController,
                         title = "⚙️ Configuración",
 
-                    )
+                        )
                 }
 
                 RootRoutes.SettingRoute.route -> {
@@ -442,7 +463,7 @@ fun DynamicTopBar(
                         navController = navController,
                         title = "⚙️ Configuración",
 
-                    )
+                        )
                 }
 
                 RootRoutes.MembersRoute.route -> {
@@ -459,19 +480,17 @@ fun DynamicTopBar(
                         title = "👥 Grupo Familiar",
                         actionIcons = actions,
 
-                    )
+                        )
                 }
 
                 RootRoutes.FidelizationRoute.route -> {
-
-
 
 
                     ScreenTopAppBar(
                         navController = navController,
                         title = "🎁 Fidelizacion",
 
-                    )
+                        )
                 }
 
                 RootRoutes.QRScannerScreenRoute.route.substringBefore("/") -> {
@@ -486,7 +505,7 @@ fun DynamicTopBar(
                         navController = navController,
                         title = "🏠 Inicio",
 
-                    )
+                        )
                 }
 
             }
@@ -506,7 +525,6 @@ fun DynamicTopBar(
 }
 
 
-
 @Composable
 fun DynamicBottomBar(currentRoute: String?, navController: NavController) {
     val screensWithBottomBar = listOf(
@@ -515,6 +533,7 @@ fun DynamicBottomBar(currentRoute: String?, navController: NavController) {
         RootRoutes.ShoppingListRoute.route,
         RootRoutes.ShoppingListRoute.route,
         RootRoutes.ProductPricesDetailRoute.route.substringBefore("/"),
+        RootRoutes.ProductsSuggestedByTextDetailRoute.route.substringBefore("/"),
         RootRoutes.ShoppingListEditRoute.route.substringBefore("/"),
         RootRoutes.PreparationRoute.route.substringBefore("/"),
         RootRoutes.PreparationDetailRoute.route.substringBefore("/"),
@@ -546,12 +565,15 @@ popUpTo(navController.graph.startDestinationRoute ?: "") {
 fun validateForm(
     validateImage: Boolean = true,
     imageProfile: String? = null,
+
     firstName: String?,
     lastName: String?,
     gender: String?,
     birthDate: String?
 ): Boolean {
-    return (!validateImage || !imageProfile.isNullOrBlank()) && !firstName.isNullOrBlank() && !lastName.isNullOrBlank() && gender != null && !birthDate.isNullOrEmpty()
+    return (!validateImage || !imageProfile.isNullOrBlank())
+
+            && !firstName.isNullOrBlank() && !lastName.isNullOrBlank() && gender != null && !birthDate.isNullOrEmpty()
 }
 
 @Composable

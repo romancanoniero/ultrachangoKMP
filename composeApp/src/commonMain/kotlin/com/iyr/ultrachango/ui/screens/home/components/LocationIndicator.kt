@@ -125,7 +125,7 @@ fun LocationIndicator(
                                 contentDescription = "Habilitar ubicación"
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(enableLocation.title)
+                            Text(enableLocation.title.toString())
                         }
                     }
                 )
@@ -176,6 +176,6 @@ private fun LocationItem(UserAddress: UserAddress) {
             contentDescription = null
         )
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = UserAddress.title)
+        Text(text = UserAddress.title.toString())
     }
 }

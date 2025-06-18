@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.iyr.ultrachango.data.database.repositories.FamilyMembersRepository
 import com.iyr.ultrachango.data.models.FamilyMember
 import com.iyr.ultrachango.data.models.Product
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.domain.auth.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
@@ -19,8 +19,6 @@ class MembersScreenViewModel(
     private val authRepository: AuthRepository,
     private val familyMembersRepository: FamilyMembersRepository,
 ) : ViewModel(), KoinComponent {
-
-
     var state by mutableStateOf(UiState())
         private set
 

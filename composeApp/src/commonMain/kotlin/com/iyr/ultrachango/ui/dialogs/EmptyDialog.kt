@@ -40,7 +40,9 @@ fun EmptyDialog(
 
     Column(
         modifier = modifier.fillMaxSize()
-        ,
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 10.dp, vertical = 10.dp),
+
         verticalArrangement = Arrangement.Center
     ) {
 
@@ -48,16 +50,16 @@ fun EmptyDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(.70f),
+                // .fillMaxHeight(.70f)
+                .shadow(4.dp, shape = customShapeBig)
+            ,
             verticalArrangement = Arrangement.Center
         ) {
             Dialog(
-
                 properties = DialogProperties(
                     usePlatformDefaultWidth = true,
                     dismissOnClickOutside = true,
                     dismissOnBackPress = true
-
                 ),
                 onDismissRequest = { /* Do nothing on outside click */ })
             {
@@ -65,10 +67,8 @@ fun EmptyDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.White, shape = customShapeBig)
-                        //   .border(0.5.dp, Color.Black, shape = customShapeBig)
                         .shadow(elevation = 2.dp, shape = customShapeBig)
-                        .clip(customShapeBig),
-
+                    ,
                     verticalArrangement = Arrangement.Center
                 ) {
 
@@ -86,10 +86,8 @@ fun EmptyDialog(
                                 fontWeight = FontWeight.Bold,
                                 lineHeight = 24.sp,
                                 fontSize = MaterialTheme.typography.titleLarge.fontSize
-
                             ),
                             text = title
-
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))

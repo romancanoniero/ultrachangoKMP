@@ -2,7 +2,7 @@ package com.iyr.ultrachango.data.database.repositories
 
 
 import com.iyr.ultrachango.data.api.cloud.images.CloudImagesService
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.domain.auth.AuthRepository
 import kotlinx.datetime.Clock
 
 

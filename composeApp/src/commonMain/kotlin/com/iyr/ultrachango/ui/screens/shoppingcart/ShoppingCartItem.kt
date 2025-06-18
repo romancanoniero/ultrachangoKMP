@@ -2,7 +2,6 @@
 
 package com.iyr.ultrachango.ui.screens.shoppingcart
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +21,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.outlined.QuestionMark
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
@@ -42,6 +41,7 @@ import com.iyr.ultrachango.utils.extensions.isDigitsOnly
 import com.iyr.ultrachango.utils.formatCurrency
 import com.iyr.ultrachango.utils.helpers.getProductImageUrl
 import com.iyr.ultrachango.utils.ui.device.getScreenWidth
+import com.iyr.ultrachango.utils.ui.elements.IconBox
 import com.iyr.ultrachango.utils.ui.elements.IncDecSelector
 import com.iyr.ultrachango.utils.ui.elements.ImageBox
 import com.iyr.ultrachango.utils.ui.elements.ItemListTextRegular
@@ -131,7 +131,8 @@ fun ShoppingCartProductItemContent(
     isExpanded: Boolean = false,
     onToggleVisibility: () -> Unit = {},
     onToggle: () -> Unit = {},
-    onItemClick: (ShoppingCartProduct) -> Unit,
+    onImageClick: (String) -> Unit = {},
+    onItemClick: (ShoppingCartProduct) -> Unit = {},
     onIncrement: (String, Double) -> Unit,
     onDecrement: (String, Double) -> Unit,
     currentPrice: Sucursale?
@@ -169,15 +170,30 @@ fun ShoppingCartProductItemContent(
                         defaultElevation = 4.dp,
                     )
                 ) {
+                    if (product.ean.toString().isDigitsOnly()) {
+                        ImageBox(
+                            modifier = Modifier.fillMaxSize()
+                                .focusable(false),
+                            imageModel = urlProduct,
+                            contentDesription = product?.name ?: "",
+                            showImage = product?.haveImage ?: false,
+                            onClick = { onImageClick(product.ean.toString()) }
+                        )
+                    }
+                    else
+                    {
+
+                        IconBox(
+                            modifier = Modifier.fillMaxSize()
+                                .focusable(false),
+                            icon = Icons.Outlined.QuestionMark,
+                            contentDesription = product?.name ?: "",
+                            showImage = product?.haveImage ?: false,
+                            onClick = { onImageClick(product.ean.toString()) }
+                        )
+                    }
 
 
-                    ImageBox(
-                        modifier = Modifier.fillMaxSize()
-                            .focusable(false),
-                        imageModel = urlProduct,
-                        contentDesription = product?.name ?: "",
-                        showImage = product?.haveImage ?: false,
-                    )
                     /*
                     if (product?.haveImage == true) {
                         ItemListImageBox(
@@ -273,6 +289,8 @@ fun ShoppingCartProductItemContent(
 
     //}
 }
+
+
 
 @Composable
 fun CurrentPriceSection(precio: Sucursale) {

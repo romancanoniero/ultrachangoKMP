@@ -6,7 +6,8 @@ import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.ShoppingListComplete
 import com.iyr.ultrachango.data.models.ShoppingListMember
 import com.iyr.ultrachango.data.models.ShoppingListProduct
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.domain.auth.AuthRepository
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

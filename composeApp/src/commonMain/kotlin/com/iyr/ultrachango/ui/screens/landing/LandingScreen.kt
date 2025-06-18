@@ -45,9 +45,9 @@ import ultrachango2.composeapp.generated.resources.market_bg_1
 
 @Composable
 fun LandingScreen(
-
     navController: NavController,
     permissionsController: PermissionsController
+
 ) {
     var showGoToLogin by remember { mutableStateOf(false) }
     var pagerState = rememberPagerState(

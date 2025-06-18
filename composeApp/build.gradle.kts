@@ -2,6 +2,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -13,6 +14,14 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
     // Cocoapods
     alias(libs.plugins.kotlinCocoapods)
+}
+
+// Cargar el archivo secrets.properties
+val secrets = Properties().apply {
+    val secretsFile = rootProject.file("secrets.properties")
+    if (secretsFile.exists()) {
+        load(secretsFile.inputStream())
+    }
 }
 
 kotlin {
@@ -29,6 +38,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "composeApp"
             //      linkerOpts("-Xbinary=bundleId=com.iyr.ultrachangoWER3D825VB")
+            freeCompilerArgs += listOf("-Xbinary=bundleId=com.iyr.ultrachango")
             isStatic = true
         }
     }
@@ -40,11 +50,11 @@ kotlin {
         version = "1.0"
         summary = "Some description for a Kotlin/Native module"
         homepage = "Link to a Kotlin/Native module homepage"
-        ios.deploymentTarget = "12.0"
+        ios.deploymentTarget = "14.0"
 
         // Optional properties
         // Configure the Pod name here instead of changing the Gradle project name
-        //    name = "MyCocoaPod"
+            name = "UltraChangoPod"
 
         podfile = project.file("../iosApp/Podfile")
 
@@ -56,44 +66,25 @@ kotlin {
             // Optional properties
             // Specify the framework linking type. It's dynamic by default.
             isStatic = true
+           binaryOption("bundleId", "com.iyr.ultrachango.composeApp")
         }
-        /*
-                pod("GoogleSignIn")
 
-                pod("AppAuth")
-
-                pod("FirebaseCore")
-                pod("FirebaseAuth") {
-                    // Add these lines
-                    extraOpts += listOf("-compiler-option", "-fmodules")
-                }
-
-                pod("RecaptchaInterop") {
-                    // Add these lines
-                    extraOpts += listOf("-compiler-option", "-fmodules")
-                }
-        */
-        // Dependencias de Firebase
-
+        pod("FirebaseAuth") {
+            version = "~> 10.0"
+        }
         // Firebase Core Dependencies
         pod("FirebaseCore") {
             version = "~> 10.19.0"
         }
-        pod("FirebaseAuth") {
-            version = "~> 10.19.0"
-        }
 
-        // Dependencias de ubicación
-        pod("CoreLocation")
-        pod("UIKit")
-
-        /*
-        // Authentication Providers
         pod("GoogleSignIn") {
-            version = "~> 7.0"
+            version = "~> 7.0.0"
         }
-       pod("GoogleSignInSwift")
-*/
+
+
+        // Maps custom Xcode configuration to NativeBuildType
+        xcodeConfigurationToNativeBuildType["CUSTOM_DEBUG"] = NativeBuildType.DEBUG
+        xcodeConfigurationToNativeBuildType["CUSTOM_RELEASE"] = NativeBuildType.RELEASE
     }
 
 
@@ -106,6 +97,9 @@ kotlin {
             implementation("com.google.firebase:firebase-auth-ktx:22.3.0")
             implementation("com.google.android.gms:play-services-auth:20.7.0")
 
+
+            implementation(libs.androidx.core.ktx)
+            implementation(libs.androidx.core.google.shortcuts)
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.android.playservices.auth)
@@ -173,6 +167,8 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
 
+
+       //     implementation(libs.remember.settings)
             // Componenetes
             implementation(libs.swipebox) // Libreria de swipereveal en las listas
             implementation(libs.pullrefresh) // Libreria de swipereveal en las listas
@@ -212,6 +208,11 @@ kotlin {
                       implementation(libs.peekaboo.image.picker)
 
           */
+
+            // Authentication
+            implementation("com.iyr.fbauthentication:firebase-auth-kmp:1.0.32")
+
+
             // For FilePicker
             implementation(libs.calf.file.picker)
             // For FilePicker
@@ -220,10 +221,11 @@ kotlin {
             implementation(libs.kim)
 
             // Auth
+  /*
             implementation(libs.kmpaut.google)
             implementation(libs.kmpaut.uihelper)
             implementation(libs.kmpaut.firebase)
-
+*/
             @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
             implementation("io.insert-koin:koin-core:3.5.3")
@@ -237,7 +239,37 @@ kotlin {
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
-        }/*
+        }
+
+        // Testing Dependencies
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.turbine)
+            implementation(libs.koin.test)
+        }
+
+        androidUnitTest.dependencies {
+            implementation(libs.junit)
+            implementation(libs.robolectric)
+            implementation(libs.androidx.test.junit)
+            implementation(libs.androidx.espresso.core)
+            implementation(libs.compose.ui.test.junit4)
+            implementation(libs.compose.ui.test.manifest)
+        }
+
+        androidInstrumentedTest.dependencies {
+            implementation(libs.androidx.test.junit)
+            implementation(libs.androidx.espresso.core)
+            implementation(libs.compose.ui.test.junit4)
+            implementation(libs.compose.ui.test.manifest)
+        }
+
+        iosTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+
+        /*
         cInterop
                 targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().all {
                     val mainCompilation = compilations.getByName("main")
@@ -279,9 +311,17 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+      /*
         val webClientId =
             "1077576417175-8b3deus3foi11547ikbjr3plhoi52b6f.apps.googleusercontent.com"
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$webClientId\"")
+*/
+
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${secrets["GOOGLE_WEB_CLIENT_ID"]}\"")
+        buildConfigField("String", "FACEBOOK_APP_ID", "\"${secrets["FACEBOOK_APP_ID"]}\"")
+        buildConfigField("String", "FACEBOOK_CLIENT_TOKEN", "\"${secrets["FACEBOOK_CLIENT_TOKEN"]}\"")
+
+
     }
 
     // Añadir esta configuración

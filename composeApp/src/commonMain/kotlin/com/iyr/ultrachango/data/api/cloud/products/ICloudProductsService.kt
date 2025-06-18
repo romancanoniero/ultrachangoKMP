@@ -1,6 +1,7 @@
 package com.iyr.ultrachango.data.api.cloud.products
 
 import com.iyr.ultrachango.data.models.Product
+import com.iyr.ultrachango.data.models.ProductWithPricesAround
 
 interface ICloudProductsService {
 
@@ -29,5 +30,12 @@ interface ICloudProductsService {
 
 
     fun togleProductFavorite(userKey: String, ean: String, favorite: Boolean): Product
+
+    suspend fun getSuggestedProductsWithDetailed(
+        text: String,
+        latitude: Double,
+        longitude: Double,
+        distance : Double
+    ): List<ProductWithPricesAround>?
 
    }

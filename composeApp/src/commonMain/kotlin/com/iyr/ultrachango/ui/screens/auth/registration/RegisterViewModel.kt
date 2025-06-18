@@ -1,20 +1,15 @@
 package com.iyr.ultrachango.ui.screens.auth.registration
 
+
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.viewModelScope
-
-
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
-import com.iyr.ultrachango.preferences.managers.settings
-import com.iyr.ultrachango.storeUserLocally
+import com.iyr.ultrachango.domain.auth.AuthRepository
+import com.iyr.ultrachango.presentation.auth.AuthViewModel
 import com.iyr.ultrachango.ui.ScaffoldViewModel
-import com.iyr.ultrachango.ui.screens.auth.login.LoginViewModel.UiState
-import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
-
 import com.iyr.ultrachango.utils.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

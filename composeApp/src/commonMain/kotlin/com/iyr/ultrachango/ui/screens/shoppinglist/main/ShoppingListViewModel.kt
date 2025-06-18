@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
 import com.iyr.ultrachango.data.database.repositories.StoresRepository
 import com.iyr.ultrachango.data.models.ShoppingList
+import com.iyr.ultrachango.domain.auth.AuthRepository
 import com.iyr.ultrachango.ui.ScaffoldViewModel
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
 import com.iyr.ultrachango.utils.ui.capitalizeFirstLetter
 import com.iyr.ultrachango.viewmodels.UserViewModel
 import kotlinx.coroutines.Dispatchers
@@ -97,7 +97,8 @@ class ShoppingListViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val userKey = authRepository.getUserKey()
+
+                val userKey = authRepository.getCurrentUser()?.uid
                 val newShoppingList =
                     ShoppingList(listName = newName.capitalizeFirstLetter(), userId = userKey)
                 var entity = shoppingListRepository.saveShoppingList(newShoppingList)

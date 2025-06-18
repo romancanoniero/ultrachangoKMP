@@ -11,12 +11,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.iyr.ultrachango.ui.dialogs.EmptyDialog
 import com.iyr.ultrachango.utils.ui.elements.CustomButton
@@ -31,57 +33,70 @@ fun ImageOptionDialog(
     onCameraRequest: () -> Unit = {}
 ) {
 
+    val colors: ButtonColors = ButtonDefaults.buttonColors(
+        containerColor = Color.White,
+        contentColor = Color.White,
+        disabledContainerColor = Color.LightGray,
+        disabledContentColor = Color.Gray
+    )
+
+
     EmptyDialog(
+        title = "Select Image Source",
         onDismissRequest = onDismissRequest,
         modifier = Modifier
-            .fillMaxWidth().background(MaterialTheme.colorScheme.background)
+            .fillMaxWidth()
     ) {
-
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
 
-            CustomButton(
-                modifier = Modifier.fillMaxWidth().height(40.dp),
-                onClick = {
-                    onGalleryRequest()
-                    onDismissRequest()
-                },
-                enabled = true,
+            Column(
+                modifier = Modifier
+                    .padding(4.dp)
+            ) {
 
-                colors = ButtonDefaults.buttonColors(),
-              ) {
 
-                Text(
-                    text = "Gallery",
+                CustomButton(
+                    modifier = Modifier.fillMaxWidth().height(40.dp),
+                    onClick = {
+                        onGalleryRequest()
+                        onDismissRequest()
+                    },
+                    enabled = true,
+                    colors = colors,
+                ) {
+                    Text(text = "Gallery")
 
-                )
-
-            }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
 
-            CustomButton(
-                modifier = Modifier.fillMaxWidth().height(40.dp),
-                onClick = {
-                    onCameraRequest()
-                    onDismissRequest()
-                },
-                enabled = true,
-                colors = ButtonDefaults.buttonColors(),
-            ) {
+                CustomButton(
+                    modifier = Modifier.fillMaxWidth().height(40.dp),
+                    onClick = {
+                        onCameraRequest()
+                        onDismissRequest()
+                    },
+                    enabled = true,
+                    colors = colors,
+                ) {
 
-                Text(
-                    text = "Camera",
+                    Text(
+                        text = "Camera",
 
-                )
+                        )
+
+                }
 
             }
-
-            }
-
         }
 
-
     }
+
+
+}

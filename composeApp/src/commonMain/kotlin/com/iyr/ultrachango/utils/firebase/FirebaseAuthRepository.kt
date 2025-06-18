@@ -3,7 +3,7 @@
 package com.iyr.ultrachango.utils.firebase
 
 
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+import com.iyr.ultrachango.domain.auth.models.AppUser
 
 import kotlinx.coroutines.CoroutineScope
 
@@ -12,6 +12,7 @@ sealed class AuthResult {
     data class Success(val user: AppUser,
                        val authToken: String?) : AuthResult()
     data class Error(val message: String) : AuthResult()
+    data class Loading(val message: String) : AuthResult()
 }
 
 data class FirebaseAuthResult(

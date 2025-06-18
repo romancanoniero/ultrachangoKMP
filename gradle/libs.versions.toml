@@ -1,35 +1,36 @@
 [versions]
-agp = "8.7.3"
+agp = "8.6.0"
 android-compileSdk = "35"
 android-minSdk = "24"
 android-targetSdk = "35"
-androidx-activityCompose = "1.10.0"
-androidx-appcompat = "1.7.0"
-androidx-constraintlayout = "2.2.0"
-androidx-core-ktx = "1.15.0"
+androidx-activityCompose = "1.10.1"
+androidx-appcompat = "1.7.1"
+androidx-constraintlayout = "2.2.1"
+androidx-core-ktx = "1.16.0"
+androidx-core-shortcuts = "1.2.0-alpha01"
 androidx-espresso-core = "3.6.1"
 androidx-lifecycle = "2.8.4"
 androidx-material = "1.12.0"
 androidx-test-junit = "1.2.1"
 android-firebase = "23.2.0"
-androidx-firebase-crashlytics-plugin = "2.9.9"
+androidx-firebase-crashlytics-plugin = "3.0.3"
 
 
 calfFilePicker = "0.7.0"
 kim = "0.22.2"
 playServicesWallet = "19.4.0"
 gradlePlugins-google-services = "4.4.2"
-compose-multiplatform = "1.7.0"
+compose-multiplatform = "1.8.1"
 junit = "4.13.2"
-kotlin = "2.1.20-RC"
-ksp = "2.1.20-RC-1.0.30"
+kotlin = "2.1.21"
+ksp = "2.1.21-2.0.2"
 navigationCompose = "2.8.0-alpha10"
 coil = "3.0.0-rc02"
 moko-permissions = "0.18.0"
 mokomedia = "0.11.0"
 
 ktor = "3.0.0"
-androidx-room = "2.7.0-alpha13"
+androidx-room = "2.7.1"
 androidx-sqliteBundled = "2.5.0-alpha13"
 
 size = "0.5.0"
@@ -41,8 +42,8 @@ settings-multiplatform = "1.1.1"
 placesautocompletever= "1.0.0"
 
 barcodeScanningVer = "0.1.0-alpha03"
-sqliteKtx = "2.4.0"
-media3Exoplayer = "1.5.1"
+sqliteKtx = "2.5.0"
+media3Exoplayer = "1.6.1"
 compass = "1.2.2"
 composeSwipebox = "1.2.0"
 pullrefresh = "1.4.0-beta03"
@@ -57,9 +58,15 @@ peekaboo = "0.5.2"
 qr = "3.0.6"
 firebaseAuthKtx = "23.2.0"
 cocoapods = "2.0.0"
-uiTextAndroid = "1.7.8"
+uiTextAndroid = "1.8.2"
 locale_icu_version = "69.1"
+settings = "1.0.3"
 
+# Testing
+kotlinx-coroutines-test = "1.7.3"
+turbine = "1.0.0"
+robolectric = "4.11.1"
+compose-ui-test = "1.8.1"
 
 [libraries]
 
@@ -67,12 +74,24 @@ locale_icu_version = "69.1"
 calf-file-picker = { module = "com.mohamedrejeb.calf:calf-file-picker", version.ref = "calfFilePicker" }
 calf-file-picker-coil = { module = "com.mohamedrejeb.calf:calf-file-picker-coil", version.ref = "calfFilePicker" }
 kim = { module = "com.ashampoo:kim", version.ref = "kim" }
+
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
+androidx-core-google-shortcuts = { group = "androidx.core", name = "core-google-shortcuts", version.ref = "androidx-core-shortcuts" }
+
+
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
 androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-junit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-espresso-core" }
+
+# Testing adicional
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose-ui-test" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose-ui-test" }
+koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
 androidx-material = { group = "com.google.android.material", name = "material", version.ref = "androidx-material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidx-constraintlayout" }
@@ -150,12 +169,16 @@ screen-size = { module = "dev.chrisbanes.material3:material3-window-size-class-m
 
 
 # Koin - Injeccion de Dependencias
-koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin" }
-koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
 koin-android = { group = "io.insert-koin", name = "koin-android" }
 koin-core = { group = "io.insert-koin", name = "koin-core" }
 koin-compose = { group = "io.insert-koin", name = "koin-compose" }
+
+
+koin-bom = { group = "io.insert-koin", name = "koin-bom", version.ref = "koin" }
+koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
 koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koinCompose"}
+
+#remember-settings = { group = "dev.burnoo", name ="compose-remember-settings", version.ref = "settings" }
 
 # Shared Preferences
 settings = {module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "settings-multiplatform"}

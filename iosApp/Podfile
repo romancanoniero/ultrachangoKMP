@@ -1,0 +1,23 @@
+source 'https://cdn.cocoapods.org'
+
+use_frameworks!
+project '/Users/romancanoniero/Documents/kmp/UltraChango2/iosApp/iosApp.xcodeproj'
+
+target 'iosApp' do
+    platform :ios, '14.0'
+
+    # Pods for iosApp
+    pod 'composeApp', :path => '../composeApp'
+  # Firebase Core Dependencies
+  pod 'FirebaseCore', '~> 10.19.0'
+  pod 'FirebaseAuth', '~> 10.19.0'
+  pod 'FBSDKLoginKit', '~> 16.0'
+  pod 'PhoneNumberKit', '~> 3.6'
+  pod("GoogleSignIn") {
+      version = "~> 7.0.0"
+  }
+
+
+
+
+end

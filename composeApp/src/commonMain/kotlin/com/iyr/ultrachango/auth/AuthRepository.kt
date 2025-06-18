@@ -9,7 +9,7 @@ import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.getUserLocally
 import com.iyr.ultrachango.setAuthToken
 import com.iyr.ultrachango.storeUserLocally
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+import com.iyr.ultrachango.domain.auth.models.AppUser
 import com.iyr.ultrachango.utils.firebase.AuthResult
 import com.iyr.ultrachango.utils.firebase.FirebaseAuthRepository
 import com.iyr.ultrachango.utils.firebase.FirebaseAuthResult
@@ -185,6 +185,11 @@ class AuthRepository_old(
                     is AuthResult.Success -> {
                         updateUser(response.user)
                         onResult(response.user)
+                    }
+
+                    is AuthResult.Loading ->
+                    {
+
                     }
                 }
 
@@ -398,11 +403,21 @@ class AuthRepository_old(
     }
 
     private suspend fun syncUser(userId: String): AppUser? {
-        val userFromServer = apiAuth.getAuthenticatedUser(userId)
-        userFromServer?.let {
-            settings.storeUserLocally(it)
+        return try {
+            val userFromServer = apiAuth.getAuthenticatedUser(userId)
+            userFromServer?.let {
+                settings.storeUserLocally(it)
+            }
+            userFromServer
+        } catch (e: com.iyr.ultrachango.domain.auth.exceptions.UserDataNotFoundException) {
+            // Usuario autenticado en Firebase pero sin datos en BD
+            // No es un error fatal, simplemente no hay datos de perfil
+            println("Usuario sin datos de perfil en BD: $userId")
+            null
+        } catch (e: Exception) {
+            // Para otros errores, propagar la excepción
+            throw e
         }
-        return userFromServer
     }
 
 

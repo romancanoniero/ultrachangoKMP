@@ -4,11 +4,10 @@ package com.iyr.ultrachango.data.database.repositories
 
 import com.iyr.ultrachango.data.api.cloud.products.CloudProductsService
 import com.iyr.ultrachango.data.api.preciosclaros.PreciosClarosService
-import com.iyr.ultrachango.data.models.BaseProduct
-
 import com.iyr.ultrachango.data.models.PriceInBranch
 import com.iyr.ultrachango.data.models.Product
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.data.models.ProductWithPricesAround
+import com.iyr.ultrachango.domain.auth.AuthRepository
 import com.iyr.ultrachango.utils.coroutines.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -20,8 +19,6 @@ class ProductsRepository(
     private val authRepository: AuthRepository,
     private val preciosClarosService: PreciosClarosService,
     private val productsCloudService: CloudProductsService,
-//    private val productsDao: ProductsDao,
-
     ) {
 
 
@@ -62,9 +59,45 @@ class ProductsRepository(
 */
 
 
+    /**
+     * Busca sugerencias de productos con información detallada, incluyendo precios en sucursales cercanas.
+     *
+     * Esta función recupera sugerencias de productos basadas en el texto de búsqueda y la ubicación proporcionados.
+     * Obtiene información detallada sobre los productos sugeridos, incluyendo sus precios en las sucursales
+     * dentro de una distancia especificada.
+     *
+     * @param text El texto de la consulta de búsqueda para encontrar sugerencias de productos.
+     * @param latitude La latitud de la ubicación del usuario para la búsqueda por proximidad.
+     * @param longitude La longitud de la ubicación del usuario para la búsqueda por proximidad.
+     * @param distance La distancia máxima (en alguna unidad, probablemente metros o kilómetros dependiendo del backend)
+     *                 a considerar las sucursales desde la ubicación del usuario.
+     * @param onResults Una función de callback que se invocará con el resultado de la búsqueda.
+     *                  El resultado está envuelto en un objeto [Resource] para indicar el estado de éxito, error o carga.
+     *                  En caso de éxito, el recurso contendrá una lista de objetos [ProductWithPricesAround],
+     *                  o null si no se encuentran sugerencias.
+     */
+    suspend fun searchProductsSuggestionsDetailed(
+        text: String,
+        latitude: Double,
+        longitude: Double,
+        distance : Double,
+
+    ) : Resource<List<ProductWithPricesAround>?> {
+        val userKey = authRepository.getUserKey().toString()
+
+        val apiCall = productsCloudService.getSuggestedProductsWithDetailed(text, latitude, longitude, distance)
+      //  val precios = apiCall.sucursales.map { it -> it.toPriceInBranch() }
+      //  val toReturn = precios
+        //   val call =  productsCloudService.getProductByEANWithShoppingList(ean, userId )
+// TODO : Implementar una llamada al mi servidor que haga la busqueda combinada en el servidor
+
+      //  onResults(Resource.Success(null))
+        return Resource.Success(apiCall)
+    }
+
+
     suspend fun searchByBarCodeCloud(
         ean: String,
-
         latitude: Double,
         longitude: Double,
         onResults: (Resource<List<PriceInBranch>?>) -> Unit
@@ -84,29 +117,8 @@ class ProductsRepository(
         text: String, latitude: Double, longitude: Double
     ): Flow<Resource<List<Product>?>> = flow {
         // Emitir productos locales primero
-        /*
-        val localCall = productsDao.searchByText(text)
-        emit(Resource.Success<List<Product>?>(localCall))
-*/
-        emit(searchByTextInCloud(text, latitude, longitude))
-        /*
-                // Filtrar productos nuevos que no están en la base de datos local
-                val newProducts = cloudProducts.filter { cloudProduct ->
-                    productsDao.searchByText(text)
-                        .none { localProduct -> localProduct.ean == cloudProduct.ean }
-                }
-                // Agregar los productos nuevos a la base de datos de Room
-                if (newProducts.isNotEmpty()) {
-                    productsDao.insertProducts(newProducts.toList())
-                }
-
-         */
-        // Emitir la lista combinada de productos locales y remotos
-        //    emit(Resource.Success<List<Product>?>(productsDao.searchByText(text)))
-
-        // Hacer una consulta al servicio remoto en paralelo
-        //  emit(searchByTextInRemote(text, latitude, longitude))
-    }
+        emit(searchByTextInCloud(text, latitude, longitude) )
+      }
 
     private suspend fun FlowCollector<Resource<List<Product>?>>.searchByTextInRemote(
         text: String,
@@ -161,7 +173,7 @@ class ProductsRepository(
         val callCloudService =
             productsCloudService.getProductByText(text, latitude, longitude)
         val cloudProducts =
-            callCloudService.map { it }
+            callCloudService.map { it as Product }
 
         return Resource.Success<List<Product>?>(cloudProducts)
 
@@ -175,7 +187,7 @@ class ProductsRepository(
         val userKey = authRepository.getUserKey().toString()
         val callCloudService =
             productsCloudService.togleProductFavorite(userKey, ean, favorite)
-        val result = BaseProduct()
+        val result = Product()
 
         return Resource.Success<Product?>(result)
 

@@ -14,11 +14,27 @@
       },
       "oauth_client": [
         {
+          "client_id": "1077576417175-2jnm8cs2l0fbj3gko8m2ihhr6jftfi4e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.iyr.ultrachango",
+            "certificate_hash": "1535fad521aac5bf7265507af17e8f828c601c51"
+          }
+        },
+        {
           "client_id": "1077576417175-cjrbutk8p3ou1f3cncua4fft79f3s7k4.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.iyr.ultrachango",
             "certificate_hash": "5de4ea73ab38fda5012362230a45299fe0d00255"
+          }
+        },
+        {
+          "client_id": "1077576417175-ih4sq5v0up8ch7bo78g20seep9afsq0c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.iyr.ultrachango",
+            "certificate_hash": "9e136a2323101d45ac749d7da783e6a52fe3ab9e"
           }
         },
         {
@@ -39,10 +55,10 @@
               "client_type": 3
             },
             {
-              "client_id": "1077576417175-nd59ckpkpblpkv24r5kj5e2056nf47aq.apps.googleusercontent.com",
+              "client_id": "1077576417175-egmdo9fomdo9865csjbckdv6tqcldk0t.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.iyr.ultrachango.UltraChango2"
+                "bundle_id": "com.iyr.ultrachango"
               }
             }
           ]
@@ -52,4 +68,3 @@
   ],
   "configuration_version": "1"
 }
-

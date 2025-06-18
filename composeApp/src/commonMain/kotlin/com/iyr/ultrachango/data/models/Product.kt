@@ -1,13 +1,11 @@
 package com.iyr.ultrachango.data.models
 
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonClassDiscriminator
 
-
-
-// Product.kt
-@Serializable
-sealed interface Product {
+interface ProductBase {
     var ean: String?
     var name: String?
     var brand: String?
@@ -21,9 +19,24 @@ sealed interface Product {
     var haveImage: Boolean?
 }
 
-// Implementación base para cuando necesitemos instanciar Product directamente
+// Product.kt
 @Serializable
-class BaseProduct(
+class Product__(
+    var ean: String? = null,
+    var name: String? = null,
+    var brand: String? = null,
+    var description: String? = null,
+    var presentationUnit: String? = null,
+    var presentationQty: Double? = null,
+    var marca_lower: String? = null,
+    var message: String? = null,
+    var nombre_lower: String? = null,
+    var presentation: String? = null,
+    var haveImage: Boolean? = false,
+)
+
+@Serializable
+class Product (
     override var ean: String? = null,
     override var name: String? = null,
     override var brand: String? = null,
@@ -34,9 +47,26 @@ class BaseProduct(
     override var message: String? = null,
     override var nombre_lower: String? = null,
     override var presentation: String? = null,
-    override var haveImage: Boolean? = false
-) : Product
+    override var haveImage: Boolean? = null
+) : ProductBase
 
+// Implementación base para cuando necesitemos instanciar Product directamente
+/*
+@Serializable
+class BaseProduct(
+    var ean: String? = null,
+    var name: String? = null,
+    var brand: String? = null,
+    var description: String? = null,
+    var presentationUnit: String? = null,
+    var presentationQty: Double? = null,
+    var marca_lower: String? = null,
+    var message: String? = null,
+    var nombre_lower: String? = null,
+    var presentation: String? = null,
+    var haveImage: Boolean? = false
+)
+*/
 
 /*
 @Serializable

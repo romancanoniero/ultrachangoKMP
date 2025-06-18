@@ -1,6 +1,7 @@
 package com.iyr.ultrachango.ui.screens.auth.otp.state
 
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+import com.iyr.ultrachango.domain.auth.models.AppUser
+import com.iyr.ultrachango.presentation.auth.AuthErrorType
 
 sealed class OtpState {
     data object Initial : OtpState()
@@ -9,7 +10,13 @@ sealed class OtpState {
         val verificationId: String,
         val phoneNumber: String
     ) : OtpState()
-    data class Error(val message: String) : OtpState()
+
+    data class Error(
+        val message: String,
+        val exception: Any,
+        val errorType: AuthErrorType? = null
+    ) : OtpState()
+
     data class Success(val user: AppUser) : OtpState()
 }
 

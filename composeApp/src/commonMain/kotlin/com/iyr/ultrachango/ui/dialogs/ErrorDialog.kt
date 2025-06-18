@@ -33,7 +33,10 @@ import com.iyr.ultrachango.data.models.CreditEntities
 import com.iyr.ultrachango.ui.theme.SFProMediumFontFamily
 import com.iyr.ultrachango.utils.ui.elements.DialogButtonFullWidth
 import com.iyr.ultrachango.utils.ui.elements.customShapeBig
-
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import ultrachango2.composeapp.generated.resources.Res
+import ultrachango2.composeapp.generated.resources.close
 
 
 @Composable
@@ -123,7 +126,7 @@ fun ErrorDialog(
                             }
 */
                             DialogButtonFullWidth(
-                                text = "Putear",
+                                text = stringResource(Res.string.close),
                                 buttonColors = ButtonDefaults.buttonColors(
                                     containerColor = Color.Black, contentColor = Color.White
                                 ),

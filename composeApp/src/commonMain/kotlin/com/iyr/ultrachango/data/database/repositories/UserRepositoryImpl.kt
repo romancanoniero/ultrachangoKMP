@@ -4,7 +4,7 @@ package com.iyr.ultrachango.data.database.repositories
 import com.iyr.ultrachango.data.api.cloud.users.CloudUsersService
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.storeUserLocally
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+import com.iyr.ultrachango.domain.auth.models.AppUser
 import com.russhwolf.settings.Settings
 
 

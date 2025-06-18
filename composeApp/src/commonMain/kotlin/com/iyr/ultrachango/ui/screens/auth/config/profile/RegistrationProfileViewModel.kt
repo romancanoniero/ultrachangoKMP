@@ -6,9 +6,10 @@ import com.iyr.ultrachango.data.database.repositories.ImagesRepository
 import com.iyr.ultrachango.data.database.repositories.UserRepositoryImpl
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.data.models.enums.Genders
+import com.iyr.ultrachango.domain.auth.AuthRepository
 import com.iyr.ultrachango.ui.ScaffoldViewModel
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.domain.auth.models.AppUser
+
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
 import com.iyr.ultrachango.utils.viewmodel.BaseViewModel
@@ -298,7 +299,10 @@ class RegistrationProfileViewModel<T>(
         }
     }
 
-    fun updateProfile(user: AppUser) {
+    suspend fun updateProfile(
+        user: AppUser,
+        onSave: ((AppUser) -> Unit)? = null
+    ) {
 
         if (user.uid.isNullOrEmpty()) {
 
@@ -306,28 +310,29 @@ class RegistrationProfileViewModel<T>(
                 authRepository.getUserKey()!! //"" /*aca Firebase.auth.currentUser?.uid.toString() */
 
         }
-        viewModelScope.launch {
-            try {
-                authRepository.updateProfile( user, _imageProfile.value  )
+
+        try {
+            authRepository.updateProfile(user, _imageProfile.value)
 //                usersRepository.updateUser(user, _imageProfile.value)
-                _uiState.value = _uiState.value.copy(
-                    loading = false,
-                    isComplete = true
-                )
-            } catch (exception: Exception) {
+            _uiState.value = _uiState.value.copy(
+                loading = false,
+                isComplete = true,
+                onRedirect = onSave
+            )
+        } catch (exception: Exception) {
 
-                val message = when (exception.message?.lowercase()) {
-                    "not found" -> "Sin Conectividad"
-                    else -> exception.message
-                }
-
-                _uiState.value = _uiState.value.copy(
-                    loading = false,
-                    errorMessage = message,
-                    showErrorMessage = true
-                )
+            val message = when (exception.message?.lowercase()) {
+                "not found" -> "Sin Conectividad"
+                else -> exception.message
             }
+
+            _uiState.value = _uiState.value.copy(
+                loading = false,
+                errorMessage = message,
+                showErrorMessage = true
+            )
         }
+        //   }
     }
 
     fun onNicknameChange(text: String) {
@@ -360,6 +365,7 @@ class RegistrationProfileViewModel<T>(
         lastName: String,
         gender: Genders,
         birthDate: LocalDate,
+        onSuccess: (AppUser) -> Unit?,
     ) {
         _uiState.value = _uiState.value.copy(
             loading = true,
@@ -375,8 +381,11 @@ class RegistrationProfileViewModel<T>(
 
             )
 
-        updateProfile(auxUser!!)
+        viewModelScope.launch {
+            updateProfile(auxUser!!)
 
+            onSuccess(auxUser)
+        }
     }
 
     fun getMe(): AppUser? {
@@ -400,6 +409,7 @@ class RegistrationProfileViewModel<T>(
 
         return validateForm(
             imageProfile = "_imageProfile.value",
+
             firstName = data.firstName,
             lastName = data.lastName,
             gender = data.gender,
@@ -464,7 +474,8 @@ class RegistrationProfileViewModel<T>(
         val haveGalleryPermission: Boolean = false,
         val isComplete: Boolean = false,
         val showDatePicker: Boolean = false,
-        val showImagePicker: Boolean = false
+        val showImagePicker: Boolean = false,
+        val onRedirect: ((AppUser) -> Unit)? = null
     )
 
 }

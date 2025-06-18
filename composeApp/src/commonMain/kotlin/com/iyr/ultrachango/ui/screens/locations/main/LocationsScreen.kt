@@ -201,7 +201,7 @@ fun LocationItem(
                 ) {
                 coroutineScope.launch {
                     swipeableState.animateTo(0)
-                    onDelete.invoke(UserAddress.id)
+                    onDelete.invoke(UserAddress.id!!)
                 }
             }
         }
@@ -222,7 +222,7 @@ fun LocationItem(
             ) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
-                    ItemListTextHeader(text = UserAddress.title.capitalizeFirstLetter())
+                    ItemListTextHeader(text = UserAddress.title.toString().capitalizeFirstLetter())
                     Spacer(modifier = Modifier.width(10.dp))
                     ItemListTextSubHeader(text = UserAddress.toString())
                 }

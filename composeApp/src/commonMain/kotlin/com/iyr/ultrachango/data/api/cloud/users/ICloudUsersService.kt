@@ -1,7 +1,7 @@
 package com.iyr.ultrachango.data.api.cloud.users
 
 import com.iyr.ultrachango.data.models.User
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+import com.iyr.ultrachango.domain.auth.models.AppUser
 
 interface ICloudUsersService  {
 

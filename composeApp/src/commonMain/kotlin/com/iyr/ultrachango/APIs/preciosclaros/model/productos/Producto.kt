@@ -1,7 +1,6 @@
 package com.iyr.ultrachango.data.Api.preciosclaros.model.productos
 
 
-import com.iyr.ultrachango.data.models.BaseProduct
 import com.iyr.ultrachango.data.models.Product
 import kotlinx.serialization.Serializable
 
@@ -16,7 +15,7 @@ data class Producto(
     val presentacion: String
 ) {
     fun toDomainProduct(): Product {
-        return BaseProduct(
+        return Product(
             ean = id,
             name = nombre,
             brand = marca,

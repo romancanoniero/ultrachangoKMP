@@ -5,11 +5,12 @@ import com.iyr.ultrachango.data.database.repositories.ImagesRepository
 import com.iyr.ultrachango.data.database.repositories.UserRepositoryImpl
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.data.models.enums.Genders
+import com.iyr.ultrachango.domain.auth.AuthRepository
 import com.iyr.ultrachango.getUserLocally
 import com.iyr.ultrachango.preferences.managers.settings
 import com.iyr.ultrachango.ui.ScaffoldViewModel
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.domain.auth.models.AppUser
+
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
 import com.iyr.ultrachango.utils.viewmodel.BaseViewModel

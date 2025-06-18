@@ -42,19 +42,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import com.iyr.ultrachango.authModule
+import com.iyr.ultrachango.data.models.enums.toGender
+import com.iyr.ultrachango.domain.auth.exceptions.UserDataNotFoundException
+import com.iyr.ultrachango.domain.auth.models.AppUser
+import com.iyr.ultrachango.presentation.auth.AuthErrorType
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
+import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.auth.otp.state.OtpEvent
 import com.iyr.ultrachango.ui.screens.auth.otp.state.OtpState
+import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
 import com.iyr.ultrachango.utils.ui.otp.OtpInputField
 import com.iyr.ultrachango.utils.ui.otp.pxToDp
+import com.iyr.ultrachango.validateForm
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun OtpScreen(
+    navController: NavHostController? = null,
     verificationId: String,
     phoneNumber: String,
-    onNavigateToHome: () -> Unit,
+    onNavigateToHome: (user: AppUser?) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: OtpViewModel = koinViewModel()
 ) {
@@ -78,21 +88,14 @@ fun OtpScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Verificación") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
-                    }
+            TopAppBar(title = { Text("Verificación") }, navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                 }
-            )
-        }
-    ) { padding ->
+            })
+        }) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -118,16 +121,16 @@ fun OtpScreen(
                         )
                     )
 
-                if (otpValue.value.length >= 6) {
+                    if (otpValue.value.length >= 6) {
 
-                viewModel.onEvent(OtpEvent.VerifyCode(otpValue.value))
-                // vm.onOTPCodeEntered(otpValue.value)
-                }
-        //---------
+                        viewModel.onEvent(OtpEvent.VerifyCode(otpValue.value))
+                        // vm.onOTPCodeEntered(otpValue.value)
+                    }
+                    //---------
                     Button(
-                        onClick = { viewModel.onEvent(OtpEvent.VerifyCode(otpValue.value)) },
-                        enabled = otpValue.value.length == 6,
-                        modifier = Modifier.fillMaxWidth()
+                        onClick = {
+                            viewModel.onEvent(OtpEvent.VerifyCode(otpValue.value))
+                        }, enabled = otpValue.value.length == 6, modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Verificar")
                     }
@@ -140,26 +143,72 @@ fun OtpScreen(
                                 viewModel.onEvent(OtpEvent.ResendCode)
                                 isResendEnabled = false
                                 countdown = 60
-                            }
-                        ) {
+                            }) {
                             Text("Reenviar código")
                         }
                     }
                 }
+
                 is OtpState.Success -> {
                     LaunchedEffect(Unit) {
-                        onNavigateToHome()
+                        val user = (state as OtpState.Success).user
+                        //       onNavigateToHome(user)
+
+                        val isProfileComplete = validateForm(
+                            validateImage = false,
+                            firstName = user.firstName,
+                            lastName = user.lastName,
+                            imageProfile = user.profilePicturePath,
+                            gender = user.gender.toGender().name.toString(),
+                            birthDate = user.birthDate,
+                        )
+                        if (isProfileComplete) navController?.navigate(RootRoutes.HomeRoute.route) {
+                            popUpTo(0) {
+                                inclusive = true
+                            }
+                        }
+                        else navController?.navigate(RootRoutes.SetupProfileRoute.createRoute(user)) {
+                            popUpTo(0) {
+                                inclusive = true
+                            }
+
+                        }
                     }
                 }
-                is OtpState.Error -> {
 
-                    ErrorDialog(
-                        title = "Error",
-                        message = (state as OtpState.Error).message)
+                is OtpState.Error -> {
+                    val errorType = (state as OtpState.Error).errorType
+                    when (errorType) {
+                        AuthErrorType.USER_DATA_NOT_FOUND -> {
+                            LaunchedEffect(Unit) {
+
+                                val newUser = AppUser(
+                                    uid = authModule.id,
+                                )
+                                val route = RootRoutes.SetupProfileRoute.createRoute(newUser)
+                                navController?.navigate(route) {
+                                    popUpTo(0) {
+                                        inclusive = true
+                                    }
+                                }
+                            }
+                        }
+
+                        else -> {
+                            ErrorDialog(
+                                title = "Error",
+                                message = (state as OtpState.Error).message,
+                                onDismissRequest = {
+                                    viewModel.onErrorDialogRequest()
+                                })
+                        }
+                    }
                 }
+
                 is OtpState.Loading -> {
                     CircularProgressIndicator()
                 }
+
                 else -> Unit
             }
         }
@@ -168,21 +217,14 @@ fun OtpScreen(
 
 @Composable
 private fun OtpTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier
 ) {
     BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.NumberPassword,
-            imeAction = ImeAction.Done
-        ),
-        decorationBox = { innerTextField ->
+        value = value, onValueChange = onValueChange, keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Done
+        ), decorationBox = { innerTextField ->
             Row(
-                modifier = modifier,
-                horizontalArrangement = Arrangement.SpaceEvenly
+                modifier = modifier, horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 repeat(6) { index ->
                     OtpCell(
@@ -192,31 +234,22 @@ private fun OtpTextField(
                 }
             }
             innerTextField()
-        },
-        modifier = Modifier.width(0.dp)
+        }, modifier = Modifier.width(0.dp)
     )
 }
 
 @Composable
 private fun OtpCell(
-    value: String,
-    isFocused: Boolean,
-    modifier: Modifier = Modifier
+    value: String, isFocused: Boolean, modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier
-            .size(48.dp)
-            .border(
-                width = 2.dp,
-                color = if (isFocused) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.outline,
-                shape = RoundedCornerShape(8.dp)
-            ),
-        contentAlignment = Alignment.Center
+        modifier = modifier.size(48.dp).border(
+            width = 2.dp, color = if (isFocused) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(8.dp)
+        ), contentAlignment = Alignment.Center
     ) {
         Text(
-            text = value,
-            style = MaterialTheme.typography.headlineMedium
+            text = value, style = MaterialTheme.typography.headlineMedium
         )
     }
 }

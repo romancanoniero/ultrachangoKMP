@@ -1,12 +1,11 @@
 package com.iyr.ultrachango.ui.screens.auth.login
 
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewModelScope
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
 import com.iyr.ultrachango.ui.ScaffoldViewModel
-import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
-import com.iyr.ultrachango.utils.auth_by_cursor.ui.AuthState
+
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
 import com.iyr.ultrachango.utils.firebase.AuthResult
@@ -18,14 +17,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
+import com.iyr.fbauthentication.platform.*
+import com.iyr.ultrachango.domain.auth.AuthRepository
+import com.iyr.ultrachango.presentation.auth.AuthState
+import com.iyr.ultrachango.presentation.auth.AuthViewModel
+import kotlinx.coroutines.delay
+
 
 class LoginViewModel(
-    //   private val authenticationRespository: ShoppingListRepository,
-    //   private val userViewModel: UserViewModel,
     private val authRepository: AuthRepository,
     private val scaffoldVM: ScaffoldViewModel,
     private val authViewModel: AuthViewModel,
+    private val firebaseAuthPlatform: FirebaseAuthPlatform
 ) : BaseViewModel(), KoinComponent {
+
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState = _uiState.asStateFlow()
@@ -46,32 +51,115 @@ class LoginViewModel(
     val isAuthenticated = _isAuthenticated.asStateFlow()
 
 
-    init {/*
-                launchWithCatchingException {
-                    authService.currentUser.collect {
-                        _currentUser.value = it
+    init {
+        println("LoginViewModel init")
+        firebaseAuthPlatform.initialize()
+        println("firebaseAuthPlatform initialized")
+
+        val initialEmail = "pirineorodriguez1@gmail.com"
+
+        val detectedMethod = if (initialEmail.isEmail()) AuthenticationMethods.EMAIL
+                             else
+                                 if (initialEmail.isValidMobileNumber()) AuthenticationMethods.PHONE_NUMBER
+                                    else AuthenticationMethods.NONE
+
+        _uiState.value = _uiState.value.copy(
+            emailOrPhoneNumber = initialEmail,
+            authenticationMethod = detectedMethod,
+            loginButtonEnabled = isLoggeable()
+        )
+        _uiState.value = _uiState.value.copy(
+            loginButtonEnabled = isLoggeable()
+        )
+  /*
+        viewModelScope.launch {
+            authViewModel.authState.collect { state ->
+                when (state) {
+                    is AuthState.Success -> {
+                        println("AuthState.Success in LoginViewModel init")
+                        _isAuthenticated.value = true
+                        _uiState.value = _uiState.value.copy(
+                            loading = false,
+                            showErrorMessage = false,
+                            errorMessage = null
+                        )
+                    }
+
+                    is AuthState.Error -> {
+                        println("AuthState.Error in LoginViewModel init")
+                        _isAuthenticated.value = false
+                        _uiState.value = _uiState.value.copy(
+                            loading = false,
+                            showErrorMessage = true,
+                            errorMessage = state.message
+                        )
+                    }
+
+                    else -> {
+                        println("AuthState.Default in LoginViewModel init")
+                        _isAuthenticated.value = false
                     }
                 }
-        */
-        //     var firebaseAuth = Firebase.auth(Firebase.initialize(AppContext.getContext()!!)!!).currentUser
-//val pepe = firebaseAuth?.displayName
+            }
+        }
+
+*/
+
+        println("viewModelScope.launch")
         viewModelScope.launch {
+            authViewModel.authState.collect { authState ->
+                when (authState) {
+                    is AuthState.Loading -> {
 
-/*aca
-            Firebase.auth.authStateChanged.collect() { user ->
-                if (user != null) {
-                    // User is signed in
-                    println("User is signed in")
-                    _isAuthenticated.value = true
-                } else {
-                    // No user is signed in
-                    println("No user is signed in")
+                        println("AuthState.Loading")
+                        _uiState.value = _uiState.value.copy(
+                            loading = true,
+                            showErrorMessage = false,
+                            errorMessage = null
+                        )
+                    }
 
-                    _isAuthenticated.value = false
+                    is AuthState.Success -> {
+                        println("AuthState.Success")
+                        _uiState.value = _uiState.value.copy(
+                            loading = false,
+                            showErrorMessage = false,
+                            errorMessage = null
+                        )
+                        _isAuthenticated.value = false
+                    }
+
+                    is AuthState.Error -> {
+                        println("AuthState.Error")
+                        _uiState.value = _uiState.value.copy(
+                            loading = false,
+                            showErrorMessage = true,
+                            errorMessage = authState.message
+                        )
+                        _isAuthenticated.value = false
+                    }
+
+                    is AuthState.PhoneVerificationSent -> {
+                        println("AuthState.PhoneVerificationSent")
+                        delay(2000)
+                        _uiState.value = _uiState.value.copy(
+                            loading = false,
+                            showOTP = true
+                        )
+                    }
+
+                    else -> {
+                        println("AuthState.Default")
+                        _uiState.value = _uiState.value.copy(
+                            loading = false,
+                            showErrorMessage = false,
+                            errorMessage = null
+                        )
+                    }
                 }
             }
-*/
         }
+
     }
 
     fun setMailOrPhone(authenticationMethod: AuthenticationMethods, text: String) {
@@ -97,7 +185,8 @@ class LoginViewModel(
     }
 
     private fun isLoggeable(): Boolean {
-        return _uiState.value.emailOrPhoneNumber.isNotEmpty() && (_uiState.value.emailOrPhoneNumber.isValidMobileNumber() || _uiState.value.emailOrPhoneNumber.isEmail()) && (_uiState.value.authenticationMethod == AuthenticationMethods.PHONE_NUMBER || (_uiState.value.authenticationMethod == AuthenticationMethods.EMAIL && _uiState.value.password.isNotEmpty()))
+        return _uiState.value.emailOrPhoneNumber.isNotEmpty() &&
+                (_uiState.value.emailOrPhoneNumber.isValidMobileNumber() || _uiState.value.emailOrPhoneNumber.isEmail()) && (_uiState.value.authenticationMethod == AuthenticationMethods.PHONE_NUMBER || (_uiState.value.authenticationMethod == AuthenticationMethods.EMAIL && _uiState.value.password.isNotEmpty()))
     }
 
 
@@ -113,38 +202,14 @@ class LoginViewModel(
             //val result = authService.createUser(_uiState.value.email, _uiState.value.password)
             if (_uiState.value.emailOrPhoneNumber.isEmail()) {
                 println("signInWithEmail")
-                authViewModel.signInWithEmailAndPassword(
+                authViewModel.signInWithEmail(
                     _uiState.value.emailOrPhoneNumber,
                     _uiState.value.password
                 )
-                /*
-                            val call = authRepository.signInWithEmail(
-                                _uiState.value.emailOrPhoneNumber,
-                                _uiState.value.password
-                            )
-                            _isAuthenticated.value = call.success
-
-                            _uiState.value = _uiState.value.copy(
-                                loading = false,
-                            )
-            */
-
             } else {
                 val phoneNumber = _uiState.value.emailOrPhoneNumber
-/*
-                authViewModel.verifyPhoneNumber(phoneNumber)
-                _uiState.value = _uiState.value.copy(
-                    showOTP = true
-                )
-*/
-
-
-
             }
-
             _isProcessing.value = false
-            //  _isAuthenticated.value = call?.success ?:false
-
         }
 
     }
@@ -229,16 +294,24 @@ class LoginViewModel(
 
     }
 
+    fun closeErrorDialogRequest() {
+        _uiState.value = _uiState.value.copy(
+            showErrorMessage = false,
+        )
+    }
+
 
     data class UiState(
 
         val loading: Boolean = false,
         val errorMessage: String? = null,
         val showErrorMessage: Boolean = false,
-        val emailOrPhoneNumber: String = "pirineorodriguez@gmail.com",
-        val password: String = "123456",
+        val emailOrPhoneNumber: String = "",
+        val password: String = "",
         val authenticationMethod: AuthenticationMethods = AuthenticationMethods.PHONE_NUMBER,
-        val loginButtonEnabled: Boolean = false,
+        val loginButtonEnabled: Boolean = emailOrPhoneNumber.isNotEmpty() &&
+                (emailOrPhoneNumber.isValidMobileNumber() || emailOrPhoneNumber.isEmail()) && (authenticationMethod == AuthenticationMethods.PHONE_NUMBER || (authenticationMethod == AuthenticationMethods.EMAIL && password.isNotEmpty()))
+        ,
         val showOTP: Boolean = false
     )
 }

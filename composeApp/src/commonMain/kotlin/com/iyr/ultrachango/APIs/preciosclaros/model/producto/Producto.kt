@@ -8,7 +8,8 @@ data class Producto(
     val id: String,
     val marca: String? = null,
     val nombre: String? = null,
-    val presentacion: String? = null
+    val presentacion: String? = null,
+    val descripcion: String? = null,
 ) {
 
 

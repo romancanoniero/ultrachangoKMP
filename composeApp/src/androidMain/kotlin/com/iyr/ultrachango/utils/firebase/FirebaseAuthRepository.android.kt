@@ -10,9 +10,10 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
+import com.iyr.ultrachango.domain.auth.models.AppUser
 
 import com.iyr.ultrachango.preferences.managers.settings
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+
 
 import com.russhwolf.settings.set
 import kotlinx.coroutines.CoroutineScope

@@ -2,7 +2,7 @@ package com.iyr.ultrachango.ui.rootnavigation
 
 import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.ui.screens.qrscanner.QRTypes
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+import com.iyr.ultrachango.domain.auth.models.AppUser
 import com.iyr.ultrachango.utils.expect.URLEncoder
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -111,6 +111,18 @@ sealed class RootRoutes(val route: String) {
             productAsJson: String
         ): String {
             return "productpricesdetail/$entityId/$userKey/$ean/$name/$productAsJson"
+        }
+    }
+
+   object ProductsSuggestedByTextDetailRoute : RootRoutes("productsearchwithprice/{userKey?}/{ean?}/{name?}/{productAsJson?}") {
+        fun createRoute(
+            entityId:Int? = null,
+            userKey: String,
+            ean: String,
+            name: String,
+            productAsJson: String
+        ): String {
+            return "productssuggestedbytextdetail/$entityId/$userKey/$ean/$name/$productAsJson"
         }
     }
 

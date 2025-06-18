@@ -2,12 +2,26 @@ package com.iyr.ultrachango.utils.geo
 
 import androidx.compose.ui.text.intl.Locale
 import com.iyr.ultrachango.utils.extensions.formatDigits
+import dev.icerock.moko.permissions.PermissionsController
 import dev.jordond.compass.Place
 import dev.jordond.compass.geocoder.Geocoder
 import dev.jordond.compass.geocoder.placeOrNull
+import dev.jordond.compass.geolocation.Geolocator
+import dev.jordond.compass.geolocation.GeolocatorResult
+import dev.jordond.compass.geolocation.mobile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.StringFormat
+
+
+suspend fun getCurrentLocation(
+    permissionsController: PermissionsController,
+): GeolocatorResult {
+    val geolocator: Geolocator = Geolocator.mobile()
+    val result: GeolocatorResult = geolocator.current()
+    return result
+}
+
 
 suspend fun getPlaceFromCoordinates(lat: Double, lng: Double): Place? {
     val geocoder = Geocoder()
@@ -49,3 +63,5 @@ fun Float.toTextDistance(decimals: Int = 2, locale: Locale = Locale.current): St
         }
     }
 }
+
+

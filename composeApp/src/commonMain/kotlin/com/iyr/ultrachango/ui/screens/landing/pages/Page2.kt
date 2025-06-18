@@ -7,7 +7,14 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,22 +28,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.InspectableModifier
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.iyr.ultrachango.ui.screens.landing.AnimateFromRightToLeft
-import com.iyr.ultrachango.utils.ui.device.getScreenWidth
 import com.iyr.ultrachango.utils.ui.elements.StyleBigTitle
 import com.iyr.ultrachango.utils.ui.elements.textSizeLandingMessage
 import com.iyr.ultrachango.utils.ui.elements.textSizeLandingTitle
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 import ultrachango2.composeapp.generated.resources.Res
-import ultrachango2.composeapp.generated.resources.landing_chango_perspectiva
-import ultrachango2.composeapp.generated.resources.landing_emocion
 import ultrachango2.composeapp.generated.resources.landing_perspective
-import ultrachango2.composeapp.generated.resources.logo_icbc
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable

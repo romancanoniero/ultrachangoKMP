@@ -2,10 +2,16 @@ package com.iyr.ultrachango.ui.screens.auth.otp
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iyr.fbauthentication.common.AuthUser
+import com.iyr.ultrachango.data.repository.AuthRepositoryImpl
+import com.iyr.ultrachango.domain.auth.AuthRepository
+import com.iyr.ultrachango.domain.auth.exceptions.ErrorSendingVerificationCodeException
+import com.iyr.ultrachango.domain.auth.exceptions.UserDataNotFoundException
+import com.iyr.ultrachango.domain.auth.models.AppUser
+import com.iyr.ultrachango.presentation.auth.AuthErrorType
 import com.iyr.ultrachango.ui.screens.auth.otp.state.OtpEvent
 import com.iyr.ultrachango.ui.screens.auth.otp.state.OtpState
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AuthResult
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.utils.coroutines.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -25,9 +31,14 @@ class OtpViewModel(
         _state.value = OtpState.CodeSent(verificationId, phoneNumber)
     }
 
+    @Throws(UserDataNotFoundException::class)
     fun onEvent(event: OtpEvent) {
         when (event) {
-            is OtpEvent.VerifyCode -> verifyCode(event.code)
+            is OtpEvent.VerifyCode -> {
+                verifyCode(event.code)
+
+            }
+
             is OtpEvent.ResendCode -> resendCode()
             is OtpEvent.NavigateBack -> {} // Manejar navegación
         }
@@ -36,10 +47,44 @@ class OtpViewModel(
     private fun verifyCode(code: String) {
         viewModelScope.launch {
             _state.value = OtpState.Loading
-            when (val result = authRepository.signInWithPhoneNumber(verificationId, code)) {
-                is AuthResult.Success -> _state.value = OtpState.Success(result.data!!)
-                is AuthResult.Error -> _state.value = OtpState.Error(result.error.toString())
-                is AuthResult.Loading -> _state.value = OtpState.Loading
+            val result = authRepository.verifyPhoneNumber(verificationId, code)
+
+            when (result) {
+                is Resource.Success -> {
+                    result.data?.let { user ->
+                        _state.value = OtpState.Success(user)
+                    } ?: run {
+                        _state.value = OtpState.Error(
+                            "Error: datos de usuario no disponibles",
+                            UserDataNotFoundException("Usuario autenticado pero requiere completar perfil")
+                        )
+                    }
+                }
+
+                is Resource.Error -> {
+
+                    val errorType = result.errorType ?: AuthErrorType.UNKNOWN
+                    when (errorType) {
+                        AuthErrorType.USER_DATA_NOT_FOUND -> {
+                            _state.value = OtpState.Error(
+                                "Usuario autenticado pero requiere completar perfil",
+                                UserDataNotFoundException("Usuario autenticado pero requiere completar perfil"),
+                                errorType
+                            )
+                        }
+                        else -> {
+                            _state.value = OtpState.Error(
+                                result.message ?: "Error desconocido",
+                                Exception(result.message)
+                            )
+
+                        }
+                    }
+                }
+
+                is Resource.Loading -> {
+                    _state.value = OtpState.Loading
+                }
             }
         }
     }
@@ -47,14 +92,23 @@ class OtpViewModel(
     private fun resendCode() {
         viewModelScope.launch {
             _state.value = OtpState.Loading
-            when (val result = authRepository.verifyPhoneNumber(phoneNumber)) {
-                is AuthResult.Success -> {
-                    verificationId = result.data
-                    _state.value = OtpState.CodeSent(result.data, phoneNumber)
+            when (val result = authRepository.signInWithPhone(phoneNumber)) {
+                is Resource.Success -> {
+                    verificationId = result.data.toString()
+                    _state.value = OtpState.CodeSent(result.data.toString(), phoneNumber)
                 }
-                is AuthResult.Error -> _state.value = OtpState.Error(result.error.toString())
-                is AuthResult.Loading -> _state.value = OtpState.Loading
+
+                is Resource.Error -> _state.value = OtpState.Error(
+                    message = result.message ?: "Error al reenviar código",
+                    exception = ErrorSendingVerificationCodeException()
+                )
+
+                is Resource.Loading -> _state.value = OtpState.Loading
             }
         }
+    }
+
+    fun onErrorDialogRequest() {
+        _state.value = OtpState.Initial
     }
 }

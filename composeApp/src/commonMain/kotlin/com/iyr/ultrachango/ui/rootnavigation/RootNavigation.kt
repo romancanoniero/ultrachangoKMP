@@ -21,6 +21,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.iyr.ultrachango.data.models.ShoppingCartProduct
 import com.iyr.ultrachango.data.models.enums.toGender
+import com.iyr.ultrachango.domain.auth.AuthRepository
 import com.iyr.ultrachango.ui.MainScreen
 import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.screens.animations.ShoppingBasketScreen
@@ -42,13 +43,14 @@ import com.iyr.ultrachango.ui.screens.qrscanner.QRTypes
 import com.iyr.ultrachango.ui.screens.setting.SettingScreen.SettingScreen
 import com.iyr.ultrachango.ui.screens.setting.profile.ProfileScreen
 import com.iyr.ultrachango.ui.screens.shopping.ProductPriceDisplayScreen
+import com.iyr.ultrachango.ui.screens.shopping.ProductsSuggestionsByTextScreen
 import com.iyr.ultrachango.ui.screens.shopping.ShoppingScreen
 import com.iyr.ultrachango.ui.screens.shoppingcart.ShoppingCartMaintenanceScreen
 import com.iyr.ultrachango.ui.screens.shoppinglist.edition.ShoppingListAddEditScreen
 import com.iyr.ultrachango.ui.screens.shoppinglist.main.ShoppingListScreen
 import com.iyr.ultrachango.ui.screens.shoppinglist.members.ShoppingMembersSelectionScreen
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.domain.auth.models.AppUser
+
 import com.iyr.ultrachango.validateForm
 import dev.icerock.moko.permissions.PermissionsController
 import kotlinx.serialization.json.Json
@@ -91,23 +93,22 @@ fun RootNavGraph(
     val isProfileComplete by remember { mutableStateOf(checkLoggedIn) }
 
 
-
-
-
     var start = if (isLoggedIn) {
         if (isProfileComplete)
             RootRoutes.HomeRoute.route
         else {
-            RootRoutes.SetupProfileRoute.createRoute(me)
+            RootRoutes.SetupProfileRoute.createRoute(
+                me ?: AppUser(authRepository.getCurrentUser()?.uid.toString())
+            )
         }
     } else {
         RootRoutes.LandingRoute.route
     }
 
-    start = RootRoutes.IntroAnimationRoute.route
+    start = RootRoutes.LandingRoute.route
 
     NavHost(
-        modifier = modifier.padding(innerPadding).fillMaxSize().background(Color.Transparent),
+        modifier = modifier.fillMaxSize().background(Color.Transparent),
         navController = rootNavController,
         startDestination = start
     ) {
@@ -115,10 +116,12 @@ fun RootNavGraph(
         composable(
             route = "introanimation",
 
-        )
+            )
         { backStackEntry ->
-            ShoppingBasketScreen(navController = rootNavController,
-                authRepository = koinInject())
+            ShoppingBasketScreen(
+                navController = rootNavController,
+                authRepository = koinInject()
+            )
         }
 
         composable(
@@ -148,8 +151,6 @@ fun RootNavGraph(
         }
 
         composable(route = RootRoutes.LoginRoute.route) {
-
-
             val onAuthenticated = { user: AppUser ->
                 val isProfileComplete = validateForm(
                     validateImage = false,
@@ -182,7 +183,13 @@ fun RootNavGraph(
             val verificationId = backStackEntry.arguments?.getString("verificationId").toString()
             val phoneNumber = backStackEntry.arguments?.getString("phoneNumber").toString()
             OtpScreen(
-                onNavigateToHome = { rootNavController.navigate(RootRoutes.HomeRoute.route) },
+                navController = rootNavController,
+                onNavigateToHome = { user ->
+
+                val route = RootRoutes.SetupProfileRoute.createRoute(user)
+                    rootNavController.navigate(route)
+
+                },
                 onNavigateBack = { rootNavController.popBackStack() },
                 verificationId = verificationId,
                 phoneNumber = phoneNumber,
@@ -205,7 +212,6 @@ fun RootNavGraph(
                 backStackEntry.arguments?.getString("userAsJson").toString()
             )
             RegistrationProfileScreen(
-                currentUser = user,
                 navController = rootNavController,
                 permissionsController = permissionsController,
 
@@ -308,28 +314,38 @@ fun RootNavGraph(
                 )
         ) { backStackEntry ->
 
-             val entityId = backStackEntry.arguments?.getInt("entityId")
-             val userKey: String = backStackEntry.arguments?.getString("userKey").toString()
-             val ean = backStackEntry.arguments?.getString("ean")
+            val entityId = backStackEntry.arguments?.getInt("entityId")
+            val userKey: String = backStackEntry.arguments?.getString("userKey").toString()
+            val ean = backStackEntry.arguments?.getString("ean")
             //      val listName: String = backStackEntry.arguments?.getString("listName").toString()
             val productAsJson = backStackEntry.arguments?.getString("productAsJson")
             val product = Json.decodeFromString<ShoppingCartProduct>(
                 productAsJson.toString()
             )
             ProductPriceDisplayScreen(entityId, product)
+        }
 
-            /*
-            *                 userKey,
-                shoppingListId,
-                listName = listName,
-                rootNavController,
-                scaffoldVM = scaffoldVM,
-                vm = koinViewModel(parameters = { parametersOf(userKey, shoppingListId) }),
-                permissionsController = permissionsController,
-                onGroupButtonClicked = { listId ->
-                    rootNavController.navigate(AppRoutes.MembersRoute.route)
-                })
-*/
+        composable(
+            route = "productssuggestedbytextdetail/{entityId}/{userKey}/{ean}/{name}/{productAsJson}",
+            arguments = listOf(
+                navArgument("entityId") { type = NavType.IntType },
+                navArgument("userKey") { type = NavType.StringType },
+                navArgument("ean") { type = NavType.StringType },
+                navArgument("name") { type = NavType.StringType },
+                navArgument("productAsJson") { type = NavType.StringType },
+
+                )
+        ) { backStackEntry ->
+
+            val entityId = backStackEntry.arguments?.getInt("entityId")
+            val userKey: String = backStackEntry.arguments?.getString("userKey").toString()
+            val ean = backStackEntry.arguments?.getString("ean")
+            //      val listName: String = backStackEntry.arguments?.getString("listName").toString()
+            val productAsJson = backStackEntry.arguments?.getString("productAsJson")
+            val product = Json.decodeFromString<ShoppingCartProduct>(
+                productAsJson.toString()
+            )
+            ProductsSuggestionsByTextScreen(entityId, product)
         }
 
 
@@ -357,18 +373,11 @@ fun RootNavGraph(
         }
 
 
-        composable(route = AppRoutes.HomeRoute.route) {
-/*
-            Scaffold(modifier = Modifier.padding(0.dp), bottomBar = {
-                BottomNavigationBar(items = navigationItemsLists,
-                    currentRoute = route,
-                    onItemClick = { currentNavigationItem ->
-                        onItemClick(
-                            rootNavController, currentNavigationItem
-                        )
-                    })
-            }) { innerPadding ->
-                */
+        composable(route = AppRoutes.HomeRoute.route) { backStackEntry ->
+
+
+
+
             Box {
                 HomeScreen(
                     navController = rootNavController,

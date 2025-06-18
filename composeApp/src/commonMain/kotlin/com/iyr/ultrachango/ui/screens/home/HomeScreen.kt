@@ -30,15 +30,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.AddCircle
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -83,7 +78,6 @@ import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.app.Section
 import com.iyr.ultrachango.data.models.app.sections
 import com.iyr.ultrachango.data.models.toProduct
-import com.iyr.ultrachango.data.models.toProductOnSearch
 import com.iyr.ultrachango.getCurrentLocation
 
 
@@ -91,7 +85,9 @@ import com.iyr.ultrachango.ui.ScaffoldViewModel
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
 import com.iyr.ultrachango.ui.dialogs.ProductInfoDialog
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
+import com.iyr.ultrachango.ui.screens.BarcodeScanDestinations
 import com.iyr.ultrachango.ui.screens.navigation.AppRoutes
+import com.iyr.ultrachango.ui.screens.searchitems.ProductSearchItem
 import com.iyr.ultrachango.ui.theme.textColor
 import com.iyr.ultrachango.utils.extensions.isDigitsOnly
 import com.iyr.ultrachango.utils.helpers.getProductImageUrl
@@ -101,7 +97,6 @@ import com.iyr.ultrachango.utils.ui.MyText
 import com.iyr.ultrachango.utils.ui.ShowKeyboard
 import com.iyr.ultrachango.utils.ui.device.getScreenWidth
 import com.iyr.ultrachango.utils.ui.elements.PicturesBoard
-import com.iyr.ultrachango.utils.ui.elements.ReusableSearchTextField
 import com.iyr.ultrachango.utils.ui.elements.StyleTextBig
 import com.iyr.ultrachango.utils.ui.elements.mySearchTextFieldWithScanner.MySearchTextFieldWithScanner
 import com.iyr.ultrachango.utils.ui.elements.textSize12
@@ -131,6 +126,8 @@ import ultrachango2.composeapp.generated.resources.hello_there
 import ultrachango2.composeapp.generated.resources.sin_imagen
 import com.ultrachango2.features.location.presentation.LocationOptionsScreen
 import com.ultrachango2.features.location.domain.model.LocationOption
+import com.ultrachango2.features.location.domain.model.LocationOption.*
+import com.ultrachango2.features.location.domain.model.LocationType
 import com.ultrachango2.features.location.domain.model.ReferenceLocation
 import dev.icerock.moko.permissions.PermissionState
 
@@ -236,8 +233,9 @@ fun HomeScreen(
         })
     }
 
-    if (showCameraPreview) {
+    if (showCameraPreview!= BarcodeScanDestinations.CLOSED) {
         //  Scanner
+      //  vm.setBarCodeScanningMode(showCameraPreview)
         ScannerView(
             codeTypes = listOf(
                 BarcodeFormats.FORMAT_ALL_FORMATS
@@ -249,15 +247,37 @@ fun HomeScreen(
                     AudioPlayer.getInstance()
                         .playSound(0) // Assuming 0 is the id for "files/scanner.mp3"
                     vm.hideScanner()
-                    vm.onBarcodeScanned(result.barcode.data)
+
+                when(showCameraPreview)
+                {
+                    BarcodeScanDestinations.CHECK_PRICE -> {
+                        vm.onBarcodeScanned(result.barcode.data)
+                    }
+
+                    BarcodeScanDestinations.JUST_SEARCH -> {
+                        vm.onBarcodeScannedToGetPrices(
+                            navController = navController,
+                            barcode = result.barcode.data)
+                    }
+
+                    BarcodeScanDestinations.CLOSED -> {
+                        vm.hideScanner()
+                    }
+                }
+                  //  vm.onBarcodeScanned(result.barcode.data)
+
+
                 }
 
                 is BarcodeResult.OnFailed -> {
                     println("Error: ${result.exception.message}")
+          //          vm.setBarCodeScanningMode(BarcodeScanDestinations.CLOSED)
                     vm.hideScanner()
                 }
 
                 BarcodeResult.OnCanceled -> {
+        //            vm.setBarCodeScanningMode(BarcodeScanDestinations.CLOSED)
+
                     vm.hideScanner()
                 }
             }
@@ -316,9 +336,6 @@ private fun Screen(
 
     var hideVirtualKeyboard1 = hideVirtualKeyboard
     var searchText1 = searchText
-
-
-
 
     Column(
         Modifier.fillMaxSize().padding(0.dp).verticalScroll(rememberScrollState())
@@ -612,7 +629,7 @@ fun FastActions(vm: HomeScreenViewModel) {
         Button(
             onClick = {
                 triggerHapticFeedback()
-                vm.onScanPressed()
+                vm.onScanPressed(BarcodeScanDestinations.CHECK_PRICE)
             },
             modifier = Modifier.padding(8.dp).clip(RoundedCornerShape(50)).background(Color.Blue)
                 .padding(16.dp)
@@ -643,33 +660,29 @@ private fun ProductsSearch(
             .collectLatest { text ->
                 if (text.length >= MIN_THRESHOLD_SEARCH) {
                     if (text.length >= 4 && text.isDigitsOnly()) vm.onBarcodeScanned(text)
-                    else vm.onProductTextInput(text, -34.586050, -58.504600)
+                    else vm.onProductTextInput(text)
                 }
             }
     }
 
-    /*
-    MySearchTextFieldWithScanner(
-        text = searchText,
-        onTextChange = {
-            searchText = it
-            if (!searchText.isEmpty() && searchText.length > MIN_THRESHOLD_SEARCH) {
-                searchTextFlow.value = it
-            } else {
-                vm.onEmptySeachText()
-            }
-        },
-        onScannerClick = {
-            vm.onScanPressed()
-        },
-        focusRequester = focusRequester,
-        onFocusChanged = { hasFocus, focusRequester ->
-            vm.onFocusChanged(hasFocus)
-        },
-        //productsList = vm.productsList
-    )
-*/
+
     MySearchTextFieldWithScanner<ProductOnSearch>(
+        items = vm.productsList.collectAsState().value.map { product ->
+            ProductOnSearch(
+                ean = product.ean,
+                name = product.name,
+                brand = product.brand,
+                presentation = product.presentation,
+                haveImage = product.haveImage,
+                description = product.description,
+                presentationUnit = product.presentationUnit,
+                presentationQty = product.presentationQty,
+                marca_lower = product.marca_lower,
+                message = product.message,
+                nombre_lower = product.nombre_lower
+            )
+        },
+        loadingProducts = vm.state.collectAsState().value.loadingProducts,
         text = searchText,
         onTextChange = {
             searchText = it
@@ -685,110 +698,45 @@ private fun ProductsSearch(
             vm.onFocusChanged(hasFocus)
         },
         dropdownItemContent = { product ->
-            HomeProductItem(
+            ProductSearchItem(
                 product = product,
-                onImageClick = { vm.onShowProductRequest(it) },
-                onAddClick = {
-                // vm.onAddProductRequest(it)
-                     }
+                onImageClick = {
+                    vm.onShowProductRequest(it)
+                               },
+                onItemClick = {
+                     vm.onShowProductRequest(it)
+                }
             )
         }
     )
 
-/*
-    SearchTextFieldWithScanner(
-        text = searchText,
-        onTextChange = {
-            searchText = it
-            if (!searchText.isEmpty() && searchText.length > MIN_THRESHOLD_SEARCH) {
-                searchTextFlow.value = it
-            } else {
-                vm.onEmptySeachText()
-            }
-        },
-        onScannerClick = {
-            vm.onScanPressed()
-        },
-        vm = vm,
-        focusRequester = focusRequester,
-        onFocusChanged = { hasFocus, focusRequester ->
-            vm.onFocusChanged(hasFocus)
-        },
-        dropdownExpanded = productsDropdownExpanded,
-        productsList = productsList,
-        onDropdownExpandStatudChanged = { expanded ->
-            hideVirtualKeyboard11 = expanded
-        },
-        )
-*/
-
-}
-
-
-@Composable
-fun HomeProductItem(
-    product: ProductOnSearch,
-    onImageClick: (ProductOnSearch) -> Unit,
-    onAddClick: (ProductOnSearch) -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        // Imagen del producto
-        if (product.haveImage == true) {
-            AsyncImage(
-                model = getProductImageUrl(product.ean ?: ""),
-                placeholder = painterResource(Res.drawable.sin_imagen),
-                contentDescription = product.name,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .clickable { onImageClick(product) }
-            )
-        }
-
-        Spacer(Modifier.width(8.dp))
-
-        // Información del producto
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = product.name ?: "",
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = product.brand ?: "",
-                fontSize = 12.sp
-            )
-            // Información específica de HomeScreen
-   /*
-            Text(
-                text = "Precio: ${product.price}",
-                fontSize = 12.sp
-            )
-     */
-        }
-
-        // Icono de estado
-        when (product.status) {
-            "exists" -> Icon(
-                imageVector = Icons.Outlined.CheckCircle,
-                contentDescription = "Ya existe",
-                tint = Color.Green
-            )
-            else -> IconButton(
-                onClick = {
-                    triggerHapticFeedback()
-                    onAddClick(product)
+    /*
+        SearchTextFieldWithScanner(
+            text = searchText,
+            onTextChange = {
+                searchText = it
+                if (!searchText.isEmpty() && searchText.length > MIN_THRESHOLD_SEARCH) {
+                    searchTextFlow.value = it
+                } else {
+                    vm.onEmptySeachText()
                 }
-            ) {
-                Icon(
-                    Icons.Outlined.AddCircle,
-                    contentDescription = "Agregar"
-                )
-            }
-        }
-    }
+            },
+            onScannerClick = {
+                vm.onScanPressed()
+            },
+            vm = vm,
+            focusRequester = focusRequester,
+            onFocusChanged = { hasFocus, focusRequester ->
+                vm.onFocusChanged(hasFocus)
+            },
+            dropdownExpanded = productsDropdownExpanded,
+            productsList = productsList,
+            onDropdownExpandStatudChanged = { expanded ->
+                hideVirtualKeyboard11 = expanded
+            },
+            )
+    */
+
 }
 
 
@@ -1196,11 +1144,37 @@ fun Header(
         // Integrar el composable de ubicación
         // Este es el que funciona
         LocationOptionsScreen(
+            viewModel = vm,
             state = locationState,
             referenceLocations = vm.knownLocations.value,
             onLocationSelected = { locationData ->
-                locationViewModel.onLocationSelected(LocationOption.StoredLocation(locationData))
+                when (locationData.locationType) {
+                    is LocationOption.StoredLocation -> {
+
+                    }
+
+                    is LocationOption.CurrentLocation -> {
+                        // vm.onLocationSelected(locationData)
+                        //        locationViewModel.onLocationSelected(StoredLocation(locationData))
+                    }
+
+                    LocationType.CUSTOM -> locationViewModel.onLocationSelected(
+                        StoredLocation(
+                            locationData
+                        )
+                    )
+
+                    LocationType.CURRENT_LOCATION -> locationViewModel.onLocationSelected(
+                        CurrentLocation(isSelected = true)
+                    )
+
+                    LocationType.ENABLE_LOCATION -> TODO()
+                    LocationType.LOCATION_ERROR -> TODO()
+                    LocationType.PERMISSION_REQUIRED -> TODO()
+                    null -> TODO()
+                }
             },
+
             onSystemOptionSelected = { optionType ->
                 locationViewModel.onSystemOptionSelected(optionType)
             },
@@ -1299,7 +1273,7 @@ fun BannerItem(index: Int) {
     }
 }
 
-
+/*
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SearchTextFieldWithScanner(
@@ -1366,6 +1340,8 @@ fun SearchTextFieldWithScanner(
         }
     }
 }
+*/
+
 
 @Composable
 fun DropdownItemProductSearch(

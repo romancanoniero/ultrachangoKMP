@@ -8,9 +8,10 @@ Pod::Spec.new do |spec|
     spec.summary                  = 'Some description for a Kotlin/Native module'
     spec.vendored_frameworks      = 'build/cocoapods/framework/composeApp.framework'
     spec.libraries                = 'c++'
-    spec.ios.deployment_target    = '12.0'
-    spec.dependency 'FirebaseAuth', '~> 10.19.0'
+    spec.ios.deployment_target    = '14.0'
+    spec.dependency 'FirebaseAuth', '~> 10.0'
     spec.dependency 'FirebaseCore', '~> 10.19.0'
+    spec.dependency 'GoogleSignIn', '~> 7.0.0'
                 
     if !Dir.exist?('build/cocoapods/framework/composeApp.framework') || Dir.empty?('build/cocoapods/framework/composeApp.framework')
         raise "

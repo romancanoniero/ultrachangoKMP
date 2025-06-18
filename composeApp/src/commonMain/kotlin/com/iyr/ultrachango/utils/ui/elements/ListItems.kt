@@ -27,6 +27,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.iyr.ultrachango.data.models.ShoppingCartProduct
 import com.iyr.ultrachango.ui.theme.SFProMediumFontFamily
 import com.iyr.ultrachango.ui.theme.textIntense
 import com.iyr.ultrachango.utils.ui.toGrayscale
@@ -108,8 +109,8 @@ fun ImageBox(
     imageModel: String,
     contentDesription: String,
     showImage: Boolean = true,
-
-) {
+    onClick: (ShoppingCartProduct) -> Unit,
+    ) {
 
     Card(
         modifier =
@@ -143,6 +144,36 @@ fun ImageBox(
         }
     }
 }
+
+@Composable
+fun IconBox(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    contentDesription: String,
+    showImage: Boolean = true,
+    onClick: (ShoppingCartProduct) -> Unit,
+) {
+
+    Card(
+        modifier =
+            modifier
+                .padding(vertical = 6.dp, horizontal = 8.dp)
+                .width(80.dp)
+                .height(80.dp),
+//        colors = cardViewColors
+    )
+    {
+            Image(
+                modifier = Modifier.fillMaxSize()
+                    .focusable(false),
+                //       painter = painterResource(Res.drawable.sin_imagen),
+                imageVector = icon,
+                contentDescription = "No image",
+                contentScale = ContentScale.Crop
+            )
+        }
+}
+
 
 enum class UserPictureInfoMode {
     PLAIN,

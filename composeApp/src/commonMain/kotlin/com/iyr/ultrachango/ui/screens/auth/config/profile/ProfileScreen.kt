@@ -47,7 +47,7 @@ import coil3.Uri
 import com.iyr.ultrachango.data.models.User
 import com.iyr.ultrachango.data.models.enums.Genders
 import com.iyr.ultrachango.ui.dialogs.ErrorDialog
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
+import com.iyr.ultrachango.domain.auth.models.AppUser
 import com.iyr.ultrachango.utils.ui.LoadingDialog
 import com.iyr.ultrachango.utils.ui.camera_gallery.rememberCameraManager
 import com.iyr.ultrachango.utils.ui.camera_gallery.rememberGalleryManager

@@ -13,13 +13,17 @@ import com.iyr.ultrachango.data.database.repositories.ShoppingListRepository
 import com.iyr.ultrachango.data.models.ShoppingCartProduct
 import com.iyr.ultrachango.data.models.Product
 import com.iyr.ultrachango.data.models.ProductOnSearch
+import com.iyr.ultrachango.data.models.ProductWithPricesAround
 import com.iyr.ultrachango.data.models.ShoppingCart
 import com.iyr.ultrachango.data.models.ShoppingListComplete
 import com.iyr.ultrachango.data.models.ShoppingListProductComplete
 import com.iyr.ultrachango.data.models.ShoppingListQuantities
 import com.iyr.ultrachango.data.models.toProductOnSearch
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.domain.auth.AuthRepository
+
 import com.iyr.ultrachango.utils.coroutines.Resource
+import com.iyr.ultrachango.utils.extensions.isDigitsOnly
+import com.iyr.ultrachango.utils.geo.getCurrentLocation
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.ALREADY_EXISTS
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.GENERIC_PRODUCT
 import com.iyr.ultrachango.utils.ui.elements.searchwithscanner.NON_EXISTING
@@ -41,6 +45,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import org.koin.core.component.KoinComponent
+import qrgenerator.qrkitpainter.text
 
 
 class ProductPriceDisplayViewModel(
@@ -48,13 +53,13 @@ class ProductPriceDisplayViewModel(
     private val productsRepository: ProductsRepository,
     private val shoppingCartRepository: ShoppingCartRepository,
     private val shoppingListRepository: ShoppingListRepository,
+    private val permissionsController: PermissionsController,
 ) : ViewModel(), KoinComponent {
 
 
-    var permissionsController: PermissionsController? = null
 
-    private var  entityID : Int? = null
-    private var  sortCriteria : Int = 0
+    private var entityID: Int? = null
+    private var sortCriteria: Int = 0
     private val _state = MutableStateFlow(UiState())
     val state: StateFlow<UiState> = _state.asStateFlow()
 
@@ -69,7 +74,7 @@ class ProductPriceDisplayViewModel(
     private var queryJob: Job? = null
 
     fun assignPermissionsController(permissionsController: PermissionsController) {
-        this.permissionsController = permissionsController
+    //    this.permissionsController = permissionsController
     }
 
 
@@ -95,34 +100,49 @@ class ProductPriceDisplayViewModel(
         // Crear un nuevo CoroutineScope con ese job
         val scoped = CoroutineScope(newJob + Dispatchers.Default)
 
-
         scoped.launch {
             try {
+                val location = getCurrentLocation(permissionsController!!).getOrNull()
 
-              productsRepository.searchByBarCodeByLatLngRadius(
-                  ean = ean.toString(),
-                  latitude = -34.586050,
-                  longitude = -58.504600,
-                    radius = 1000
-              )
+                location?.let { location ->
 
 
+                    if (ean.isDigitsOnly()) {
+                        val result: RemoteProductResult =
+                            productsRepository.searchByBarCodeByLatLngRemote(
+                                ean = ean,
+                                latitude = location.coordinates.latitude,
+                                longitude = location.coordinates.longitude
+                            )
 
-                val result: RemoteProductResult = productsRepository.searchByBarCodeByLatLngRemote(
-                    ean = ean,
-                    latitude = -34.586050,
-                    longitude = -58.504600
-
-                )
-
-                withContext(Dispatchers.Main) {
-                    _state.update {
-                        _state.value.copy(
-                            loading = false,
-                            prices = result.sucursales ?: emptyList()
-                        )
+                        withContext(Dispatchers.Main) {
+                            _state.update {
+                                _state.value.copy(
+                                    loading = false,
+                                    prices = result.sucursales ?: emptyList()
+                                )
+                            }
+                        }
                     }
+                    else
+                    {
 
+                       val result = productsRepository.searchProductsSuggestionsDetailed(
+                            text = ean,
+                            latitude = location.coordinates.latitude,
+                            longitude = location.coordinates.longitude,
+                            distance = 1.0
+                        )
+                        withContext(Dispatchers.Main) {
+                            _state.update {
+                                _state.value.copy(
+                                    loading = false,
+                                    suggestions = result.data ?: emptyList()
+                                )
+                            }
+                        }
+
+                    }
                 }
             } catch (e: Exception) {
                 // Manejar el error apropiadamente
@@ -209,8 +229,6 @@ class ProductPriceDisplayViewModel(
      */
     fun onProductTextInput(
         text: String,
-        lat: Double = -34.586050,
-        lng: Double = -58.504600,
         includeFreeText: Boolean = false
     ) {
         /*
@@ -223,63 +241,72 @@ class ProductPriceDisplayViewModel(
             it.cancel()
         }
         searchJob = viewModelScope.launch(Dispatchers.IO) {
-            productsRepository.searchByText(text, lat, lng).onStart {
-                // Emitir estado de carga
-            }.catch { exception ->
-                // Manejar errores
-                val error = exception
-            }.collect { resource ->
-                // Actualizar el estado con los resultados de búsqueda
-                when (resource) {
-                    is Resource.Success -> {
-                        var records = resource.data?.map { it -> it.toProductOnSearch() }
 
-                        if (includeFreeText) {
+            val location = getCurrentLocation(permissionsController!!).getOrNull()
+            location?.let { location ->
+                val coordinates = location.coordinates
 
-                            records = listOf(
-                                ProductOnSearch(
-                                    ean = text,
-                                    name = text,
-                                    brand = "",
-                                    status = GENERIC_PRODUCT
-                                )
-                            ) + (records ?: emptyList<ProductOnSearch>())
+                productsRepository.searchByText(text, coordinates.latitude, coordinates.longitude).onStart {
+                    // Emitir estado de carga
+                }.catch { exception ->
+                    // Manejar errores
+                    val error = exception
+                }.collect { resource ->
+                    // Actualizar el estado con los resultados de búsqueda
+                    when (resource) {
+                        is Resource.Success -> {
+                            var records = resource.data?.map { it -> it.toProductOnSearch() }
+
+                            if (includeFreeText) {
+
+                                records = listOf(
+                                    ProductOnSearch(
+                                        ean = text,
+                                        name = text,
+                                        brand = "",
+                                        status = GENERIC_PRODUCT
+                                    )
+                                ) + (records ?: emptyList<ProductOnSearch>())
+
+                            }
+
+                            val mappedList = records?.map { product ->
+                                product.status =
+                                    if (shoppingList?.items?.any { it.product?.ean == product.ean } == true) ALREADY_EXISTS else NON_EXISTING
+                                product
+                            } ?: emptyList()
+
+
+
+
+                            _state.value = _state.value.copy(
+                                showPulldownIcon = true,
+                                searchResultsExpanded = true,
+                                searchResults = mappedList,
+                                loadingProducts = false
+                            )
 
                         }
 
-                        val mappedList = records?.map { product ->
-                            product.status =
-                                if (shoppingList?.items?.any { it.product?.ean == product.ean } == true) ALREADY_EXISTS else NON_EXISTING
-                            product
-                        } ?: emptyList()
+                        is Resource.Error -> {
+
+                            _state.value = _state.value.copy(
+                                showErrorMessage = true, errorMessage = resource.message
+                            )
 
 
+                        }
 
-
-                        _state.value = _state.value.copy(
-                            showPulldownIcon = true,
-                            searchResultsExpanded = true,
-                            searchResults = mappedList,
-                            loadingProducts = false
-                        )
-
+                        else -> {
+                            null
+                        }
                     }
 
-                    is Resource.Error -> {
-
-                        _state.value = _state.value.copy(
-                            showErrorMessage = true, errorMessage = resource.message
-                        )
-
-
-                    }
-
-                    else -> {
-                        null
-                    }
                 }
 
             }
+
+
         }
 
     }
@@ -374,15 +401,17 @@ class ProductPriceDisplayViewModel(
         when (this.sortCriteria) {
             1 -> {
                 _state.value = _state.value.copy(
-                   prices = state.value.prices.sortedByDescending { it == _state.value.currentPrice }.sortedBy { it.preciosProducto.getBestPrice()  },
+                    prices = state.value.prices.sortedByDescending { it == _state.value.currentPrice }
+                        .sortedBy { it.preciosProducto.getBestPrice() },
                     scrollToTop = true
                 )
             }
 
             2 -> {
                 _state.value = _state.value.copy(
-                   prices = state.value.prices.sortedByDescending { it == _state.value.currentPrice }.sortedBy { it.distanciaNumero },
-                   scrollToTop = true
+                    prices = state.value.prices.sortedByDescending { it == _state.value.currentPrice }
+                        .sortedBy { it.distanciaNumero },
+                    scrollToTop = true
 
                 )
             }
@@ -399,7 +428,7 @@ class ProductPriceDisplayViewModel(
 
     fun setSelectedPrice(ean: String, sucursale: Sucursale) {
         _state.value = _state.value.copy(
-            forcedRefreshTime = Clock.System.now().epochSeconds ,
+            forcedRefreshTime = Clock.System.now().epochSeconds,
             currentPrice = sucursale
         )
         var shoppingCartId = this.getEntityId()
@@ -447,6 +476,7 @@ data class UiState(
     val userId: String? = null,
     val itemsList: List<ShoppingCartProduct> = emptyList(),
     val prices: List<Sucursale> = emptyList(),
+    val suggestions: List<ProductWithPricesAround> = emptyList(),
 
     val shoppingList: List<ShoppingListComplete> = emptyList(),
     val shoppingCart: ShoppingCart? = ShoppingCart(),

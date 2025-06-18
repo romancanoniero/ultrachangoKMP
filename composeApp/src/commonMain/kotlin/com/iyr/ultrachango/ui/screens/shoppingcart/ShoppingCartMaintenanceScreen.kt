@@ -268,43 +268,9 @@ fun ShoppingCartMaintenanceScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-
-            /*
-            MySearchTextFieldWithScanner(
-//                userKey = userViewModel.user.value?.userKey,
-                text = searchText,
-  //              loadingProducts = state.loadingProducts,
-                onTextChange = {
-                    searchText = it
-                    if (!searchText.isEmpty() && searchText.length > MIN_THRESHOLD_SEARCH) {
-                        searchTextFlow.value = it
-                    } else {
-                        vm.onEmptySeachText()
-                    }
-                },
-
-                onScannerClick = {
-                    vm.onScanPressed()
-                },
-
-    //            state = state,
-    //            vm = vm,
-                focusRequester = focusRequester,
-                onFocusChanged = { hasFocus, focusRequester ->
-                    vm.onFocusChanged(hasFocus)
-                },
-                onImageClicked = { product ->
-                    //       vm.onShowProductRequest(product)
-                },
-                onAddButtonClicked = { product ->
-                    triggerHapticFeedback()
-                    vm.onAddProductAsk(product)
-
-                },
-
-            )
-*/
-            MySearchTextFieldWithScanner<ShoppingCartProduct>(
+            MySearchTextFieldWithScanner<ProductOnSearch>(
+                items = vm.state.collectAsState().value.searchResults,
+                loadingProducts = vm.state.value.loadingProducts,
                 text = searchText,
                 onTextChange = {
                     searchText = it
@@ -320,14 +286,31 @@ fun ShoppingCartMaintenanceScreen(
                     vm.onFocusChanged(hasFocus)
                 },
                 dropdownItemContent = { product ->
+
+
+
+                    var newProducto = ShoppingCartProduct().apply {
+                        ean = product.ean
+                        name = product.name
+                        brand = product.brand
+                        presentation = product.presentation
+                        haveImage = product.haveImage
+                        status = product.status
+                        qty = 0.0
+                        requirers = arrayListOf()
+                    }
+
+
                     ShoppingListProductItem(
-                        product = product,
+                        product = newProducto,
                         onImageClick = {
                             //vm.onShowProductRequest(it)
                                        },
-                        onAddClick = { vm.onAddProductAsk(it) }
+                        onAddClick = { vm.onAddProductAsk(it.toProduct()) }
                     )
-                }
+
+                },
+
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -400,6 +383,81 @@ fun ShoppingCartMaintenanceScreen(
 
 
 }
+
+private fun ShoppingCartProduct.toProduct(): Product {
+    return Product(
+        ean = ean,
+        name = name,
+        brand = brand,
+        description = description,
+        presentationUnit = presentationUnit,
+        presentationQty = presentationQty,
+        marca_lower = marca_lower,
+        message = message,
+        nombre_lower = nombre_lower,
+        presentation = presentation,
+        haveImage = haveImage
+    )
+}
+
+
+@Composable
+fun SearchItem(
+    product: ProductOnSearch,
+    onImageClick: (ProductOnSearch) -> Unit,
+    onAddClick: (ProductOnSearch) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        // Imagen del producto
+        if (product.haveImage == true) {
+            AsyncImage(
+                model = getProductImageUrl(product.ean ?: ""),
+                placeholder = painterResource(Res.drawable.sin_imagen),
+                contentDescription = product.name,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .clickable { onImageClick(product) }
+            )
+        }
+
+        Spacer(Modifier.width(8.dp))
+
+        // Información del producto
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = product.name ?: "",
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = product.brand ?: "",
+                fontSize = 12.sp
+            )
+
+        }
+
+        // Icono de estado
+
+       if (product.status.toString().equals(NON_EXISTING)) {
+           IconButton(
+               onClick = {
+                   triggerHapticFeedback()
+                   onAddClick(product)
+               }
+           ) {
+               Icon(
+                   Icons.Outlined.AddCircle,
+                   contentDescription = "Agregar"
+               )
+           }
+       }
+    }
+}
+
+
 
 @Composable
 fun ShoppingListProductItem(

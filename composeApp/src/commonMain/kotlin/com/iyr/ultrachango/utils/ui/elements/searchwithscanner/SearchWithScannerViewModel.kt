@@ -8,8 +8,10 @@ import com.iyr.ultrachango.data.models.ProductOnSearch
 import com.iyr.ultrachango.data.models.ShoppingList
 import com.iyr.ultrachango.data.models.toProduct
 import com.iyr.ultrachango.utils.coroutines.Resource
+import com.iyr.ultrachango.utils.geo.getCurrentLocation
 import dev.icerock.moko.permissions.DeniedAlwaysException
 import dev.icerock.moko.permissions.DeniedException
+import dev.icerock.moko.permissions.PermissionsController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +24,7 @@ import org.koin.core.component.KoinComponent
 
 class SearchWithScannerViewModel(
     private val productsRepository: ProductsRepository,
+    private val permissionsController: PermissionsController
 ) : ViewModel(), KoinComponent {
 
 
@@ -39,9 +42,7 @@ class SearchWithScannerViewModel(
      * @param text
      *
      */
-    fun onProductTextInput(text: String, lat: Double = -34.586050, lng: Double = -58.504600) {
-
-
+    fun onProductTextInput(text: String) {
         val scope = viewModelScope
 
         _state.value = _state.value.copy(
@@ -53,66 +54,73 @@ class SearchWithScannerViewModel(
             it.cancel()
         }
 
-
         searchJob = scope.launch(Dispatchers.IO) {
-            productsRepository.searchByText(text, lat, lng)
-                .onStart {
-                    // Emitir estado de carga
-                    _state.value = _state.value.copy(
-                        loading = true,
-                        showKeyboard = false
-                    )
-                }
-                .catch { exception ->
-                    // Manejar errores
-                    val error = exception
-                    _state.value = _state.value.copy(
-                        loading = false,
-                        showKeyboard = false
-                    )
-                }
-                .collect { resource ->
-                    // Actualizar el estado con los resultados de búsqueda
 
-                    when (resource) {
-                        is Resource.Success -> {
-                            _state.value = _state.value.copy(
-                                loading = false,
-                                showPulldownIcon = true,
-                                searchResultsExpanded = true,
+            val location = getCurrentLocation(permissionsController)
 
-                                )
-                            println("Emito searchResults")
+            location.getOrNull()?.let { location ->
+                val coordinates = location.coordinates
 
-                           _state.value = _state.value.copy(
-                               searchResults = resource.data ?: emptyList(),
-                               searchResultsExpanded = true
-                           )
-                         //   _searchResults.value = resource.data ?: emptyList()
-                            //_state.emit(newUiState)
-                        }
 
-                        is Resource.Error -> {
-                            _state.value = _state.value.copy(
-                                loading = false,
-                                showErrorMessage = false,
-                                errorMessage = resource.message
-                            )
-
-                        }
-
-                        else -> {
-                            null
-                        }
+                productsRepository.searchByText(text, coordinates.latitude, coordinates.longitude)
+                    .onStart {
+                        // Emitir estado de carga
+                        _state.value = _state.value.copy(
+                            loading = true,
+                            showKeyboard = false
+                        )
                     }
+                    .catch { exception ->
+                        // Manejar errores
+                        val error = exception
+                        _state.value = _state.value.copy(
+                            loading = false,
+                            showKeyboard = false
+                        )
+                    }
+                    .collect { resource ->
+                        // Actualizar el estado con los resultados de búsqueda
 
-                }
+                        when (resource) {
+                            is Resource.Success -> {
+                                _state.value = _state.value.copy(
+                                    loading = false,
+                                    showPulldownIcon = true,
+                                    searchResultsExpanded = true,
+
+                                    )
+                                println("Emito searchResults")
+
+                                _state.value = _state.value.copy(
+                                    searchResults = resource.data ?: emptyList(),
+                                    searchResultsExpanded = true
+                                )
+                                //   _searchResults.value = resource.data ?: emptyList()
+                                //_state.emit(newUiState)
+                            }
+
+                            is Resource.Error -> {
+                                _state.value = _state.value.copy(
+                                    loading = false,
+                                    showErrorMessage = false,
+                                    errorMessage = resource.message
+                                )
+
+                            }
+
+                            else -> {
+                                null
+                            }
+                        }
+
+                    }
+            }
         }
     }
 
 
-    fun onFocusChanged(hasFocus: Boolean) {
-
+    fun onFocusChanged(hasFocus: Boolean)
+    {
         _state.value = _state.value.copy(
             showKeyboard = hasFocus
         )
@@ -124,7 +132,6 @@ class SearchWithScannerViewModel(
             showPulldownIcon = false,
             searchResultsExpanded = false
         )
-
     }
 
     fun onScanPressed() {

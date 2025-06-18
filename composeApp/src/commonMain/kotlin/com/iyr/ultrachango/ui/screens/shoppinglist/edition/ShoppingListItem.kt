@@ -345,7 +345,12 @@ fun ProductInfoItem(
                            modifier = Modifier.fillMaxSize(),
                            imageModel = urlProduct,
                            contentDesription = product.product?.name ?: "",
-                           showImage = product.product?.haveImage!!
+                           showImage = product.product?.haveImage!!,
+                           onClick = {
+                               val pp = "onImageClick"
+
+
+                           }
                        )
 /*
                    }

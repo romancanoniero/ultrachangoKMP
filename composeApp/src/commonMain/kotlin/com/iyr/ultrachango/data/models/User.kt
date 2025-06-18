@@ -2,6 +2,7 @@ package com.iyr.ultrachango.data.models
 
 
 import com.iyr.ultrachango.data.models.enums.Genders
+import com.iyr.ultrachango.domain.auth.models.AppUser
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -44,6 +45,19 @@ data class User(
             userKey = this.userKey,
             displayName = this.displayName,
             profilePicturePath = this.profilePicturePath)
+    }
+
+    fun toAppUser(): AppUser? {
+        return AppUser(
+            uid = this.userKey,
+            displayName = this.displayName ?: "",
+            firstName = this.firstName ?: "",
+            lastName = this.lastName ?: "",
+            profilePicturePath = this.profilePicturePath ?: "",
+            email = this.email ?: "",
+            phoneNumber = this.phoneNumber ?: "",
+            birthDate = this.birthDate ?: "",
+        )
     }
 
     constructor() : this("", "", "", "", "", "", "", true, "", Genders.UNKNOWN.name)

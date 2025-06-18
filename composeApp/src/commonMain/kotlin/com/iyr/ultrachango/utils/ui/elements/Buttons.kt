@@ -1,15 +1,24 @@
 package com.iyr.ultrachango.utils.ui.elements
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -56,34 +65,50 @@ fun ThinButton(
 
 @Composable
 fun RegularButton(
+    text: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    text: String = "Cerrar",
+    icon: ImageVector? = null,
     colors: ButtonColors = ButtonDefaults.buttonColors(
-        containerColor = Color.Black,
-        contentColor = Color.White,
+        containerColor = Color.White,
+        contentColor = Color.Black,
         disabledContainerColor = Color.Gray,
-        disabledContentColor = Color.White
-    ),
-    onClick: () -> Unit = {}
+        disabledContentColor = Color.DarkGray
+    )
 ) {
     Button(
-        modifier = modifier,
+        modifier = modifier
+            .shadow(4.dp, buttonShapeMedium),
         enabled = enabled,
         shape = buttonShapeMedium,
         colors = colors,
         onClick = onClick
     ) {
-        Text(
+        Row(
             modifier = Modifier.padding(10.dp),
-            style = TextStyle(
-                fontFamily = SFProMediumFontFamily(),
-                fontWeight = FontWeight.Bold,
-                lineHeight = 20.sp,
-                fontSize = MaterialTheme.typography.titleMedium.fontSize
-            ),
-            text = text
-        )
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            icon?.let { iconVector ->
+                Icon(
+                    imageVector = iconVector,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            
+            Text(
+                style = TextStyle(
+                    fontFamily = SFProMediumFontFamily(),
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 20.sp,
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize
+                ),
+                text = text
+            )
+        }
     }
 }
 

@@ -30,20 +30,18 @@ import androidx.lifecycle.lifecycleScope
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
-import com.iyr.ultrachango.data.models.User
-import com.iyr.ultrachango.data.models.enums.Genders
+import com.iyr.fbauthentication.platform.FirebaseAuthPlatform
 import com.iyr.ultrachango.utils.firebase.GoogleAuth
 import com.iyr.ultrachango.utils.firebase.provideGoogleAuth
-import com.iyr.ultrachango.utils.moko.permissions.PermissionsViewModel
-import com.iyr.ultrachango.utils.ui.elements.IncDecSelectorPreview
 import com.iyr.ultrachango.voice.handleVoiceCommand
-import dev.icerock.moko.permissions.PermissionsController
-import dev.icerock.moko.permissions.compose.BindEffect
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var googleAuth: GoogleAuth
     private lateinit var auth: FirebaseAuth
+
+    private lateinit var firebaseAuth: FirebaseAuthPlatform
+
 
     /*
         val firebaseOptions = FirebaseOptions(
@@ -65,31 +63,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         AppContext.activity = this
 
+        // 1. Llama a esto ANTES de setContent
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         val firebaseApp = FirebaseApp.initializeApp(AppContext.context)
         AppContext.firebaseAuth = FirebaseAuth.getInstance(firebaseApp!!)
+
+
+        firebaseAuth = FirebaseAuthPlatform(
+            activity = this,
+            googleClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
+        )
+
 /*
-        val permissionsViewModel =
-            // Pass the platform implementation of the permission controller to a common code.
-            PermissionsViewModel(PermissionsController(this))
-
-
-        // Binds the permissions controller to the activity lifecycle.
-        permissionsViewModel.permissionsController.bind(this)
-*/
-
-
-        /*
-              Firebase.initialize(
-                  AppContext.context,
-                  options = firebaseOptions
-              )
-
-
-              auth = Firebase.auth
-
-      */
-
-
         val signInLauncher = registerForActivityResult(
             ActivityResultContracts.StartIntentSenderForResult()
         ) { result ->
@@ -116,16 +102,14 @@ class MainActivity : ComponentActivity() {
         )
 
         AppContext.googleAuth = googleAuth
-
+*/
 
 
         registerAssistantShortcut(this)
         enableEdgeToEdge()
         installSplashScreen()
 
-        /*aca
 
-        */
         val shortcutManager = getSystemService(ShortcutManager::class.java)
         val shortcut = ShortcutInfoCompat.Builder(this, "add_product")
             .setShortLabel("Agregar producto")
@@ -138,7 +122,15 @@ class MainActivity : ComponentActivity() {
 
 
         setContent {
-            EnableTransparentStatusBar()
+            //EnableTransparentStatusBar()
+
+            // 2. Haz que el color de la barra de estado sea transparente
+            val darkTheme = isSystemInDarkTheme()
+            SideEffect {
+                val window = (this as Activity).window
+                window.statusBarColor = Color.Transparent.toArgb()
+                WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = !darkTheme
+            }
             App()
         }
     }
@@ -292,5 +284,5 @@ fun AppAndroidPreview() {
     // InviteScreen(InviteViewModel())
 
     //  LoginScreen()
-  IncDecSelectorPreview()
+
 }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -49,13 +51,19 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.iyr.fbauthentication.components.social.AppleAuthButton
+import com.iyr.fbauthentication.components.social.FacebookAuthButton
+import com.iyr.fbauthentication.components.social.GoogleAuthButton
+import com.iyr.fbauthentication.platform.FirebaseAuthPlatform
+import com.iyr.ultrachango.config.BuildConfig
 import com.iyr.ultrachango.data.models.enums.AuthenticationMethods
+import com.iyr.ultrachango.domain.auth.AuthRepository
 import com.iyr.ultrachango.ui.rootnavigation.RootRoutes
 import com.iyr.ultrachango.ui.screens.auth.registration.MethodDivider
-import com.iyr.ultrachango.utils.auth_by_cursor.AuthViewModel
-import com.iyr.ultrachango.utils.auth_by_cursor.models.AppUser
-import com.iyr.ultrachango.utils.auth_by_cursor.statemanagers.AuthStates
-import com.iyr.ultrachango.utils.auth_by_cursor.ui.AuthState
+import com.iyr.ultrachango.domain.auth.models.AppUser
+import com.iyr.ultrachango.presentation.auth.AuthState
+import com.iyr.ultrachango.presentation.auth.AuthViewModel
+import com.iyr.ultrachango.ui.dialogs.ErrorDialog
 import com.iyr.ultrachango.utils.extensions.isEmail
 import com.iyr.ultrachango.utils.extensions.isValidMobileNumber
 import com.iyr.ultrachango.utils.ui.elements.Body1Text
@@ -70,12 +78,15 @@ import com.iyr.ultrachango.utils.ui.otp.pxToDp
 import com.iyr.ultrachango.utils.ui.showLoader
 import com.iyr.ultrachango.utils.ui.triggerHapticFeedback
 import com.iyr.ultrachango.viewmodels.UserViewModel
-import com.mmk.kmpauth.google.GoogleButtonUiContainer
+
 import dev.icerock.moko.permissions.PermissionsController
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import org.ncgroup.kscan.getPlatformName
 import ultrachango2.composeapp.generated.resources.Res
 import ultrachango2.composeapp.generated.resources.enter_otp_code
 import ultrachango2.composeapp.generated.resources.logo_facebook
@@ -90,19 +101,32 @@ fun LoginScreen(
     vm: LoginViewModel = koinViewModel(),
     userViewModel: UserViewModel = koinViewModel(),
     authViewModel: AuthViewModel = koinViewModel(),
-    onAuthenticated: (AppUser) -> Unit = {},
-
-    ) {
+    onAuthenticated: (AppUser) -> Unit = {}
+) {
 
     val uiState by vm.uiState.collectAsState()
-    val emailError by vm.emailError.collectAsState()
-    val passwordError by vm.passwordError.collectAsState()
-    val isProcessing by vm.isProcessing.collectAsState()
-    val isButtonEnabled by vm.isProcessing.collectAsState()
-    val currentUser by vm.currentUser.collectAsState()
-
     val isAuthenticated by vm.isAuthenticated.collectAsState()
 
+    // Estados del AuthViewModel
+    val authState = authViewModel.authState.collectAsState()
+    val loadingState = authViewModel.loadingState.collectAsState()
+
+    // Escuchar eventos de autenticación para manejar casos especiales
+    LaunchedEffect(Unit) {
+        authViewModel.authEvents.collect { event ->
+            when (event) {
+                is com.iyr.ultrachango.presentation.auth.AuthEvent.RequireProfileCompletion -> {
+                    // Obtener el usuario actual y redirigir a completar perfil
+                    val currentUser = authViewModel.getCurrentUser()
+                    navController?.navigate(
+                        com.iyr.ultrachango.ui.rootnavigation.RootRoutes.SetupProfileRoute.createRoute(currentUser)
+                    )
+                }
+                // ... otros eventos pueden manejarse aquí en el futuro
+                else -> { /* No hacer nada para otros eventos */ }
+            }
+        }
+    }
 
 //    MutableState<String>
     val otpValue = remember { mutableStateOf("") }
@@ -112,20 +136,22 @@ fun LoginScreen(
 
     // Define a mutable state to hold the state
     var showPassword by remember { mutableStateOf(false) }
-    val authState = authViewModel.authState.collectAsState()
-    val authUIState = authViewModel.uiState.collectAsState()
 
 
+    if (uiState.showErrorMessage) {
+        ErrorDialog(
+            title = "Error",
+            message = uiState.errorMessage.toString(),
+            onDismissRequest = {
+                vm.closeErrorDialogRequest()
+            }
+        )
+    }
 
 
     if (isAuthenticated) {
         navController?.navigate(RootRoutes.HomeRoute.route)
     } else {
-
-        if (authUIState.value.authState == AuthStates.VERIFICATION_PENDING) {
-            val pp = 33
-        }
-
         when (val result = authState.value) {
             is AuthState.PhoneVerificationSent -> {
                 LaunchedEffect(result) {
@@ -145,7 +171,7 @@ fun LoginScreen(
 
             AuthState.Initial -> {}
             AuthState.Loading -> {
-                showLoader()
+                // El loading se maneja ahora con loadingState
             }
 
             is AuthState.Success -> {
@@ -156,64 +182,68 @@ fun LoginScreen(
         }
 
 
-        if (uiState.loading) {
-            println("Muestro Loader")
-            showLoader()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        )
+        {
+
+
+            Column(
+                modifier = Modifier.background(Color.White).fillMaxSize().systemBarsPadding()
+                    .padding(screenOuterPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                // Welcome message
+                Header()
+
+                Spacer(
+                    modifier = Modifier.fillMaxWidth()
+                        .requiredHeight(30.dp)
+                        .fillMaxHeight()
+                )
+
+                InputSection(uiState, vm, authViewModel, showPassword, navController, otpValue)
+
+                Spacer(
+                    modifier = Modifier.fillMaxWidth()
+                        .requiredHeight(20.dp)
+                )
+
+
+                OtherLoginOptions(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    vm = vm,
+                    authViewModel = authViewModel
+                )
+
+
+                Spacer(
+                    modifier = Modifier.fillMaxWidth()
+                        .requiredHeight(20.dp)
+                        .fillMaxHeight()
+
+                )
+
+
+                LinkToRegister(
+                    modifier = Modifier.fillMaxWidth(), vm, navController
+                )
+            }
+
+
+            // Mostrar loader basado en el loadingState del AuthViewModel
+            if (loadingState.value.isLoading) {
+                println("Muestro Loader: ${loadingState.value.message}")
+                showLoader()
+            }
+            // También mantener el loading del LoginViewModel para compatibilidad
+            else if (uiState.loading) {
+                println("Muestro Loader del LoginViewModel")
+                showLoader()
+            }
         }
-
-        Column(
-            modifier = Modifier.background(Color.White).fillMaxSize().systemBarsPadding()
-                .padding(screenOuterPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ) {
-            // Welcome message
-            Header()
-
-            Spacer(
-                modifier = Modifier.fillMaxWidth()
-                    .requiredHeight(30.dp)
-                    .fillMaxHeight()
-            )
-
-            InputSection(uiState, vm, authViewModel, showPassword, navController, otpValue)
-
-            Spacer(
-                modifier = Modifier.fillMaxWidth()
-                    .requiredHeight(20.dp)
-            )
-
-
-            OtherLoginOptions(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                vm = vm,
-                authViewModel = authViewModel
-            )
-
-
-            Spacer(
-                modifier = Modifier.fillMaxWidth()
-                    .requiredHeight(20.dp)
-                    .fillMaxHeight()
-
-            )
-
-
-            LinkToRegister(
-                modifier = Modifier.fillMaxWidth(), vm, navController
-            )
-
-            /*
-                        Spacer(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(16.dp)
-                        )
-            */
-
-
-        }
-
         LaunchedEffect(Unit) {
             //   delay(500)
         }
@@ -256,113 +286,60 @@ private fun OtherLoginOptions(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        //Google Sign-In with Custom Button (only one tap sign-in functionality)
-        GoogleButtonUiContainer(onGoogleSignInResult = { googleUser ->
-            val idToken = googleUser?.idToken // Send this idToken to your backend to verify
-            val user = googleUser
-      //-------
-            scope.launch {
-                authViewModel.signInWithGoogle(user,idToken!!)
-            }
-
-
-
-            //------
-        }) {
-//            Button(onClick = { this.onClick() }) { Text("Google Sign-In(Custom Design)") }
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White, shape = customShape)
-                    .border(1.dp, Color.LightGray, customShape),
-                shape = customShape,
-                colors = ButtonDefaults.buttonColors().copy(
-                    containerColor = Color.White, contentColor = Color.Black
-                ),
-                onClick = {
-                    triggerHapticFeedback()
-                    this.onClick()
-                    //          vm.onSignInWithGoogle()
-//                    scope.launch {
-//                        authViewModel.signInWithGoogle(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-//                    }
-
-                }) {
-                Image(
-                    modifier = Modifier.height(36.dp).aspectRatio(1f / 1f).padding(end = 4.dp),
-                    painter = painterResource(Res.drawable.logo_google),
-                    contentDescription = "Google"
-                )
-                Text(
-                    "Google", style = StyleButton().copy(color = Color.Black)
-                )
-            }
-
-
-        }
-
-
-
-        Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, shape = customShape)
-                .border(1.dp, Color.LightGray, customShape),
-            shape = customShape,
-            colors = ButtonDefaults.buttonColors().copy(
-                containerColor = Color.White, contentColor = Color.Black
-            ),
+        GoogleAuthButton(
             onClick = {
                 triggerHapticFeedback()
-                //          vm.onSignInWithGoogle()
+                // vm.onSignInWithGoogle()
                 scope.launch {
-                   // authViewModel.signInWithGoogle(user, BuildConfig.GOOGLE_WEB_CLIENT_ID)
+                    println("Google Sign-In clicked")
+                    authViewModel.signInWithGoogle()
                 }
+            },
+            modifier = Modifier.fillMaxWidth()
+                .padding(bottom = 4.dp),
+            shape = RoundedCornerShape(4.dp),
+            enabled = true
+        )
 
-            }) {
-            Image(
-                modifier = Modifier.height(36.dp).aspectRatio(1f / 1f).padding(end = 4.dp),
-                painter = painterResource(Res.drawable.logo_google),
-                contentDescription = "Google"
-            )
-            Text(
-                "Google", style = StyleButton().copy(color = Color.Black)
+        Spacer(modifier = Modifier.height(4.dp))
+
+        /*
+                FacebookAuthButton(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                    onClick = {
+                        triggerHapticFeedback()
+                        // vm.onSignInWithFacebook()
+                        scope.launch {
+                            authViewModel.signInWithFacebook()
+                        }
+                    },
+                    shape = RoundedCornerShape(4.dp),
+                    icon = painterResource(Res.drawable.logo_facebook),
+                    enabled = true
+                )
+        */
+        Spacer(modifier = Modifier.height(4.dp))
+
+        if (getPlatformName().equals("iOS")) {
+            AppleAuthButton(
+                modifier = Modifier.fillMaxWidth().background(Color.White)
+                    .border(1.dp, Color.LightGray, RoundedCornerShape(4.dp))
+                    .padding(bottom = 4.dp),
+
+                onClick = {
+                    triggerHapticFeedback()
+                    // vm.onSignInWithApple()
+                    scope.launch {
+                        // authViewModel.signInWithApple()
+                    }
+                },
+                enabled = true
             )
         }
 
-
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        //Apple Sign-In with Custom Button and authentication with Firebase
-        //       AppleButtonUiContainer(onResult = onFirebaseResult, linkAccount = false) {
-
-        Button(
-            modifier = Modifier.fillMaxWidth().background(Color.White, shape = customShape)
-                .border(1.dp, Color.LightGray, customShape),
-            shape = customShape,
-            colors = ButtonDefaults.buttonColors().copy(
-                containerColor = Color.White, contentColor = Color.Black
-            ),
-            onClick = {
-                //    this.onClick()
-
-            }) {
-            Image(
-                modifier = Modifier.height(36.dp).aspectRatio(1f / 1f).padding(end = 4.dp),
-                painter = painterResource(
-
-                    Res.drawable.logo_facebook
-                ),
-                contentDescription = "Facebook"
-            )
-            Text(
-                "Facebook", style = StyleButton().copy(color = Color.Black)
-            )
-        }
-        //         }
     }
 }
+
 
 @Composable
 private fun InputSection(
@@ -373,7 +350,8 @@ private fun InputSection(
     navController: NavHostController?,
     otpValue: MutableState<String>
 ) {
-    var showPassword1 = showPassword
+    var showPasswordState by remember { mutableStateOf(showPassword) }
+
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -392,7 +370,11 @@ private fun InputSection(
                 vm.setMailOrPhone(authenticationMethod, it)
             },
             label = { Text("Email or Phone") },
-            modifier = Modifier.fillMaxWidth().background(Color.White, shape = customShape),
+            modifier = Modifier
+
+                        .fillMaxWidth()
+                        .background(Color.White, shape = customShape),
+            singleLine = true,
             shape = customShape,
             leadingIcon = {
                 //    Icon(Icons.Default.Person, contentDescription = "phone")
@@ -435,6 +417,7 @@ private fun InputSection(
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth().background(Color.White, shape = customShape),
                 enabled = (uiState.authenticationMethod.equals(AuthenticationMethods.EMAIL)),
+                singleLine = true,
                 value = uiState.password,
                 onValueChange = {
                     //   password = it
@@ -448,15 +431,15 @@ private fun InputSection(
                 trailingIcon = {
                     IconButton(onClick = {
                         triggerHapticFeedback()
-                        showPassword1 = !showPassword1
+                        showPasswordState = !showPasswordState
                     }) {
                         Icon(
-                            imageVector = if (showPassword1) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            imageVector = if (showPasswordState) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                             contentDescription = "Show Password"
                         )
                     }
                 },
-                visualTransformation = if (!showPassword1) PasswordVisualTransformation() else VisualTransformation.None,
+                visualTransformation = if (!showPasswordState) PasswordVisualTransformation() else VisualTransformation.None,
 
                 )
             Row(
@@ -503,27 +486,14 @@ private fun InputSection(
                     val emailOrPhone = vm.getEmailOrPhoneNumber()
 
                     if (emailOrPhone.isValidMobileNumber()) {
-                        authViewModel.verifyPhoneNumber(emailOrPhone)
+                        authViewModel.signInWithPhone(emailOrPhone)
                     } else
                         if (emailOrPhone.isEmail()) {
-                            authViewModel.signInWithEmailAndPassword(emailOrPhone, vm.getPassword())
+                            //   authViewModel.signInWithEmailAndPassword(emailOrPhone, vm.getPassword())
+                            authViewModel.signInWithEmail(emailOrPhone, vm.getPassword())
                         }
 
 
-                    //           vm.onSignInClick()
-
-                    /*
-                 authViewModel.signUp(emailOrPhone.text, password.text)
-                 {
-                     val message = if (it) "SignUp Successful" else "SignUp Failed"
-                     println(message)
-                 }
-
-                 authViewModel.signIn(emailOrPhone.text, password.text) { success ->
-                     val message = if (success) "Login Successful" else "Login Failed"
-                     println(message)
-                 }
-                 */
                 },
                 content = {
                     Text(

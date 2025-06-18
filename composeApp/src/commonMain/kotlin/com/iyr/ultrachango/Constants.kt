@@ -1,6 +1,9 @@
 package com.iyr.ultrachango
 
 object Constants {
+
+
+    val LOCATION_SELECTED = "CURRENT_LOCATION"
     val CURRENT_LOCATION = "CURRENT_LOCATION"
     val CURRENT_LOCATION_ID = "CURRENT_LOCATION_ID"
     val CURRENT_LOCATION_NAME = "CURRENT_LOCATION_NAME"

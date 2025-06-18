@@ -4,7 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import com.iyr.ultrachango.data.database.repositories.ImagesRepository
-import com.iyr.ultrachango.utils.auth_by_cursor.repository.AuthRepository
+import com.iyr.ultrachango.domain.auth.AuthRepository
+
 import com.iyr.ultrachango.utils.helpers.getProfileImageURL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO

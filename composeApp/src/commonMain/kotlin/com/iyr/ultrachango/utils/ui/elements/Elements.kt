@@ -28,6 +28,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -142,10 +143,11 @@ fun CustomButton(
             content: @Composable () -> Unit?,
 ) {
     Button(
-        modifier = modifier.height(50.dp),
+        modifier = modifier.height(50.dp).shadow(4.dp, shape = RoundedCornerShape(8.dp)),
         onClick = onClick,
         shape = RoundedCornerShape(8.dp),
         colors = colors,
+
         enabled = enabled
     ) {
         content()

@@ -1,3 +1,5 @@
+
+
 rootProject.name = "UltraChango2"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
@@ -14,6 +16,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        mavenLocal()
     }
 }
 
@@ -27,6 +30,7 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        mavenLocal()
     }
 }
 

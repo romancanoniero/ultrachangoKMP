@@ -44,7 +44,18 @@ actual class SharedImage(private val image: UIImage?, private val uri: String? =
     }
 
     actual fun getUri(): String? {
-        TODO("Not yet implemented")
+        return uri ?: run {
+            // Si no hay URI, generar una temporal basada en los datos de la imagen
+            image?.let { uiImage ->
+                try {
+                    // Crear un identificador único para esta imagen
+                    val timestamp = platform.Foundation.NSDate().timeIntervalSince1970
+                    "temp_image_${timestamp.toLong()}.jpg"
+                } catch (e: Exception) {
+                    null
+                }
+            }
+        }
     }
 
 }

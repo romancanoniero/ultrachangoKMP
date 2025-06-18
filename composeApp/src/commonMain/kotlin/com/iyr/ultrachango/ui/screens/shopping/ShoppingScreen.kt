@@ -335,18 +335,30 @@ fun ShoppingScreen(
                         product = product,
                         onProductClicked = { product ->
                             triggerHapticFeedback()
-
                             val userKey = vm.getUserKey()
                             val entityId = state.shoppingCart?.shoppingCartId
 
-                            val navigationLink = RootRoutes.ProductPricesDetailRoute.createRoute(
-                                entityId = entityId,
-                                userKey = userKey.toString(),
-                                ean = product.ean.toString(),
-                                name = product.name.toString(),
-                                productAsJson = Json.encodeToString(product)
+                            var navigationLink : String = ""
 
-                            )
+                            if (product.ean.toString().isDigitsOnly()) {
+                                navigationLink = RootRoutes.ProductPricesDetailRoute.createRoute(
+                                    entityId = entityId,
+                                    userKey = userKey.toString(),
+                                    ean = product.ean.toString(),
+                                    name = product.name.toString(),
+                                    productAsJson = Json.encodeToString(product)
+                                )
+                            }
+                            else
+                            {
+                                navigationLink = RootRoutes.ProductsSuggestedByTextDetailRoute.createRoute(
+                                    entityId = entityId,
+                                    userKey = userKey.toString(),
+                                    ean = product.ean.toString(),
+                                    name = product.name.toString(),
+                                    productAsJson = Json.encodeToString(product)
+                                )
+                            }
 
                             navController?.navigate(navigationLink)
 
